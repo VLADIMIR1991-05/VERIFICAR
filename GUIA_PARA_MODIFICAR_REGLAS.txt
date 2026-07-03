@@ -1,0 +1,106 @@
+GUIA RAPIDA PARA MODIFICAR EL VALIDADOR
+
+ARCHIVOS IMPORTANTES
+
+1. index.html
+   Pagina principal recomendada para publicar en GitHub Pages.
+
+2. validador_despiece_mejorado.html
+   Misma pagina principal, con el nombre que ya estabas usando.
+
+3. db_codigos.js
+   Base de datos de abreviaturas y nombres.
+   Aqui se agregan significados, no formulas de medidas.
+
+4. lector_codigos.js
+   Lee el codigo del mueble.
+   Aqui se corrige como detectar ancho, altura, profundidad, tipo de modulo y accesorios.
+
+5. reglas_validacion.js
+   Aqui estan las reglas de validacion de medidas.
+   Este es el archivo principal para aumentar condiciones.
+
+6. app.js
+   Maneja pantalla, carga de Excel, filtros, renderizado y comparacion.
+   Normalmente no debes tocarlo para agregar reglas de medidas.
+
+
+DONDE AGREGAR UNA NUEVA REGLA
+
+Archivo:
+reglas_validacion.js
+
+Funcion principal:
+validarMedidasPieza(pieza, medida1, medida2, modulo)
+
+Orden recomendado:
+1. Reglas muy especificas primero.
+2. Reglas generales despues.
+3. La regla de dos dimensiones siempre al final.
+
+Ejemplo:
+
+if (esNuevaPieza(nombre)) {
+    if (!modulo.anchoInterno) return { ok: true, mensaje: "", valida: false };
+
+    const esperado1 = modulo.anchoInterno;
+    const esperado2 = 100;
+    const ok = coincideParMedidas(medida1, medida2, esperado1, esperado2);
+
+    return {
+        ok,
+        mensaje: `deberia medir ${esperado1} x ${esperado2} mm por regla nueva.`,
+        valida: true,
+        objetivos: [esperado1, esperado2]
+    };
+}
+
+Luego agrega abajo un detector:
+
+function esNuevaPieza(pieza) {
+    const normal = normalizarPieza(pieza);
+    return normal === "NUEVA" || normal.startsWith("NUEVA");
+}
+
+
+COMO APAGAR UNA REGLA SIN BORRARLA
+
+Pon return false al inicio del detector:
+
+function esNuevaPieza(pieza) {
+    return false;
+}
+
+Asi no se pierde la regla y se puede activar despues.
+
+
+DONDE CAMBIAR LECTURA DE CODIGOS
+
+Archivo:
+lector_codigos.js
+
+Funciones utiles:
+
+- obtenerDimensionesModulo(cod)
+  Decide ancho, alto y profundidad del modulo.
+
+- alturaPorDefecto(tipo)
+  Define alturas por defecto, como B=H4, X=H11, CM=H11.
+
+- profundidadPorDefecto(tipo)
+  Define profundidad de estructura por defecto.
+
+- extraerAlturaMm(texto)
+  Lee H1, H75.7, H224.6, HE, etc.
+
+- extraerProfundidadMm(texto)
+  Lee P3, P4, P6.7, P69, etc.
+
+
+SI ALGO NO FUNCIONA
+
+Hay una copia de respaldo:
+validador_despiece_mejorado.backup.html
+
+Tambien puedes desactivar una regla comentandola o apagando su detector.
+
