@@ -2281,27 +2281,48 @@ const DB = {
 
     "TIPOS DE MODULOS": "Bajos, altos, suspendidos, auxiliares, altos sobre meson / Bajos, suspendidos, auxiliares. En esta coleccion no existe ningun tipo de modulos altos. / Bajos, suspendidos, auxiliares, altos (Altos unicamente para colocar encima de modulos auxiliares). / Bajos sin puerta (con y sin respaldo). Altos sin puerta (con y sin respaldo), Altos con puerta de malla metalica, Auxiliares sin puerta (con y sin respaldo). Bases loft (Patas metalicas altura 316mm que funcionan con modulos H3). Modulos altos sobre isla (Modulos metalicos suspendidos que se sujetan al tumbado). Accesorios sobre meson",
 
-    "TIPOS DE PERFILES": "Perfil Tipo F: Un punto de fijacion al piso y 2 puntos en pared.",
-
-    // Claves agregadas desde ACABADOS.docx.
-    "FORMEX METAL LIQUIDO": "Tableros que mantienen las dos caras y el canto del mismo color",
-    "MARCOS DE ALUMINIO": "Puertas estructuradas con perfiles de aluminio y vidrios de 4 mm de espesor",
-    "MARCOS DE MADERA CON VIDRIO": "Puertas de melaminico o MDF (laca, termolaminado o enchape) con vidrio embutido",
-    "ME": "Metal",
-    "MET BR": "Metalizado Brillante",
-    "MIRROR BRONZO": "Tablero de 1 cara que utiliza canto negro",
-    "MM": "Metalizado Mate",
-    "MT": "Mate",
-    "NATURALES": "Roble Americano Canela, Seike Caramelo, Roble Americano Miel, Roble Obsidiana, Roble Humo",
-    "NV": "Nativo",
-    "PI": "Piedra",
-    "PO": "Poro",
-    "RANURADOS": "Tableros con una cara ranurada y otra plana, manteniendo el mismo color tanto en sus caras como en el canto",
-    "RECONSTITUIDOS": "Roble Claro Natural, Nogal Mallado Natural, Roble Rustico, Roble Rameado Rustico",
-    "SB": "Semibrillante",
-    "SY": "Synchro",
-    "SYROS": "Tablero de MDF con una lamina coextruida sobre un poliester base, formulada para reproducir el efecto de metales cepillados. Es suave al tacto y resistente a rayos UV, a la luz, a rayones y a cambios de temperatura. No permite repisas engrosadas y viene en espesor de 18 mm",
-    "TE": "Textil",
+    "TIPOS DE PERFILES": "Perfil Tipo F: Un punto de fijacion al piso y 2 puntos en pared.",
+
+
+
+    // Claves agregadas desde ACABADOS.docx.
+
+    "FORMEX METAL LIQUIDO": "Tableros que mantienen las dos caras y el canto del mismo color",
+
+    "MARCOS DE ALUMINIO": "Puertas estructuradas con perfiles de aluminio y vidrios de 4 mm de espesor",
+
+    "MARCOS DE MADERA CON VIDRIO": "Puertas de melaminico o MDF (laca, termolaminado o enchape) con vidrio embutido",
+
+    "ME": "Metal",
+
+    "MET BR": "Metalizado Brillante",
+
+    "MIRROR BRONZO": "Tablero de 1 cara que utiliza canto negro",
+
+    "MM": "Metalizado Mate",
+
+    "MT": "Mate",
+
+    "NATURALES": "Roble Americano Canela, Seike Caramelo, Roble Americano Miel, Roble Obsidiana, Roble Humo",
+
+    "NV": "Nativo",
+
+    "PI": "Piedra",
+
+    "PO": "Poro",
+
+    "RANURADOS": "Tableros con una cara ranurada y otra plana, manteniendo el mismo color tanto en sus caras como en el canto",
+
+    "RECONSTITUIDOS": "Roble Claro Natural, Nogal Mallado Natural, Roble Rustico, Roble Rameado Rustico",
+
+    "SB": "Semibrillante",
+
+    "SY": "Synchro",
+
+    "SYROS": "Tablero de MDF con una lamina coextruida sobre un poliester base, formulada para reproducir el efecto de metales cepillados. Es suave al tacto y resistente a rayos UV, a la luz, a rayones y a cambios de temperatura. No permite repisas engrosadas y viene en espesor de 18 mm",
+
+    "TE": "Textil",
+
     "WO": "Wood",
 };
 
