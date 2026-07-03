@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- Define la codificacion correcta para mostrar tildes y caracteres en espanol. -->
+    <meta charset="UTF-8">
+    <!-- Permite que la pagina se adapte correctamente a celulares y tablets. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <!-- Titulo que aparece en la pestana del navegador. -->
+    <title>Validador de Despiece - Madeval</title>
+    <!-- Libreria para leer archivos Excel .xlsx desde el navegador. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Base externa de nomenclaturas. Reemplaza db_codigos.js para actualizar codigos. -->
+    <script src="./db_codigos.js"></script>
+
+    <style>
+        /* Variables generales de color para mantener el diseno consistente. */
+        :root {
+            --primary: #263630;
+            --accent: #50766d;
+            --accent-dark: #3e5d56;
+            --success: #3f7d62;
+            --success-soft: #edf6f0;
+            --danger: #a75a4d;
+            --danger-soft: #fbefec;
+            --warning: #9b743e;
+            --warning-soft: #fbf4e7;
+            --bg: #ece9e2;
+            --card: #fffdf8;
+            --border: #d8d2c5;
+            --text: #25312d;
+            --muted: #6f766f;
+            --table-head: #f0eee8;
+            --shadow: 0 8px 22px rgba(56, 63, 54, 0.1);
+        }
+
+        /* Normaliza el calculo de tamanos y elimina margenes por defecto. */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Estilos base del cuerpo de la pagina. */
+        body {
+            min-height: 100vh;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background:
+                linear-gradient(180deg, rgba(255, 253, 248, 0.72), rgba(236, 233, 226, 0.92)),
+                var(--bg);
+            color: var(--text);
+        }
+
+        /* Barra superior fija con titulo y boton de carga. */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            padding: 16px 28px;
+            background: linear-gradient(135deg, #263630 0%, #30483f 100%);
+            color: white;
+            box-shadow: 0 8px 22px rgba(38, 54, 48, 0.22);
+        }
+
+        /* Mantiene el texto del encabezado ordenado. */
+        .header-title {
+            min-width: 260px;
+            flex: 1;
+        }
+
+        /* Agrupa carga y contadores principales en la cabecera. */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Titulo principal del sistema. */
+        .header h1 {
+            font-size: 1.2rem;
+            font-weight: 750;
+            letter-spacing: 0.2px;
+        }
+
+        /* Texto pequeno debajo del titulo. */
+        .header p {
+            margin-top: 3px;
+            color: #d5ddd5;
+            font-size: 0.78rem;
+        }
+
+        /* Boton visual que abre el selector de archivo. */
+        .file-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 38px;
+            padding: 9px 16px;
+            border-radius: 7px;
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            font-size: 0.86rem;
+            font-weight: 700;
+            transition: background 0.2s ease;
+        }
+
+        /* Color del boton al pasar el mouse. */
+        .file-label:hover {
+            background: var(--accent-dark);
+        }
+
+        /* Oculta el input real porque se usa el label como boton bonito. */
+        #upload {
+            display: none;
+        }
+
+        /* Oculta inputs auxiliares de comparacion. */
+        #upload-base,
+        #upload-comparar {
+            display: none;
+        }
+
+        /* Franja de filtros y acciones. */
+        .controls {
+            position: sticky;
+            top: 72px;
+            z-index: 18;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(140px, 1fr)) auto auto auto;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 28px;
+            background: rgba(255, 253, 248, 0.94);
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 4px 14px rgba(56, 63, 54, 0.08);
+        }
+
+        /* Consultor independiente para descifrar codigos de mueble. */
+        .decoder {
+            position: sticky;
+            top: 139px;
+            z-index: 17;
+            display: grid;
+            grid-template-columns: minmax(180px, 340px) 1fr;
+            gap: 10px;
+            align-items: center;
+            padding: 12px 28px;
+            background: rgba(247, 245, 239, 0.96);
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Resultado del consultor de codigos. */
+        .decoder-result {
+            min-height: 38px;
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            background: #fffdf8;
+            color: var(--text);
+            font-size: 0.84rem;
+            line-height: 1.35;
+        }
+
+        /* Franja del modo de comparacion de archivos. */
+        .compare-panel {
+            display: none;
+            grid-template-columns: auto auto minmax(220px, 1fr);
+            gap: 10px;
+            align-items: center;
+            padding: 12px 28px;
+            background: #fffdf8;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Muestra la franja cuando el modo comparar esta activo. */
+        .compare-panel.show {
+            display: grid;
+        }
+
+        /* Boton deshabilitado del segundo archivo. */
+        .file-label.disabled {
+            opacity: 0.48;
+            pointer-events: none;
+        }
+
+        /* Resultado compacto de comparacion. */
+        .compare-result {
+            min-height: 38px;
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            background: #f6f3ec;
+            color: var(--text);
+            font-size: 0.82rem;
+            line-height: 1.35;
+        }
+
+        /* Inputs de busqueda. */
+        .f-input {
+            flex: 1;
+            min-width: 145px;
+            height: 38px;
+            padding: 8px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 7px;
+            background: #faf8f2;
+            color: var(--text);
+            font-size: 0.86rem;
+            outline: none;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        /* Resalta el campo activo. */
+        .f-input:focus {
+            border-color: var(--accent);
+            background: #fffdf8;
+        }
+
+        /* Estilo base para botones de accion. */
+        .btn {
+            min-height: 38px;
+            padding: 9px 15px;
+            border-radius: 7px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-size: 0.84rem;
+            font-weight: 750;
+            white-space: nowrap;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        /* Boton principal para validar. */
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Color hover del boton principal. */
+        .btn-primary:hover {
+            background: var(--accent-dark);
+        }
+
+        /* Boton secundario para limpiar filtros. */
+        .btn-secondary {
+            background: #f3f0e9;
+            color: #4d5a52;
+            border-color: var(--border);
+        }
+
+        /* Color hover del boton secundario. */
+        .btn-secondary:hover {
+            background: #e5e0d5;
+        }
+
+        /* Barra de contadores y avisos. */
+        .stats-bar {
+            display: none;
+            align-items: flex-start;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 11px 28px;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        /* Coloca contadores principales uno debajo del otro. */
+        .stats-main {
+            display: grid;
+            gap: 3px;
+            margin-right: 6px;
+        }
+
+        /* Etiquetas pequenas de resumen. */
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            padding: 3px 10px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: #fffdf8;
+            font-weight: 700;
+        }
+
+        /* Chip de muebles correctos. */
+        .chip.ok {
+            border-color: #a7c9b4;
+            background: var(--success-soft);
+            color: var(--success);
+        }
+
+        /* Chip de muebles con error. */
+        .chip.err {
+            border-color: #dfbbb4;
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+
+        /* Chip de advertencias. */
+        .chip.warn {
+            border-color: #edd18b;
+            background: var(--warning-soft);
+            color: var(--warning);
+        }
+
+        /* Contenedor principal de resultados. */
+        .body-wrap {
+            width: min(100%, 1680px);
+            margin: 0 auto;
+            padding: 18px 28px 42px;
+        }
+
+        /* Bloque agrupado por OP. */
+        .op-block {
+            margin-bottom: 34px;
+        }
+
+        /* Titulo de cada OP. */
+        .op-title {
+            display: inline-block;
+            margin-bottom: 12px;
+            padding: 5px 13px;
+            border-radius: 5px;
+            background: #34483f;
+            color: white;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        /* Tarjeta de cada mueble. */
+        .mueble-container {
+            margin-bottom: 14px;
+            padding: 15px 16px 17px;
+            border-left: 6px solid #c9c1b1;
+            border-radius: 8px;
+            background: var(--card);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.2s ease;
+        }
+
+        /* Microinteraccion sutil para que la lista se sienta mas dinamica. */
+        .mueble-container:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 26px rgba(56, 63, 54, 0.14);
+        }
+
+        /* Estado correcto del mueble. */
+        .mueble-container.ok {
+            border-left-color: var(--success);
+            background: #fbfdf8;
+        }
+
+        /* Estado con error del mueble. */
+        .mueble-container.err {
+            border-left-color: var(--danger);
+            background: #fff9f6;
+        }
+
+        /* Resalta brevemente el mueble al saltar desde el contador de errores. */
+        .mueble-container.pulse-error {
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2), var(--shadow);
+        }
+
+        /* Encabezado interno de la tarjeta. */
+        .mueble-header {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        /* Columna izquierda del encabezado. */
+        .mueble-title {
+            min-width: 0;
+            flex: 1;
+        }
+
+        /* Codigo del mueble. */
+        .cod-mueble {
+            font-size: 1rem;
+            font-weight: 850;
+            color: var(--primary);
+            word-break: break-word;
+        }
+
+        /* Linea del codigo con ubicacion al lado. */
+        .cod-line {
+            display: flex;
+            align-items: baseline;
+            gap: 7px;
+            flex-wrap: wrap;
+        }
+
+        /* Ubicacion compacta del mueble. */
+        .ubi-tag {
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 750;
+        }
+
+        /* Dimensiones interpretadas desde el codigo del mueble. */
+        .dim-tag {
+            color: #46564f;
+            font-size: 0.82rem;
+            font-weight: 850;
+            letter-spacing: 0;
+        }
+
+        /* Grosor de material usado para descuentos. */
+        .thickness-tag {
+            display: inline-flex;
+            align-items: center;
+            min-height: 20px;
+            padding: 1px 6px;
+            border-radius: 999px;
+            background: #e9f0ec;
+            color: #3e665d;
+            font-size: 0.76rem;
+            font-weight: 850;
+            letter-spacing: 0;
+        }
+
+        /* Descripcion del codigo. */
+        .desc-tag {
+            margin-top: 3px;
+            color: #8f463b;
+            font-size: 0.78rem;
+            font-weight: 650;
+        }
+
+        /* Linea de subtitulo con etiquetas especiales. */
+        .desc-line {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 3px;
+        }
+
+        /* Etiqueta compacta para piezas especiales detectadas. */
+        .special-tag {
+            display: inline-flex;
+            align-items: center;
+            min-height: 19px;
+            padding: 2px 7px;
+            border: 1px solid #d7b574;
+            border-radius: 6px;
+            background: #fbefd5;
+            color: #7a5a24;
+            font-size: 0.68rem;
+            font-weight: 850;
+            line-height: 1;
+            text-transform: uppercase;
+            letter-spacing: 0;
+            white-space: nowrap;
+        }
+
+        .desc-line .desc-tag {
+            margin-top: 0;
+        }
+
+        /* Contenedor de etiquetas del mueble. */
+        .badges {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        /* Columna derecha del encabezado con badges y material. */
+        .header-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+        }
+
+        /* Texto de material debajo de OP y Tipo. */
+        .material-tag {
+            max-width: 320px;
+            color: #4c5a52;
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-align: right;
+            line-height: 1.3;
+        }
+
+        /* Etiqueta generica. */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 22px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        /* Etiqueta de OP. */
+        .badge-op {
+            background: #e7efeb;
+            color: #416a61;
+        }
+
+        /* Etiqueta de tipo. */
+        .badge-tipo {
+            background: #ede8dd;
+            color: #685844;
+        }
+
+        /* Etiqueta OK. */
+        .badge-ok {
+            background: #deefe4;
+            color: #2f6d51;
+        }
+
+        /* Etiqueta error. */
+        .badge-err {
+            background: #f6ddd8;
+            color: #8d3d35;
+        }
+
+        /* Caja de mensajes de validacion por mueble. */
+        .validation-list {
+            display: none;
+            margin: 10px 0 2px;
+            padding: 9px 11px;
+            border: 1px solid #dfb4ac;
+            border-radius: 7px;
+            background: var(--danger-soft);
+            color: #7d352d;
+            font-size: 0.78rem;
+            line-height: 1.45;
+        }
+
+        /* Muestra la lista cuando existen errores. */
+        .validation-list.show {
+            display: block;
+        }
+
+        /* Permite desplazamiento horizontal en tablas grandes. */
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 10px;
+            border: 1px solid #e2ddd2;
+            border-radius: 7px;
+            scrollbar-width: thin;
+        }
+
+        /* Estilo base de la tabla. */
+        table {
+            width: 100%;
+            min-width: 760px;
+            border-collapse: collapse;
+            font-size: 12px;
+            background: #fffdf8;
+        }
+
+        /* Fondo del encabezado de tabla. */
+        thead tr {
+            background: var(--table-head);
+        }
+
+        /* Celdas de encabezado. */
+        th {
+            padding: 7px 9px;
+            border-bottom: 2px solid var(--border);
+            color: var(--muted);
+            text-align: left;
+            font-size: 10px;
+            font-weight: 850;
+            letter-spacing: 0.45px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        /* Celdas de datos. */
+        td {
+            padding: 6px 9px;
+            border-bottom: 1px solid #eee9df;
+            color: var(--text);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        /* Sombreado muy tenue para diferenciar columnas, sin contar la columna del check. */
+        th:nth-child(odd):not(:first-child),
+        td:nth-child(odd):not(:first-child) {
+            background: rgba(80, 118, 109, 0.055);
+        }
+
+        /* Mantiene el sombreado suave tambien al pasar el mouse. */
+        tbody tr:hover td:nth-child(odd):not(:first-child) {
+            background: rgba(80, 118, 109, 0.085);
+        }
+
+        /* Columna compacta que indica si la fila fue validada por medida. */
+        .check-col,
+        .check-cell {
+            width: 22px;
+            min-width: 22px;
+            max-width: 22px;
+            padding-left: 5px;
+            padding-right: 4px;
+            text-align: center;
+        }
+
+        /* Check pequeno para no robar espacio a la tabla. */
+        .row-check {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: #e4f3e9;
+            color: #2f7a54;
+            font-size: 9px;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .row-check::before {
+            content: "\2713";
+        }
+
+        /* Check junto a medidas que coinciden con algun valor esperado. */
+        .measure-check {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 12px;
+            height: 12px;
+            margin-left: 5px;
+            border-radius: 50%;
+            background: #e4f3e9;
+            color: #2f7a54;
+            font-size: 8px;
+            font-weight: 900;
+            line-height: 1;
+            vertical-align: middle;
+        }
+
+        .measure-check::before {
+            content: "\2713";
+        }
+
+        /* Elimina borde final de la ultima fila. */
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Resalta fila al pasar el mouse. */
+        tbody tr:hover td {
+            background: #f8f5ee;
+        }
+
+        /* Alinea numeros a la derecha. */
+        td.num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Marca visual de fila con error. */
+        tr.row-error td {
+            background: #fae9e5;
+            color: #76362f;
+        }
+
+        /* Marca visual suave para filas validadas correctamente. */
+        tr.row-ok td {
+            background: #dceee2;
+        }
+
+        /* Conserva una ligera diferencia entre columnas en filas correctas. */
+        tr.row-ok td:nth-child(odd):not(:first-child) {
+            background: #cfe5d7;
+        }
+
+        /* Mensaje inicial o sin resultados. */
+        .empty {
+            padding: 58px 18px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        /* Icono del mensaje vacio. */
+        .empty svg {
+            margin-bottom: 14px;
+            opacity: 0.34;
+        }
+
+        /* Titulo de mensaje vacio. */
+        .empty h3 {
+            margin-bottom: 6px;
+            color: #4c5a52;
+            font-size: 1.06rem;
+        }
+
+        /* Parrafo de mensaje vacio. */
+        .empty p {
+            font-size: 0.86rem;
+        }
+
+        /* Caja para errores generales, por ejemplo columnas faltantes. */
+        .notice {
+            margin-bottom: 14px;
+            padding: 11px 13px;
+            border: 1px solid #dec68b;
+            border-radius: 7px;
+            background: var(--warning-soft);
+            color: #725322;
+            font-size: 0.83rem;
+            line-height: 1.45;
+        }
+
+        /* Ajustes para tablet y movil horizontal. */
+        @media (max-width: 980px) {
+            .header,
+            .controls,
+            .stats-bar {
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+
+            .header {
+                align-items: center;
+                gap: 12px;
+            }
+
+            .header h1 {
+                font-size: 1.08rem;
+            }
+
+            .header p {
+                font-size: 0.74rem;
+            }
+
+            .file-label {
+                min-height: 36px;
+                padding: 8px 13px;
+                font-size: 0.82rem;
+            }
+
+            .controls {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                padding-top: 12px;
+                padding-bottom: 12px;
+            }
+
+            .decoder {
+                grid-template-columns: minmax(0, 1fr);
+                padding: 12px 18px;
+            }
+
+            .compare-panel {
+                grid-template-columns: 1fr 1fr;
+                padding: 12px 18px;
+            }
+
+            .compare-result {
+                grid-column: 1 / -1;
+            }
+
+            .decoder-result {
+                grid-column: auto;
+            }
+
+            .body-wrap {
+                padding: 14px 18px 36px;
+            }
+
+            .mueble-container {
+                padding: 14px;
+                border-left-width: 5px;
+            }
+
+            .mueble-header {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .header-meta {
+                align-items: flex-start;
+            }
+
+            .badges {
+                justify-content: flex-start;
+            }
+
+            .material-tag {
+                text-align: left;
+                max-width: none;
+            }
+
+            .desc-tag {
+                font-size: 0.82rem;
+                line-height: 1.35;
+            }
+        }
+
+        /* Ajustes para moviles angostos. */
+        @media (max-width: 520px) {
+            .header {
+                padding: 14px 14px;
+            }
+
+            .header-title {
+                min-width: 0;
+            }
+
+            .header h1 {
+                font-size: 1rem;
+            }
+
+            .header p {
+                display: none;
+            }
+
+            .file-label {
+                justify-content: center;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .header-actions .file-label {
+                flex: 1 1 100%;
+            }
+
+            .controls,
+            .decoder,
+            .compare-panel {
+                grid-template-columns: 1fr;
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .stats-bar {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            .body-wrap {
+                padding: 12px 10px 32px;
+            }
+
+            .op-block {
+                margin-bottom: 24px;
+            }
+
+            .op-title {
+                margin-left: 2px;
+            }
+
+            .mueble-container {
+                padding: 12px;
+                margin-bottom: 12px;
+                border-radius: 7px;
+            }
+
+            .cod-line {
+                gap: 5px;
+            }
+
+            .cod-mueble {
+                font-size: 0.95rem;
+            }
+
+            .ubi-tag {
+                font-size: 0.72rem;
+            }
+
+            .badge {
+                font-size: 0.64rem;
+                min-height: 20px;
+            }
+
+            th,
+            td {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Encabezado con nombre del sistema y carga de archivo. -->
+    <header class="header">
+        <!-- Contenedor del texto principal. -->
+        <div class="header-title">
+            <!-- Nombre visible de la herramienta. -->
+            <h1>Validador de Despiece</h1>
+            <!-- Nombre del documento cargado o instruccion inicial. -->
+            <p id="document-name">Carga un archivo Excel o CSV para comenzar.</p>
+        </div>
+
+        <!-- Acciones fijas de cabecera. -->
+        <div class="header-actions">
+            <!-- Cantidad de muebles correctos. -->
+            <span class="chip ok" id="chip-ok" style="display:none"></span>
+            <!-- Cantidad de muebles con errores. -->
+            <span class="chip err" id="chip-err" style="display:none"></span>
+            <!-- Label que funciona como boton para abrir el input de archivo. -->
+            <label class="file-label" for="upload" title="Cargar archivo Excel o CSV">
+                <!-- Icono sencillo de carga. -->
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path>
+                    <path d="M12 12V4"></path>
+                    <path d="m8 8 4-4 4 4"></path>
+                </svg>
+                <!-- Texto del boton. -->
+                Cargar archivo
+            </label>
+        </div>
+
+        <!-- Input real para seleccionar archivo; esta oculto por CSS. -->
+        <input type="file" id="upload" accept=".xlsx,.xls,.csv">
+    </header>
+
+    <!-- Filtros y botones principales. -->
+    <section class="controls" aria-label="Filtros y acciones">
+        <!-- Filtro universal 1. -->
+        <input type="text" class="f-input" id="f1" placeholder="Filtro 1: codigo, pieza, OP..." autocomplete="off">
+        <!-- Filtro universal 2. -->
+        <input type="text" class="f-input" id="f2" placeholder="Filtro 2" autocomplete="off">
+        <!-- Filtro universal 3. -->
+        <input type="text" class="f-input" id="f3" placeholder="Filtro 3" autocomplete="off">
+        <!-- Filtro universal 4. -->
+        <input type="text" class="f-input" id="f4" placeholder="Filtro 4" autocomplete="off">
+        <!-- Boton que ejecuta la validacion dimensional. -->
+        <button type="button" class="btn btn-primary" id="btn-validar">Validar estructura</button>
+        <!-- Boton que borra los filtros activos. -->
+        <button type="button" class="btn btn-secondary" id="btn-limpiar">Limpiar</button>
+        <!-- Boton que activa el modo de comparacion entre dos archivos. -->
+        <button type="button" class="btn btn-secondary" id="btn-modo-comparar">Comparar archivos</button>
+    </section>
+
+    <!-- Consultor independiente para descifrar un codigo de mueble manualmente. -->
+    <section class="decoder" aria-label="Consultor de codigo de mueble">
+        <!-- Entrada del codigo que se quiere consultar. -->
+        <input type="text" class="f-input" id="codigo-consulta" placeholder="Consultar codigo: BAR63H12P6.7S/P-PM..." autocomplete="off">
+        <!-- Resultado de lectura del codigo. -->
+        <div class="decoder-result" id="resultado-codigo">Escribe un codigo para ver como se lee.</div>
+    </section>
+
+    <!-- Panel para comparar un archivo base contra otro archivo. -->
+    <section class="compare-panel" id="compare-panel" aria-label="Comparacion de archivos">
+        <!-- Boton para cargar archivo base. -->
+        <label class="file-label" for="upload-base" title="Cargar archivo base para comparar">1. Archivo base</label>
+        <!-- Input oculto del archivo base. -->
+        <input type="file" id="upload-base" accept=".xlsx,.xls,.csv">
+        <!-- Boton para cargar archivo a comparar; se activa despues del archivo base. -->
+        <label class="file-label disabled" id="label-upload-comparar" for="upload-comparar" title="Cargar segundo archivo">2. Archivo a comparar</label>
+        <!-- Input oculto del segundo archivo. -->
+        <input type="file" id="upload-comparar" accept=".xlsx,.xls,.csv" disabled>
+        <!-- Resultado de comparacion. -->
+        <div class="compare-result" id="compare-result">Activa el modo y carga un archivo base para comenzar.</div>
+    </section>
+
+    <!-- Contadores de resultado y estado. -->
+    <section class="stats-bar" id="stats-bar" aria-live="polite">
+        <!-- Cantidades visibles contra cantidades totales. -->
+        <span class="stats-main">
+            <span>Mostrando <strong id="vis-count">0</strong> de <strong id="total-count">0</strong> muebles</span>
+            <span>Mostrando <strong id="vis-piece-count">0</strong> de <strong id="total-piece-count">0</strong> piezas</span>
+        </span>
+        <!-- Advertencia sobre columnas o lectura. -->
+        <span class="chip warn" id="chip-warn" style="display:none"></span>
+    </section>
+
+    <!-- Zona principal donde se renderizan los muebles. -->
+    <main class="body-wrap">
+        <!-- Contenedor de avisos generales. -->
+        <div id="avisos"></div>
+        <!-- Contenedor de la lista de OP y muebles. -->
+        <div id="lista">
+            <!-- Estado inicial antes de cargar datos. -->
+            <div class="empty">
+                <!-- Icono de tabla vacia. -->
+                <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                    <path d="M3 9h18M9 21V9"></path>
+                </svg>
+                <!-- Titulo del estado vacio. -->
+                <h3>Sin datos cargados</h3>
+                <!-- Mensaje de ayuda inicial. -->
+                <p>Sube un archivo Excel (.xlsx/.xls) o CSV para comenzar.</p>
+            </div>
+        </div>
+    </main>
+    <script src="./lector_codigos.js"></script>
+    <script src="./reglas_validacion.js"></script>
+    <script src="./app.js"></script>
+</body>
+</html>

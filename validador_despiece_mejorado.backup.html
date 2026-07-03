@@ -1,0 +1,3958 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- Define la codificacion correcta para mostrar tildes y caracteres en espanol. -->
+    <meta charset="UTF-8">
+    <!-- Permite que la pagina se adapte correctamente a celulares y tablets. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Titulo que aparece en la pestana del navegador. -->
+    <title>Validador de Despiece - Madeval</title>
+    <!-- Libreria para leer archivos Excel .xlsx desde el navegador. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Base externa de nomenclaturas. Reemplaza db_codigos.js para actualizar codigos. -->
+    <script src="./db_codigos.js"></script>
+
+    <style>
+        /* Variables generales de color para mantener el diseno consistente. */
+        :root {
+            --primary: #263630;
+            --accent: #50766d;
+            --accent-dark: #3e5d56;
+            --success: #3f7d62;
+            --success-soft: #edf6f0;
+            --danger: #a75a4d;
+            --danger-soft: #fbefec;
+            --warning: #9b743e;
+            --warning-soft: #fbf4e7;
+            --bg: #ece9e2;
+            --card: #fffdf8;
+            --border: #d8d2c5;
+            --text: #25312d;
+            --muted: #6f766f;
+            --table-head: #f0eee8;
+            --shadow: 0 8px 22px rgba(56, 63, 54, 0.1);
+        }
+
+        /* Normaliza el calculo de tamanos y elimina margenes por defecto. */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Estilos base del cuerpo de la pagina. */
+        body {
+            min-height: 100vh;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background:
+                linear-gradient(180deg, rgba(255, 253, 248, 0.72), rgba(236, 233, 226, 0.92)),
+                var(--bg);
+            color: var(--text);
+        }
+
+        /* Barra superior fija con titulo y boton de carga. */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            padding: 16px 28px;
+            background: linear-gradient(135deg, #263630 0%, #30483f 100%);
+            color: white;
+            box-shadow: 0 8px 22px rgba(38, 54, 48, 0.22);
+        }
+
+        /* Mantiene el texto del encabezado ordenado. */
+        .header-title {
+            min-width: 260px;
+            flex: 1;
+        }
+
+        /* Agrupa carga y contadores principales en la cabecera. */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Titulo principal del sistema. */
+        .header h1 {
+            font-size: 1.2rem;
+            font-weight: 750;
+            letter-spacing: 0.2px;
+        }
+
+        /* Texto pequeno debajo del titulo. */
+        .header p {
+            margin-top: 3px;
+            color: #d5ddd5;
+            font-size: 0.78rem;
+        }
+
+        /* Boton visual que abre el selector de archivo. */
+        .file-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 38px;
+            padding: 9px 16px;
+            border-radius: 7px;
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            font-size: 0.86rem;
+            font-weight: 700;
+            transition: background 0.2s ease;
+        }
+
+        /* Color del boton al pasar el mouse. */
+        .file-label:hover {
+            background: var(--accent-dark);
+        }
+
+        /* Oculta el input real porque se usa el label como boton bonito. */
+        #upload {
+            display: none;
+        }
+
+        /* Oculta inputs auxiliares de comparacion. */
+        #upload-base,
+        #upload-comparar {
+            display: none;
+        }
+
+        /* Franja de filtros y acciones. */
+        .controls {
+            position: sticky;
+            top: 72px;
+            z-index: 18;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(140px, 1fr)) auto auto auto;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 28px;
+            background: rgba(255, 253, 248, 0.94);
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 4px 14px rgba(56, 63, 54, 0.08);
+        }
+
+        /* Consultor independiente para descifrar codigos de mueble. */
+        .decoder {
+            position: sticky;
+            top: 139px;
+            z-index: 17;
+            display: grid;
+            grid-template-columns: minmax(180px, 340px) 1fr;
+            gap: 10px;
+            align-items: center;
+            padding: 12px 28px;
+            background: rgba(247, 245, 239, 0.96);
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Resultado del consultor de codigos. */
+        .decoder-result {
+            min-height: 38px;
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            background: #fffdf8;
+            color: var(--text);
+            font-size: 0.84rem;
+            line-height: 1.35;
+        }
+
+        /* Franja del modo de comparacion de archivos. */
+        .compare-panel {
+            display: none;
+            grid-template-columns: auto auto minmax(220px, 1fr);
+            gap: 10px;
+            align-items: center;
+            padding: 12px 28px;
+            background: #fffdf8;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Muestra la franja cuando el modo comparar esta activo. */
+        .compare-panel.show {
+            display: grid;
+        }
+
+        /* Boton deshabilitado del segundo archivo. */
+        .file-label.disabled {
+            opacity: 0.48;
+            pointer-events: none;
+        }
+
+        /* Resultado compacto de comparacion. */
+        .compare-result {
+            min-height: 38px;
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            background: #f6f3ec;
+            color: var(--text);
+            font-size: 0.82rem;
+            line-height: 1.35;
+        }
+
+        /* Inputs de busqueda. */
+        .f-input {
+            flex: 1;
+            min-width: 145px;
+            height: 38px;
+            padding: 8px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 7px;
+            background: #faf8f2;
+            color: var(--text);
+            font-size: 0.86rem;
+            outline: none;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        /* Resalta el campo activo. */
+        .f-input:focus {
+            border-color: var(--accent);
+            background: #fffdf8;
+        }
+
+        /* Estilo base para botones de accion. */
+        .btn {
+            min-height: 38px;
+            padding: 9px 15px;
+            border-radius: 7px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-size: 0.84rem;
+            font-weight: 750;
+            white-space: nowrap;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        /* Boton principal para validar. */
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Color hover del boton principal. */
+        .btn-primary:hover {
+            background: var(--accent-dark);
+        }
+
+        /* Boton secundario para limpiar filtros. */
+        .btn-secondary {
+            background: #f3f0e9;
+            color: #4d5a52;
+            border-color: var(--border);
+        }
+
+        /* Color hover del boton secundario. */
+        .btn-secondary:hover {
+            background: #e5e0d5;
+        }
+
+        /* Barra de contadores y avisos. */
+        .stats-bar {
+            display: none;
+            align-items: flex-start;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 11px 28px;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        /* Coloca contadores principales uno debajo del otro. */
+        .stats-main {
+            display: grid;
+            gap: 3px;
+            margin-right: 6px;
+        }
+
+        /* Etiquetas pequenas de resumen. */
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            padding: 3px 10px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: #fffdf8;
+            font-weight: 700;
+        }
+
+        /* Chip de muebles correctos. */
+        .chip.ok {
+            border-color: #a7c9b4;
+            background: var(--success-soft);
+            color: var(--success);
+        }
+
+        /* Chip de muebles con error. */
+        .chip.err {
+            border-color: #dfbbb4;
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+
+        /* Chip de advertencias. */
+        .chip.warn {
+            border-color: #edd18b;
+            background: var(--warning-soft);
+            color: var(--warning);
+        }
+
+        /* Contenedor principal de resultados. */
+        .body-wrap {
+            width: min(100%, 1680px);
+            margin: 0 auto;
+            padding: 18px 28px 42px;
+        }
+
+        /* Bloque agrupado por OP. */
+        .op-block {
+            margin-bottom: 34px;
+        }
+
+        /* Titulo de cada OP. */
+        .op-title {
+            display: inline-block;
+            margin-bottom: 12px;
+            padding: 5px 13px;
+            border-radius: 5px;
+            background: #34483f;
+            color: white;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        /* Tarjeta de cada mueble. */
+        .mueble-container {
+            margin-bottom: 14px;
+            padding: 15px 16px 17px;
+            border-left: 6px solid #c9c1b1;
+            border-radius: 8px;
+            background: var(--card);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.2s ease;
+        }
+
+        /* Microinteraccion sutil para que la lista se sienta mas dinamica. */
+        .mueble-container:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 26px rgba(56, 63, 54, 0.14);
+        }
+
+        /* Estado correcto del mueble. */
+        .mueble-container.ok {
+            border-left-color: var(--success);
+            background: #fbfdf8;
+        }
+
+        /* Estado con error del mueble. */
+        .mueble-container.err {
+            border-left-color: var(--danger);
+            background: #fff9f6;
+        }
+
+        /* Resalta brevemente el mueble al saltar desde el contador de errores. */
+        .mueble-container.pulse-error {
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2), var(--shadow);
+        }
+
+        /* Encabezado interno de la tarjeta. */
+        .mueble-header {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        /* Columna izquierda del encabezado. */
+        .mueble-title {
+            min-width: 0;
+            flex: 1;
+        }
+
+        /* Codigo del mueble. */
+        .cod-mueble {
+            font-size: 1rem;
+            font-weight: 850;
+            color: var(--primary);
+            word-break: break-word;
+        }
+
+        /* Linea del codigo con ubicacion al lado. */
+        .cod-line {
+            display: flex;
+            align-items: baseline;
+            gap: 7px;
+            flex-wrap: wrap;
+        }
+
+        /* Ubicacion compacta del mueble. */
+        .ubi-tag {
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 750;
+        }
+
+        /* Dimensiones interpretadas desde el codigo del mueble. */
+        .dim-tag {
+            color: #46564f;
+            font-size: 0.82rem;
+            font-weight: 850;
+            letter-spacing: 0;
+        }
+
+        /* Grosor de material usado para descuentos. */
+        .thickness-tag {
+            display: inline-flex;
+            align-items: center;
+            min-height: 20px;
+            padding: 1px 6px;
+            border-radius: 999px;
+            background: #e9f0ec;
+            color: #3e665d;
+            font-size: 0.76rem;
+            font-weight: 850;
+            letter-spacing: 0;
+        }
+
+        /* Descripcion del codigo. */
+        .desc-tag {
+            margin-top: 3px;
+            color: #8f463b;
+            font-size: 0.78rem;
+            font-weight: 650;
+        }
+
+        /* Linea de subtitulo con etiquetas especiales. */
+        .desc-line {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 3px;
+        }
+
+        /* Etiqueta compacta para piezas especiales detectadas. */
+        .special-tag {
+            display: inline-flex;
+            align-items: center;
+            min-height: 19px;
+            padding: 2px 7px;
+            border: 1px solid #d7b574;
+            border-radius: 6px;
+            background: #fbefd5;
+            color: #7a5a24;
+            font-size: 0.68rem;
+            font-weight: 850;
+            line-height: 1;
+            text-transform: uppercase;
+            letter-spacing: 0;
+            white-space: nowrap;
+        }
+
+        .desc-line .desc-tag {
+            margin-top: 0;
+        }
+
+        /* Contenedor de etiquetas del mueble. */
+        .badges {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        /* Columna derecha del encabezado con badges y material. */
+        .header-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+        }
+
+        /* Texto de material debajo de OP y Tipo. */
+        .material-tag {
+            max-width: 320px;
+            color: #4c5a52;
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-align: right;
+            line-height: 1.3;
+        }
+
+        /* Etiqueta generica. */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 22px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        /* Etiqueta de OP. */
+        .badge-op {
+            background: #e7efeb;
+            color: #416a61;
+        }
+
+        /* Etiqueta de tipo. */
+        .badge-tipo {
+            background: #ede8dd;
+            color: #685844;
+        }
+
+        /* Etiqueta OK. */
+        .badge-ok {
+            background: #deefe4;
+            color: #2f6d51;
+        }
+
+        /* Etiqueta error. */
+        .badge-err {
+            background: #f6ddd8;
+            color: #8d3d35;
+        }
+
+        /* Caja de mensajes de validacion por mueble. */
+        .validation-list {
+            display: none;
+            margin: 10px 0 2px;
+            padding: 9px 11px;
+            border: 1px solid #dfb4ac;
+            border-radius: 7px;
+            background: var(--danger-soft);
+            color: #7d352d;
+            font-size: 0.78rem;
+            line-height: 1.45;
+        }
+
+        /* Muestra la lista cuando existen errores. */
+        .validation-list.show {
+            display: block;
+        }
+
+        /* Permite desplazamiento horizontal en tablas grandes. */
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 10px;
+            border: 1px solid #e2ddd2;
+            border-radius: 7px;
+            scrollbar-width: thin;
+        }
+
+        /* Estilo base de la tabla. */
+        table {
+            width: 100%;
+            min-width: 760px;
+            border-collapse: collapse;
+            font-size: 12px;
+            background: #fffdf8;
+        }
+
+        /* Fondo del encabezado de tabla. */
+        thead tr {
+            background: var(--table-head);
+        }
+
+        /* Celdas de encabezado. */
+        th {
+            padding: 7px 9px;
+            border-bottom: 2px solid var(--border);
+            color: var(--muted);
+            text-align: left;
+            font-size: 10px;
+            font-weight: 850;
+            letter-spacing: 0.45px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        /* Celdas de datos. */
+        td {
+            padding: 6px 9px;
+            border-bottom: 1px solid #eee9df;
+            color: var(--text);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        /* Sombreado muy tenue para diferenciar columnas, sin contar la columna del check. */
+        th:nth-child(odd):not(:first-child),
+        td:nth-child(odd):not(:first-child) {
+            background: rgba(80, 118, 109, 0.055);
+        }
+
+        /* Mantiene el sombreado suave tambien al pasar el mouse. */
+        tbody tr:hover td:nth-child(odd):not(:first-child) {
+            background: rgba(80, 118, 109, 0.085);
+        }
+
+        /* Columna compacta que indica si la fila fue validada por medida. */
+        .check-col,
+        .check-cell {
+            width: 22px;
+            min-width: 22px;
+            max-width: 22px;
+            padding-left: 5px;
+            padding-right: 4px;
+            text-align: center;
+        }
+
+        /* Check pequeno para no robar espacio a la tabla. */
+        .row-check {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: #e4f3e9;
+            color: #2f7a54;
+            font-size: 9px;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .row-check::before {
+            content: "\2713";
+        }
+
+        /* Check junto a medidas que coinciden con algun valor esperado. */
+        .measure-check {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 12px;
+            height: 12px;
+            margin-left: 5px;
+            border-radius: 50%;
+            background: #e4f3e9;
+            color: #2f7a54;
+            font-size: 8px;
+            font-weight: 900;
+            line-height: 1;
+            vertical-align: middle;
+        }
+
+        .measure-check::before {
+            content: "\2713";
+        }
+
+        /* Elimina borde final de la ultima fila. */
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Resalta fila al pasar el mouse. */
+        tbody tr:hover td {
+            background: #f8f5ee;
+        }
+
+        /* Alinea numeros a la derecha. */
+        td.num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Marca visual de fila con error. */
+        tr.row-error td {
+            background: #fae9e5;
+            color: #76362f;
+        }
+
+        /* Marca visual suave para filas validadas correctamente. */
+        tr.row-ok td {
+            background: #dceee2;
+        }
+
+        /* Conserva una ligera diferencia entre columnas en filas correctas. */
+        tr.row-ok td:nth-child(odd):not(:first-child) {
+            background: #cfe5d7;
+        }
+
+        /* Mensaje inicial o sin resultados. */
+        .empty {
+            padding: 58px 18px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        /* Icono del mensaje vacio. */
+        .empty svg {
+            margin-bottom: 14px;
+            opacity: 0.34;
+        }
+
+        /* Titulo de mensaje vacio. */
+        .empty h3 {
+            margin-bottom: 6px;
+            color: #4c5a52;
+            font-size: 1.06rem;
+        }
+
+        /* Parrafo de mensaje vacio. */
+        .empty p {
+            font-size: 0.86rem;
+        }
+
+        /* Caja para errores generales, por ejemplo columnas faltantes. */
+        .notice {
+            margin-bottom: 14px;
+            padding: 11px 13px;
+            border: 1px solid #dec68b;
+            border-radius: 7px;
+            background: var(--warning-soft);
+            color: #725322;
+            font-size: 0.83rem;
+            line-height: 1.45;
+        }
+
+        /* Ajustes para tablet y movil horizontal. */
+        @media (max-width: 980px) {
+            .header,
+            .controls,
+            .stats-bar {
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+
+            .header {
+                align-items: center;
+                gap: 12px;
+            }
+
+            .header h1 {
+                font-size: 1.08rem;
+            }
+
+            .header p {
+                font-size: 0.74rem;
+            }
+
+            .file-label {
+                min-height: 36px;
+                padding: 8px 13px;
+                font-size: 0.82rem;
+            }
+
+            .controls {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                padding-top: 12px;
+                padding-bottom: 12px;
+            }
+
+            .decoder {
+                grid-template-columns: minmax(0, 1fr);
+                padding: 12px 18px;
+            }
+
+            .compare-panel {
+                grid-template-columns: 1fr 1fr;
+                padding: 12px 18px;
+            }
+
+            .compare-result {
+                grid-column: 1 / -1;
+            }
+
+            .decoder-result {
+                grid-column: auto;
+            }
+
+            .body-wrap {
+                padding: 14px 18px 36px;
+            }
+
+            .mueble-container {
+                padding: 14px;
+                border-left-width: 5px;
+            }
+
+            .mueble-header {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .header-meta {
+                align-items: flex-start;
+            }
+
+            .badges {
+                justify-content: flex-start;
+            }
+
+            .material-tag {
+                text-align: left;
+                max-width: none;
+            }
+
+            .desc-tag {
+                font-size: 0.82rem;
+                line-height: 1.35;
+            }
+        }
+
+        /* Ajustes para moviles angostos. */
+        @media (max-width: 520px) {
+            .header {
+                padding: 14px 14px;
+            }
+
+            .header-title {
+                min-width: 0;
+            }
+
+            .header h1 {
+                font-size: 1rem;
+            }
+
+            .header p {
+                display: none;
+            }
+
+            .file-label {
+                justify-content: center;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .header-actions .file-label {
+                flex: 1 1 100%;
+            }
+
+            .controls,
+            .decoder,
+            .compare-panel {
+                grid-template-columns: 1fr;
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .stats-bar {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            .body-wrap {
+                padding: 12px 10px 32px;
+            }
+
+            .op-block {
+                margin-bottom: 24px;
+            }
+
+            .op-title {
+                margin-left: 2px;
+            }
+
+            .mueble-container {
+                padding: 12px;
+                margin-bottom: 12px;
+                border-radius: 7px;
+            }
+
+            .cod-line {
+                gap: 5px;
+            }
+
+            .cod-mueble {
+                font-size: 0.95rem;
+            }
+
+            .ubi-tag {
+                font-size: 0.72rem;
+            }
+
+            .badge {
+                font-size: 0.64rem;
+                min-height: 20px;
+            }
+
+            th,
+            td {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Encabezado con nombre del sistema y carga de archivo. -->
+    <header class="header">
+        <!-- Contenedor del texto principal. -->
+        <div class="header-title">
+            <!-- Nombre visible de la herramienta. -->
+            <h1>Validador de Despiece</h1>
+            <!-- Nombre del documento cargado o instruccion inicial. -->
+            <p id="document-name">Carga un archivo Excel o CSV para comenzar.</p>
+        </div>
+
+        <!-- Acciones fijas de cabecera. -->
+        <div class="header-actions">
+            <!-- Cantidad de muebles correctos. -->
+            <span class="chip ok" id="chip-ok" style="display:none"></span>
+            <!-- Cantidad de muebles con errores. -->
+            <span class="chip err" id="chip-err" style="display:none"></span>
+            <!-- Label que funciona como boton para abrir el input de archivo. -->
+            <label class="file-label" for="upload" title="Cargar archivo Excel o CSV">
+                <!-- Icono sencillo de carga. -->
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path>
+                    <path d="M12 12V4"></path>
+                    <path d="m8 8 4-4 4 4"></path>
+                </svg>
+                <!-- Texto del boton. -->
+                Cargar archivo
+            </label>
+        </div>
+
+        <!-- Input real para seleccionar archivo; esta oculto por CSS. -->
+        <input type="file" id="upload" accept=".xlsx,.xls,.csv">
+    </header>
+
+    <!-- Filtros y botones principales. -->
+    <section class="controls" aria-label="Filtros y acciones">
+        <!-- Filtro universal 1. -->
+        <input type="text" class="f-input" id="f1" placeholder="Filtro 1: codigo, pieza, OP..." autocomplete="off">
+        <!-- Filtro universal 2. -->
+        <input type="text" class="f-input" id="f2" placeholder="Filtro 2" autocomplete="off">
+        <!-- Filtro universal 3. -->
+        <input type="text" class="f-input" id="f3" placeholder="Filtro 3" autocomplete="off">
+        <!-- Filtro universal 4. -->
+        <input type="text" class="f-input" id="f4" placeholder="Filtro 4" autocomplete="off">
+        <!-- Boton que ejecuta la validacion dimensional. -->
+        <button type="button" class="btn btn-primary" id="btn-validar">Validar estructura</button>
+        <!-- Boton que borra los filtros activos. -->
+        <button type="button" class="btn btn-secondary" id="btn-limpiar">Limpiar</button>
+        <!-- Boton que activa el modo de comparacion entre dos archivos. -->
+        <button type="button" class="btn btn-secondary" id="btn-modo-comparar">Comparar archivos</button>
+    </section>
+
+    <!-- Consultor independiente para descifrar un codigo de mueble manualmente. -->
+    <section class="decoder" aria-label="Consultor de codigo de mueble">
+        <!-- Entrada del codigo que se quiere consultar. -->
+        <input type="text" class="f-input" id="codigo-consulta" placeholder="Consultar codigo: BAR63H12P6.7S/P-PM..." autocomplete="off">
+        <!-- Resultado de lectura del codigo. -->
+        <div class="decoder-result" id="resultado-codigo">Escribe un codigo para ver como se lee.</div>
+    </section>
+
+    <!-- Panel para comparar un archivo base contra otro archivo. -->
+    <section class="compare-panel" id="compare-panel" aria-label="Comparacion de archivos">
+        <!-- Boton para cargar archivo base. -->
+        <label class="file-label" for="upload-base" title="Cargar archivo base para comparar">1. Archivo base</label>
+        <!-- Input oculto del archivo base. -->
+        <input type="file" id="upload-base" accept=".xlsx,.xls,.csv">
+        <!-- Boton para cargar archivo a comparar; se activa despues del archivo base. -->
+        <label class="file-label disabled" id="label-upload-comparar" for="upload-comparar" title="Cargar segundo archivo">2. Archivo a comparar</label>
+        <!-- Input oculto del segundo archivo. -->
+        <input type="file" id="upload-comparar" accept=".xlsx,.xls,.csv" disabled>
+        <!-- Resultado de comparacion. -->
+        <div class="compare-result" id="compare-result">Activa el modo y carga un archivo base para comenzar.</div>
+    </section>
+
+    <!-- Contadores de resultado y estado. -->
+    <section class="stats-bar" id="stats-bar" aria-live="polite">
+        <!-- Cantidades visibles contra cantidades totales. -->
+        <span class="stats-main">
+            <span>Mostrando <strong id="vis-count">0</strong> de <strong id="total-count">0</strong> muebles</span>
+            <span>Mostrando <strong id="vis-piece-count">0</strong> de <strong id="total-piece-count">0</strong> piezas</span>
+        </span>
+        <!-- Advertencia sobre columnas o lectura. -->
+        <span class="chip warn" id="chip-warn" style="display:none"></span>
+    </section>
+
+    <!-- Zona principal donde se renderizan los muebles. -->
+    <main class="body-wrap">
+        <!-- Contenedor de avisos generales. -->
+        <div id="avisos"></div>
+        <!-- Contenedor de la lista de OP y muebles. -->
+        <div id="lista">
+            <!-- Estado inicial antes de cargar datos. -->
+            <div class="empty">
+                <!-- Icono de tabla vacia. -->
+                <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                    <path d="M3 9h18M9 21V9"></path>
+                </svg>
+                <!-- Titulo del estado vacio. -->
+                <h3>Sin datos cargados</h3>
+                <!-- Mensaje de ayuda inicial. -->
+                <p>Sube un archivo Excel (.xlsx/.xls) o CSV para comenzar.</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Columnas que el sistema intenta leer del archivo.
+        const COLS_DESEADAS = ["op", "Tipo", "cod_mueble", "jov", "cod_pieza", "cant_piezas", "medida1", "medida2", "l1", "l2", "c1", "c2", "nomueble", "material_nombre", "ubicacion", "ubi"];
+
+        // Columnas que se muestran en la tabla; op, cod_mueble, Tipo, material y ubicacion se usan fuera de la tabla.
+        const COLS_TABLA = COLS_DESEADAS.filter(col => !["op", "cod_mueble", "Tipo", "material_nombre", "ubicacion", "ubi"].includes(col));
+
+        // Etiquetas visibles para columnas internas.
+        const LABEL_COLUMNAS = {
+            jov: "job"
+        };
+
+        // Posicion de la columna L en Excel, usando indice base cero.
+        const INDICE_COLUMNA_L = 11;
+
+        // Clave interna donde se guarda siempre el contenido real de la columna L.
+        const CLAVE_COLUMNA_L = "__material_nombre_columna_L";
+
+        // Posicion de la columna J en Excel, usando indice base cero.
+        const INDICE_COLUMNA_J = 9;
+
+        // Clave interna donde se guarda siempre el contenido real de la columna J.
+        const CLAVE_COLUMNA_J = "__material_nombre_columna_J";
+
+        // Posicion de la columna B en Excel, usando indice base cero.
+        const INDICE_COLUMNA_B = 1;
+
+        // Clave interna donde se guarda siempre el contenido real de la columna B.
+        const CLAVE_COLUMNA_B = "__tipo_columna_B";
+
+        // Posicion de la columna M en Excel, usando indice base cero.
+        const INDICE_COLUMNA_M = 12;
+
+        // Clave interna donde se guarda siempre el contenido real de la columna M.
+        const CLAVE_COLUMNA_M = "__tipo_columna_M";
+
+        // Posicion de la columna E en Excel, usando indice base cero.
+        const INDICE_COLUMNA_E = 4;
+
+        // Clave interna donde se guarda siempre el contenido real de la columna E.
+        const CLAVE_COLUMNA_E = "__cod_pieza_columna_E";
+
+        // Posicion de la columna G en Excel, usando indice base cero.
+        const INDICE_COLUMNA_G = 6;
+
+        // Clave interna donde se guarda siempre el contenido real de la columna G.
+        const CLAVE_COLUMNA_G = "__cod_pieza_columna_G";
+
+        // Posicion de la columna AI en Excel, usando indice base cero.
+        const INDICE_COLUMNA_AI = 34;
+
+        // Clave interna donde se guarda siempre el contenido real de la columna AI.
+        const CLAVE_COLUMNA_AI = "__jov_columna_AI";
+
+        // Posicion de la columna AJ en Excel, usando indice base cero.
+        const INDICE_COLUMNA_AJ = 35;
+
+        // Clave interna donde se guarda siempre el contenido real de la columna AJ.
+        const CLAVE_COLUMNA_AJ = "__jov_columna_AJ";
+
+        // Clave interna que combina el JOB/JOV cuando viene entre AI y AJ.
+        const CLAVE_COLUMNA_JOB = "__job_columna_AI_AJ";
+
+        // Prefijo interno para conservar cada columna fisica del archivo aunque el encabezado venga raro.
+        const PREFIJO_COLUMNA_FISICA = "__col_";
+
+        // Columnas que se consideran numericas para alinearlas y validarlas.
+        const COLS_NUMERICAS = new Set(["cant_piezas", "medida1", "medida2", "l1", "l2", "c1", "c2"]);
+
+        // Columnas minimas para que la validacion tenga sentido.
+        const COLS_REQUERIDAS = ["op", "cod_mueble", "cod_pieza", "medida1", "medida2"];
+
+        // Alias aceptados para encontrar encabezados aunque cambie el texto visible.
+        const ALIAS_COLUMNAS = {
+            op: ["op", "orden_produccion", "ordenproduccion", "orden_de_produccion", "orden", "ordenprod", "noop", "numop"],
+            Tipo: ["tipo", "material_tipo", "tipomaterial", "materialtipo", "tipo_material", "lacas", "melaminico", "lacas_melaminico", "lacasymelaminico", "lacas_melaminicos", "tipo_lacas_melaminico", "tipolacasmelaminico", "tipo_laca_melaminico", "tipolacamelaminico", "acabado", "tipoacabado", "tipo_acabado"],
+            cod_mueble: ["cod_mueble", "codmueble", "codigo_mueble", "codigomueble", "codigo_muebles", "codigomuebles", "cod_modulo", "codmodulo", "cod_mod", "codmod", "mueble", "modulo"],
+            jov: ["jov", "job"],
+            cod_pieza: ["cod_pieza", "codpieza", "cod pieza", "codigo_pieza", "codigopieza", "codigo pieza", "codigo_de_pieza", "codigodepieza", "codigo_piezas", "codigopiezas", "codigo piezas", "codigo_de_piezas", "codigodepiezas", "codigo_pza", "codigopza", "codigo pza", "codigo_pzas", "codigopzas", "codigo pzas", "cod_pza", "codpza", "cod pza", "cod_pzas", "codpzas", "cod pzas", "cod_piezas", "codpiezas", "cod piezas", "cod_de_piezas", "coddepiezas", "pieza", "piezas", "pza", "pzas", "cod"],
+            cant_piezas: ["cant_piezas", "cantpiezas", "cant piezas", "cantidad", "antidad", "cant", "cantidad_piezas", "cantidadpiezas", "cantidad piezas", "antidad_piezas", "antidadpiezas", "antidad piezas", "cantidad_de_piezas", "cantidaddepiezas", "cantidad de piezas", "antidad_de_piezas", "antidaddepiezas", "antidad de piezas", "cant_pieza", "cantpieza", "cant pieza", "cant_de_pieza", "cantdepieza", "cant de pieza", "cant_pza", "cantpza", "cant pza", "cant_pzas", "cantpzas", "cant pzas", "cantidad_pza", "cantidadpza", "cantidad pza", "cantidad_pzas", "cantidadpzas", "cantidad pzas", "cantidad_de_pza", "cantidaddepza", "cantidad de pza", "cantidad_de_pzas", "cantidaddepzas", "cantidad de pzas", "num_piezas", "numpiezas", "num piezas", "numero_piezas", "numeropiezas", "numero piezas", "numero_de_piezas", "numerodepiezas", "numero de piezas", "unidades", "unidad", "und"],
+            medida1: ["medida1", "medida_1", "medida 1", "m1", "largo", "alto", "dimension1", "dimension_1"],
+            medida2: ["medida2", "medida_2", "medida 2", "m2", "ancho", "fondo", "dimension2", "dimension_2"],
+            l1: ["l1", "lado1", "lado_1", "lat1", "lateral1"],
+            l2: ["l2", "lado2", "lado_2", "lat2", "lateral2"],
+            c1: ["c1", "canto1", "canto_1"],
+            c2: ["c2", "canto2", "canto_2"],
+            nomueble: ["nomueble", "no_mueble", "numueble", "no mueble", "numero_mueble", "numeromueble", "nro_mueble", "nromueble", "ubicacion", "ubi"],
+            material_nombre: ["material_nombre", "materialnombre", "nombre_material", "nombrematerial", "descripcion_material", "descripcionmaterial", "material", "tablero"],
+            ubicacion: ["ubicacion", "ubi"],
+            ubi: ["ubi", "ubicacion"]
+        };
+
+        // Margen permitido en milimetros al comparar medidas.
+        const TOLERANCIA_MM = 2;
+
+        // Descuento usado para ancho de base/techo: 18mm x 2 laterales + 1mm fuga.
+        const DESCUENTO_ANCHO = 37;
+
+        // Guarda todas las filas originales cargadas desde el archivo.
+        let DATA_GLOBAL = [];
+
+        // Guarda el archivo base cuando se usa el modo comparar.
+        let DATA_BASE_COMPARACION = [];
+
+        // Guarda el archivo secundario cuando se usa el modo comparar.
+        let DATA_ARCHIVO_COMPARAR = [];
+
+        // Mapa de columnas del archivo base de comparacion.
+        let MAPA_BASE_COMPARACION = {};
+
+        // Mapa de columnas del archivo secundario de comparacion.
+        let MAPA_ARCHIVO_COMPARAR = {};
+
+        // Relaciona el nombre esperado de columna con el nombre real encontrado en el archivo.
+        let MAPA_COLUMNAS = {};
+
+        // Guarda si ya se ejecuto la validacion para revalidar al cambiar filtros o archivo.
+        let VALIDADO = false;
+
+        // Guarda la posicion del navegador de errores.
+        let INDICE_ERROR_ACTUAL = -1;
+
+        // Referencias a elementos principales para no buscarlos repetidamente.
+        const uploadEl = document.getElementById("upload");
+        const listaEl = document.getElementById("lista");
+        const avisosEl = document.getElementById("avisos");
+        const statsEl = document.getElementById("stats-bar");
+        const chipOkEl = document.getElementById("chip-ok");
+        const chipErrEl = document.getElementById("chip-err");
+        const chipWarnEl = document.getElementById("chip-warn");
+        const comparePanelEl = document.getElementById("compare-panel");
+        const compareResultEl = document.getElementById("compare-result");
+        const uploadBaseEl = document.getElementById("upload-base");
+        const uploadCompararEl = document.getElementById("upload-comparar");
+        const labelUploadCompararEl = document.getElementById("label-upload-comparar");
+        const documentNameEl = document.getElementById("document-name");
+
+        // Conecta el evento de carga de archivo con su funcion.
+        uploadEl.addEventListener("change", manejarArchivoSeleccionado);
+
+        // Conecta cada filtro con la funcion de filtrado.
+        ["f1", "f2", "f3", "f4"].forEach(id => {
+            document.getElementById(id).addEventListener("input", filtrarUniversal);
+        });
+
+        // Conecta el boton de validacion.
+        document.getElementById("btn-validar").addEventListener("click", validarTodo);
+
+        // Permite saltar de error en error al hacer click en el contador.
+        chipErrEl.addEventListener("click", irAlSiguienteError);
+
+        // Conecta el boton de limpieza.
+        document.getElementById("btn-limpiar").addEventListener("click", limpiarFiltros);
+
+        // Permite consultar el codigo tambien al escribir.
+        document.getElementById("codigo-consulta").addEventListener("input", consultarCodigoMueble);
+
+        // Activa o desactiva el panel de comparacion.
+        document.getElementById("btn-modo-comparar").addEventListener("click", alternarModoComparacion);
+
+        // Carga el archivo base de comparacion.
+        uploadBaseEl.addEventListener("change", manejarArchivoBaseComparacion);
+
+        // Carga el archivo secundario y ejecuta la comparacion.
+        uploadCompararEl.addEventListener("change", manejarArchivoComparar);
+
+        // Lee el archivo seleccionado por el usuario.
+        function manejarArchivoSeleccionado(event) {
+            // Toma el primer archivo seleccionado.
+            const file = event.target.files[0];
+
+            // Si no hay archivo, termina sin hacer nada.
+            if (!file) return;
+
+            // Reinicia el estado de validacion.
+            VALIDADO = false;
+
+            // Limpia avisos anteriores.
+            limpiarAvisos();
+
+            // Muestra el nombre del documento cargado en la cabecera.
+            actualizarNombreDocumento(file.name);
+
+            // Detecta si el archivo es CSV por extension.
+            const esCsv = file.name.toLowerCase().endsWith(".csv");
+
+            // Lee y procesa el archivo seleccionado.
+            leerArchivoComoData(file)
+                .then(data => {
+                    DATA_GLOBAL = data;
+
+                    // Valida que el archivo tenga datos.
+                    if (DATA_GLOBAL.length === 0) {
+                        mostrarEstadoVacio("Archivo vacio", "No se encontraron filas con datos.");
+                        actualizarStats(0, 0, 0, 0);
+                        return;
+                    }
+
+                    // Detecta columnas reales del archivo.
+                    mapearColumnas(Object.keys(DATA_GLOBAL[0]), DATA_GLOBAL);
+
+                    // Muestra avisos si faltan columnas importantes.
+                    mostrarAvisosDeColumnas();
+
+                    // Dibuja los datos en pantalla.
+                    renderizar(DATA_GLOBAL);
+                })
+                .catch(error => {
+                    // Muestra un mensaje claro si el archivo no se pudo interpretar.
+                    mostrarErrorGeneral("No se pudo procesar el archivo. Verifica que sea un Excel o CSV valido.");
+                    console.error(error);
+                });
+        }
+
+        // Lee un archivo Excel o CSV y devuelve sus filas como objetos.
+        function leerArchivoComoData(file) {
+            // Devuelve una promesa porque FileReader trabaja de forma asincronica.
+            return new Promise((resolve, reject) => {
+                // Detecta si el archivo es CSV por extension.
+                const esCsv = file.name.toLowerCase().endsWith(".csv");
+
+                // Crea el lector local del navegador.
+                const reader = new FileReader();
+
+                // Rechaza la promesa si no puede leer.
+                reader.onerror = () => reject(new Error("No se pudo leer el archivo seleccionado."));
+
+                // Procesa el archivo cuando termina la lectura.
+                reader.onload = ev => {
+                    try {
+                        resolve(esCsv ? leerCsv(ev.target.result) : leerExcel(ev.target.result));
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+
+                // Lee CSV como texto para respetar separadores.
+                if (esCsv) {
+                    reader.readAsText(file, "UTF-8");
+                    return;
+                }
+
+                // Lee Excel como arreglo binario.
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // Convierte un archivo Excel a objetos JSON.
+        function leerExcel(arrayBuffer) {
+            // Verifica que la libreria XLSX este disponible.
+            if (!window.XLSX) {
+                throw new Error("La libreria XLSX no esta cargada.");
+            }
+
+            // Lee el libro de Excel.
+            const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: "array" });
+
+            // Busca la hoja que tenga los encabezados mas parecidos al formato esperado.
+            const rows = seleccionarMatrizDeDatos(workbook);
+
+            // Si la hoja no tiene filas, devuelve lista vacia.
+            if (rows.length === 0) return [];
+
+            // Convierte la matriz a objetos detectando automaticamente la fila real de encabezados.
+            return convertirMatrizAObjetos(rows);
+        }
+
+        // Selecciona la hoja mas probable de datos dentro de un libro Excel.
+        function seleccionarMatrizDeDatos(workbook) {
+            // Mejor candidata encontrada.
+            let mejor = { rows: [], puntaje: -1, filasUtiles: 0 };
+
+            // Recorre todas las hojas porque algunos XLS antiguos no traen los datos en la primera.
+            workbook.SheetNames.forEach(sheetName => {
+                const sheet = workbook.Sheets[sheetName];
+                const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: "" });
+                const info = puntuarMatriz(rows);
+
+                if (
+                    info.puntaje > mejor.puntaje ||
+                    (info.puntaje === mejor.puntaje && info.filasUtiles > mejor.filasUtiles)
+                ) {
+                    mejor = { rows, puntaje: info.puntaje, filasUtiles: info.filasUtiles };
+                }
+            });
+
+            // Devuelve la hoja mas probable.
+            return mejor.rows;
+        }
+
+        // Convierte un CSV simple a objetos usando la primera fila como encabezados.
+        function leerCsv(texto) {
+            // Divide el CSV en filas respetando comillas.
+            const filas = parsearCsv(texto);
+
+            // Si no hay filas, devuelve lista vacia.
+            if (filas.length === 0) return [];
+
+            // Convierte la matriz a objetos detectando automaticamente la fila real de encabezados.
+            return convertirMatrizAObjetos(filas);
+        }
+
+        // Convierte filas tipo matriz a objetos usando la fila de encabezados mas probable.
+        function convertirMatrizAObjetos(rows) {
+            // Busca la fila real de encabezados dentro de las primeras filas.
+            const headerIndex = detectarFilaEncabezados(rows);
+
+            // Calcula el ancho real de la matriz para no perder columnas aunque el encabezado venga incompleto.
+            const totalColumnas = rows.slice(headerIndex).reduce((max, row) => Math.max(max, (row || []).length), INDICE_COLUMNA_AJ + 1);
+
+            // Toma la fila detectada como encabezado y completa columnas sin nombre.
+            const headers = Array.from({ length: totalColumnas }, (_, index) => String((rows[headerIndex] || [])[index] || `__col_${index}`).trim());
+
+            // Convierte las filas posteriores a objetos.
+            return rows.slice(headerIndex + 1)
+                .filter(row => row.some(value => String(value).trim() !== ""))
+                .map(row => {
+                    const obj = {};
+
+                    headers.forEach((header, index) => {
+                        obj[header] = row[index] ?? "";
+                        obj[`${PREFIJO_COLUMNA_FISICA}${index}`] = row[index] ?? "";
+                    });
+
+                    obj[CLAVE_COLUMNA_B] = row[INDICE_COLUMNA_B] ?? "";
+                    obj[CLAVE_COLUMNA_E] = row[INDICE_COLUMNA_E] ?? "";
+                    obj[CLAVE_COLUMNA_G] = row[INDICE_COLUMNA_G] ?? "";
+                    obj[CLAVE_COLUMNA_AI] = row[INDICE_COLUMNA_AI] ?? "";
+                    obj[CLAVE_COLUMNA_AJ] = row[INDICE_COLUMNA_AJ] ?? "";
+                    obj[CLAVE_COLUMNA_JOB] = obtenerJobDesdeAiAj(row, headers);
+                    obj[CLAVE_COLUMNA_J] = row[INDICE_COLUMNA_J] ?? "";
+                    obj[CLAVE_COLUMNA_L] = row[INDICE_COLUMNA_L] ?? "";
+                    obj[CLAVE_COLUMNA_M] = row[INDICE_COLUMNA_M] ?? "";
+
+                    return obj;
+                });
+        }
+
+        // Detecta que fila contiene los encabezados reales.
+        function detectarFilaEncabezados(rows) {
+            // Revisa solo una ventana inicial razonable.
+            const limite = Math.min(rows.length, 60);
+
+            // Guarda la mejor fila encontrada.
+            let mejorIndice = 0;
+            let mejorPuntaje = -1;
+
+            // Evalua cada fila por coincidencias con encabezados esperados.
+            for (let i = 0; i < limite; i++) {
+                const fila = rows[i] || [];
+                const puntaje = puntuarFilaEncabezado(fila);
+
+                if (puntaje > mejorPuntaje) {
+                    mejorPuntaje = puntaje;
+                    mejorIndice = i;
+                }
+            }
+
+            // Si no encuentra nada util, conserva la primera fila para no bloquear archivos viejos.
+            return mejorPuntaje >= 2 ? mejorIndice : 0;
+        }
+
+        // Puntua una matriz completa para elegir la hoja mas probable.
+        function puntuarMatriz(rows) {
+            // Detecta mejor fila de encabezados.
+            const headerIndex = detectarFilaEncabezados(rows);
+
+            // Calcula puntaje de esa fila.
+            const puntaje = puntuarFilaEncabezado(rows[headerIndex] || []);
+
+            // Cuenta filas con contenido despues del encabezado.
+            const filasUtiles = rows.slice(headerIndex + 1).filter(row => row.some(value => String(value).trim() !== "")).length;
+
+            // Devuelve resumen.
+            return { puntaje, filasUtiles };
+        }
+
+        // Puntua una fila segun coincidencias con encabezados requeridos y deseados.
+        function puntuarFilaEncabezado(fila) {
+            // Normaliza celdas de la fila.
+            const normalizados = (fila || []).map(normalizarHeader);
+
+            // Puntos fuertes por columnas requeridas.
+            const requeridas = COLS_REQUERIDAS.reduce((total, col) => {
+                return total + (normalizados.some(header => coincideHeader(header, col)) ? 3 : 0);
+            }, 0);
+
+            // Puntos suaves por otras columnas deseadas.
+            const deseadas = COLS_DESEADAS.reduce((total, col) => {
+                return total + (normalizados.some(header => coincideHeader(header, col)) ? 1 : 0);
+            }, 0);
+
+            // Devuelve puntaje combinado.
+            return requeridas + deseadas;
+        }
+
+        // Parser CSV basico que soporta comas, punto y coma, saltos de linea y comillas.
+        function parsearCsv(texto) {
+            // Normaliza saltos de linea.
+            const limpio = String(texto || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+
+            // Detecta separador usando la primera linea.
+            const primeraLinea = limpio.split("\n")[0] || "";
+            const separador = (primeraLinea.match(/;/g) || []).length > (primeraLinea.match(/,/g) || []).length ? ";" : ",";
+
+            // Guarda todas las filas parseadas.
+            const filas = [];
+
+            // Guarda la fila actual.
+            let fila = [];
+
+            // Guarda el valor actual.
+            let valor = "";
+
+            // Indica si el cursor esta dentro de comillas.
+            let enComillas = false;
+
+            // Recorre caracter por caracter para respetar comillas.
+            for (let i = 0; i < limpio.length; i++) {
+                const char = limpio[i];
+                const next = limpio[i + 1];
+
+                if (char === '"' && enComillas && next === '"') {
+                    valor += '"';
+                    i++;
+                } else if (char === '"') {
+                    enComillas = !enComillas;
+                } else if (char === separador && !enComillas) {
+                    fila.push(valor);
+                    valor = "";
+                } else if (char === "\n" && !enComillas) {
+                    fila.push(valor);
+                    filas.push(fila);
+                    fila = [];
+                    valor = "";
+                } else {
+                    valor += char;
+                }
+            }
+
+            // Agrega el ultimo valor si existe contenido pendiente.
+            if (valor !== "" || fila.length > 0) {
+                fila.push(valor);
+                filas.push(fila);
+            }
+
+            // Devuelve filas sin lineas totalmente vacias.
+            return filas.filter(f => f.some(v => String(v).trim() !== ""));
+        }
+
+        // Relaciona columnas esperadas con columnas reales del archivo.
+        function mapearColumnas(headers, data = []) {
+            // Guarda el mapa global usando el helper reutilizable.
+            MAPA_COLUMNAS = crearMapaColumnas(headers, data);
+        }
+
+        // Crea un mapa de columnas para un archivo especifico.
+        function crearMapaColumnas(headers, data = []) {
+            // Mapa local de columnas.
+            const mapa = {};
+
+            // Recorre cada columna esperada.
+            COLS_DESEADAS.forEach(col => {
+                // Busca coincidencia exacta.
+                const exacta = headers.find(h => h === col);
+
+                // Busca coincidencia flexible usando alias.
+                const flexible = headers.find(h => coincideHeader(normalizarHeader(h), col));
+
+                // Guarda el mejor resultado encontrado.
+                mapa[col] = exacta || flexible || null;
+            });
+
+            // Completa columnas faltantes usando el contenido real de las filas.
+            aplicarInferenciaPorContenido(mapa, headers, data);
+
+            // Para Tipo elige una sola columna global entre B y M, tomando el nombre mas largo.
+            const columnaTipo = elegirColumnaTipo(headers, data);
+            if (columnaTipo) mapa.Tipo = columnaTipo;
+
+            // Para cod_pieza elige una sola columna global entre E y G, descartando columnas solo numericas.
+            const columnaCodPieza = elegirColumnaCodPieza(headers, data);
+            if (columnaCodPieza) mapa.cod_pieza = columnaCodPieza;
+
+            // Para JOB/JOV usa siempre el contenido fisico entre AI y AJ del archivo cargado.
+            if (headers.includes(CLAVE_COLUMNA_JOB)) {
+                mapa.jov = CLAVE_COLUMNA_JOB;
+            }
+
+            // Para material_nombre elige una sola columna global entre J y L, tomando el nombre mas largo.
+            const columnaMaterial = elegirColumnaMaterialNombre(headers, data);
+            if (columnaMaterial) mapa.material_nombre = columnaMaterial;
+
+            // Devuelve mapa local listo.
+            return mapa;
+        }
+
+        // Elige cod_pieza entre columnas E y G para todo el archivo.
+        function elegirColumnaCodPieza(headers, data) {
+            const candidatas = [CLAVE_COLUMNA_E, CLAVE_COLUMNA_G].filter(key => headers.includes(key));
+            const evaluadas = candidatas
+                .map(key => evaluarColumnaCodPieza(data, key))
+                .filter(info => info.valida);
+
+            if (evaluadas.length === 0) return "";
+
+            evaluadas.sort((a, b) => a.promedio - b.promedio || b.validos - a.validos);
+            return evaluadas[0].key;
+        }
+
+        // Evalua si una columna parece contener codigos de pieza y su largo promedio.
+        function evaluarColumnaCodPieza(data, key) {
+            const valores = (data || [])
+                .slice(0, 500)
+                .map(row => String(row[key] ?? "").trim())
+                .filter(Boolean);
+
+            const codigos = valores.filter(esCodigoPiezaValido);
+            const validos = codigos.length;
+            const proporcion = valores.length > 0 ? validos / valores.length : 0;
+            const promedio = validos > 0 ? codigos.reduce((total, value) => total + value.length, 0) / validos : Infinity;
+
+            return {
+                key,
+                validos,
+                promedio,
+                valida: validos > 0 && proporcion >= 0.55
+            };
+        }
+
+        // Un codigo de pieza valido debe tener letras y no ser solo numerico.
+        function esCodigoPiezaValido(value) {
+            const texto = String(value || "").trim().toUpperCase();
+            if (!texto) return false;
+            if (/^\d+(?:[.,]\d+)?$/.test(texto)) return false;
+            return /[A-Z]/.test(texto) && /^[A-Z0-9/_+.-]+$/.test(texto);
+        }
+
+        // Elige material_nombre entre columnas J y L para todo el archivo.
+        function elegirColumnaMaterialNombre(headers, data) {
+            const candidatas = [CLAVE_COLUMNA_J, CLAVE_COLUMNA_L].filter(key => headers.includes(key));
+            const evaluadas = candidatas
+                .map(key => evaluarColumnaMaterialNombre(data, key))
+                .filter(info => info.valida);
+
+            if (evaluadas.length === 0) return "";
+
+            evaluadas.sort((a, b) => b.promedio - a.promedio || b.validos - a.validos);
+            return evaluadas[0].key;
+        }
+
+        // Evalua si una columna parece contener nombres/materiales descriptivos.
+        function evaluarColumnaMaterialNombre(data, key) {
+            const valores = (data || [])
+                .slice(0, 500)
+                .map(row => String(row[key] ?? "").trim())
+                .filter(Boolean)
+                .filter(value => !/^\d+(?:[.,]\d+)?$/.test(value));
+
+            const validos = valores.length;
+            const promedio = validos > 0 ? valores.reduce((total, value) => total + value.length, 0) / validos : 0;
+
+            return {
+                key,
+                validos,
+                promedio,
+                valida: validos > 0 && promedio >= 3
+            };
+        }
+
+        // Elige Tipo entre columnas B y M para todo el archivo.
+        function elegirColumnaTipo(headers, data) {
+            const candidatas = [CLAVE_COLUMNA_B, CLAVE_COLUMNA_M].filter(key => headers.includes(key));
+            const evaluadas = candidatas
+                .map(key => evaluarColumnaMaterialNombre(data, key))
+                .filter(info => info.valida);
+
+            if (evaluadas.length === 0) return "";
+
+            evaluadas.sort((a, b) => b.promedio - a.promedio || b.validos - a.validos);
+            return evaluadas[0].key;
+        }
+
+        // Normaliza nombres de columnas para comparar con mas tolerancia.
+        function normalizarHeader(header) {
+            // Convierte a texto comparable: sin tildes, espacios, guiones ni simbolos.
+            return String(header || "")
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^a-z0-9]/g, "");
+        }
+
+        // Verifica si un encabezado normalizado corresponde a una columna logica.
+        function coincideHeader(headerNormalizado, col) {
+            // Normaliza el nombre logico.
+            const objetivo = normalizarHeader(col);
+
+            // Compara contra el nombre logico.
+            if (headerNormalizado === objetivo) return true;
+
+            // Compara contra alias conocidos.
+            if ((ALIAS_COLUMNAS[col] || []).some(alias => headerNormalizado === normalizarHeader(alias))) return true;
+
+            // Compara por palabras clave para soportar encabezados exportados con textos nuevos.
+            return coincideHeaderPorPalabras(headerNormalizado, col);
+        }
+
+        // Reconoce encabezados nuevos combinando palabras clave, no solo textos exactos.
+        function coincideHeaderPorPalabras(header, col) {
+            if (!header) return false;
+
+            const tieneCodigo = header.includes("cod") || header.includes("codigo");
+            const tieneCantidad = header.includes("cant") || header.includes("cantidad") || header.includes("antidad") || header.includes("num") || header.includes("numero") || header.includes("und") || header.includes("unidad");
+            const tienePieza = header.includes("pieza") || header.includes("piezas") || header.includes("pza") || header.includes("pzas");
+            const tieneMueble = header.includes("mueble") || header.includes("modulo") || header.includes("mod");
+
+            if (col === "op") return header === "op" || header.includes("ordenproduccion") || header.includes("ordenprod") || header.includes("produccion");
+            if (col === "Tipo") return header.includes("tipo") || header.includes("laca") || header.includes("melamin") || header.includes("acabado");
+            if (col === "cod_mueble") return (tieneCodigo && tieneMueble) || header === "mueble" || header === "modulo";
+            if (col === "cod_pieza") return (tieneCodigo && tienePieza) || header === "pieza" || header === "pza" || header === "pzas";
+            if (col === "cant_piezas") return tieneCantidad && (tienePieza || header === "cant" || header === "cantidad" || header === "und" || header === "unidad");
+            if (col === "material_nombre") return header.includes("material") || header.includes("tablero") || header.includes("descripcionmaterial");
+            if (col === "nomueble" || col === "ubicacion" || col === "ubi") return header.includes("ubicacion") || header === "ubi" || header.includes("nomueble") || header.includes("numeromueble") || header.includes("nromueble");
+            if (col === "medida1") return header === "m1" || header.includes("medida1") || header.includes("dimension1");
+            if (col === "medida2") return header === "m2" || header.includes("medida2") || header.includes("dimension2");
+
+            return false;
+        }
+
+        // Completa columnas no encontradas revisando patrones dentro de las filas.
+        function aplicarInferenciaPorContenido(mapa, headers, data) {
+            if (!Array.isArray(data) || data.length === 0) return;
+
+            const columnasFisicas = headers
+                .filter(header => String(header).startsWith(PREFIJO_COLUMNA_FISICA))
+                .sort((a, b) => Number(a.replace(PREFIJO_COLUMNA_FISICA, "")) - Number(b.replace(PREFIJO_COLUMNA_FISICA, "")));
+
+            const usadas = new Set(Object.values(mapa).filter(Boolean));
+            marcarColumnasFisicasEquivalentes(usadas, columnasFisicas, data);
+
+            completarPorContenido(mapa, "Tipo", columnasFisicas, data, usadas, puntuarTipoPorContenido, 0.45);
+            completarPorContenido(mapa, "cod_mueble", columnasFisicas, data, usadas, puntuarCodigoMueblePorContenido, 0.6);
+            completarPorContenido(mapa, "cod_pieza", columnasFisicas, data, usadas, puntuarCodigoPiezaPorContenido, 0.65);
+            completarPorContenido(mapa, "cant_piezas", columnasFisicas, data, usadas, puntuarCantidadPorContenido, 0.75);
+        }
+
+        // Asigna una columna faltante si su contenido supera un puntaje minimo.
+        function completarPorContenido(mapa, col, columnas, data, usadas, puntuar, minimo) {
+            if (mapa[col]) return;
+
+            let mejor = { key: "", score: 0 };
+
+            columnas.forEach(key => {
+                if (usadas.has(key)) return;
+
+                const score = puntuarColumna(data, key, puntuar);
+                if (score > mejor.score) mejor = { key, score };
+            });
+
+            if (mejor.key && mejor.score >= minimo) {
+                mapa[col] = mejor.key;
+                usadas.add(mejor.key);
+            }
+        }
+
+        // Marca como usadas las columnas fisicas que duplican una columna ya detectada por encabezado.
+        function marcarColumnasFisicasEquivalentes(usadas, columnasFisicas, data) {
+            const columnasUsadas = Array.from(usadas).filter(key => !String(key).startsWith(PREFIJO_COLUMNA_FISICA));
+
+            columnasUsadas.forEach(keyUsada => {
+                columnasFisicas.forEach(keyFisica => {
+                    if (usadas.has(keyFisica)) return;
+                    if (columnasTienenMismosValores(data, keyUsada, keyFisica)) usadas.add(keyFisica);
+                });
+            });
+        }
+
+        // Comprueba si dos columnas tienen los mismos primeros valores utiles.
+        function columnasTienenMismosValores(data, keyA, keyB) {
+            let comparados = 0;
+            let iguales = 0;
+
+            data.slice(0, 80).forEach(row => {
+                const a = String(row[keyA] ?? "").trim();
+                const b = String(row[keyB] ?? "").trim();
+                if (!a && !b) return;
+
+                comparados++;
+                if (a === b) iguales++;
+            });
+
+            return comparados > 0 && iguales / comparados >= 0.95;
+        }
+
+        // Calcula que tan parecida es una columna a un tipo de dato esperado.
+        function puntuarColumna(data, key, puntuar) {
+            const valores = data
+                .slice(0, 120)
+                .map(row => row[key])
+                .map(value => String(value ?? "").trim())
+                .filter(Boolean);
+
+            if (valores.length === 0) return 0;
+
+            const puntos = valores.reduce((total, value) => total + puntuar(value), 0);
+            return puntos / valores.length;
+        }
+
+        // Puntua columnas que contienen LACAS, MELAMINICO u otro acabado.
+        function puntuarTipoPorContenido(value) {
+            const texto = normalizarHeader(value);
+            if (texto.includes("laca") || texto.includes("melamin") || texto.includes("laminado")) return 1;
+            if (texto.includes("crudo") || texto.includes("pintura") || texto.includes("acabado")) return 0.6;
+            return 0;
+        }
+
+        // Puntua columnas con codigos de mueble como B60, A40DH5-TI-LBA-BF o BAR63H12P6.7.
+        function puntuarCodigoMueblePorContenido(value) {
+            const texto = String(value || "").trim().toUpperCase();
+            if (/^[A-Z]{1,8}\d+(?:[A-Z0-9.+/-]*)$/.test(texto)) return texto.includes("-") || texto.includes("H") || texto.includes("P") ? 1 : 0.85;
+            if (/^[A-Z]{1,8}\d/.test(texto)) return 0.7;
+            return 0;
+        }
+
+        // Puntua columnas con codigos de pieza, normalmente textos cortos como PT, ESP1PT, BASE o LATRH1.
+        function puntuarCodigoPiezaPorContenido(value) {
+            const texto = String(value || "").trim().toUpperCase();
+            if (!texto || texto.length > 24) return 0;
+            if (/^\d+(?:[.,]\d+)?$/.test(texto)) return 0;
+            if (/^(LACAS|MELAMINICO|MELAMINICOS|MELAMINICA)$/.test(texto)) return 0;
+            if (/^[A-Z]{1,8}\d+(?:[A-Z0-9.+/-]*)$/.test(texto)) return 0.45;
+            if (/^[A-Z0-9.+/-]{1,16}$/.test(texto) && /[A-Z]/.test(texto)) return 1;
+            return 0.15;
+        }
+
+        // Puntua columnas de cantidad de piezas: enteros positivos pequenos y repetidos.
+        function puntuarCantidadPorContenido(value) {
+            const texto = String(value || "").trim().replace(",", ".");
+            if (!/^\d+(?:\.\d+)?$/.test(texto)) return 0;
+
+            const numero = Number(texto);
+            if (!Number.isFinite(numero)) return 0;
+            if (!Number.isInteger(numero)) return 0.15;
+            if (numero >= 1 && numero <= 20) return 1;
+            if (numero >= 0 && numero <= 50) return 0.45;
+            return 0;
+        }
+
+        // Obtiene un valor desde una fila usando el nombre logico de columna.
+        function val(row, col) {
+            // Devuelve el valor usando el mapa global activo.
+            return valConMapa(row, col, MAPA_COLUMNAS);
+        }
+
+        // Obtiene un valor usando un mapa de columnas especifico.
+        function valConMapa(row, col, mapa) {
+            // Busca el nombre real de la columna.
+            const key = mapa[col];
+
+            // Si no existe esa columna, devuelve vacio.
+            if (!key) return "";
+
+            // Toma el valor real desde la fila.
+            const value = row[key];
+
+            // Para JOB/JOV muestra el contenido real leido entre AI y AJ.
+            if (col === "jov") return limpiarTextoJob(value);
+
+            // Convierte null o undefined a texto vacio.
+            return value !== undefined && value !== null ? String(value).trim() : "";
+        }
+
+        // Obtiene el JOB/JOV desde AI o AJ segun donde este la columna real del archivo.
+        function obtenerJobDesdeAiAj(row, headers) {
+            const headerAi = normalizarHeader(headers[INDICE_COLUMNA_AI] || "");
+            const headerAj = normalizarHeader(headers[INDICE_COLUMNA_AJ] || "");
+            const valorAi = row[INDICE_COLUMNA_AI] ?? "";
+            const valorAj = row[INDICE_COLUMNA_AJ] ?? "";
+
+            if (headerAi === "job" || headerAi === "jov") return limpiarTextoJob(valorAi) || limpiarTextoJob(valorAj);
+            if (headerAj === "job" || headerAj === "jov") return limpiarTextoJob(valorAj) || limpiarTextoJob(valorAi);
+
+            return limpiarTextoJob(valorAi) || limpiarTextoJob(valorAj);
+        }
+
+        // Limpia el texto JOB/JOV sin quitarle contenido.
+        function limpiarTextoJob(value) {
+            return value !== undefined && value !== null ? String(value).trim() : "";
+        }
+
+        // Devuelve el nombre descriptivo de un codigo.
+        function obtenerNombre(cod) {
+            // Si no hay codigo, devuelve descripcion generica.
+            if (!cod) return "Codigo no definido";
+
+            // Normaliza el codigo.
+            const codigo = normalizarSinPuerta(String(cod).toUpperCase().trim());
+
+            // Si existe completo en el diccionario, lo devuelve.
+            if (DB[codigo]) return DB[codigo];
+
+            // Intenta interpretar codigos compactos de modulo como B60IH36 o A40DH5-TI-LBA-BF.
+            const interpretado = interpretarCodigoModulo(codigo);
+
+            // Si logro interpretar partes, las devuelve como descripcion completa.
+            if (interpretado.length > 0) return interpretado.join(" + ");
+
+            // Divide por guiones para intentar traducir cada parte como respaldo.
+            return combinarTokensEspeciales(codigo.split("-").filter(Boolean)).map(parte => traducirToken(parte)).join(" + ");
+        }
+
+        // Recompone tokens que contienen guion pero deben leerse como una sola regla.
+        function combinarTokensEspeciales(partes) {
+            const resultado = [];
+
+            for (let i = 0; i < partes.length; i++) {
+                const actual = String(partes[i] || "").toUpperCase();
+                const siguiente = String(partes[i + 1] || "").toUpperCase();
+
+                if (actual === "S" && siguiente.startsWith("P")) {
+                    resultado.push(`S/P${siguiente.slice(1)}`);
+                    i++;
+                    continue;
+                }
+
+                if (actual === "SIN" && siguiente === "ACV") {
+                    resultado.push("SIN-ACV");
+                    i++;
+                    continue;
+                }
+
+                if (actual === "ACV" && siguiente === "LE") {
+                    resultado.push("ACV-LE");
+                    i++;
+                    continue;
+                }
+
+                resultado.push(partes[i]);
+            }
+
+            return resultado;
+        }
+
+        // Normaliza S-P como S/P porque siempre significa Sin Puerta.
+        function normalizarSinPuerta(codigo) {
+            return String(codigo || "").toUpperCase().replace(/S-P/g, "S/P");
+        }
+
+        // Separa el codigo principal aunque el tipo tenga guiones, como IS-CUB126H85P6-SI.
+        function separarCodigoPrincipalYAccesorios(codigo) {
+            const partes = combinarTokensEspeciales(String(codigo || "").split(/[-+]/).filter(Boolean));
+            if (partes.length === 0) return { principal: "", accesorios: [] };
+
+            const indiceConAncho = partes.findIndex(parte => /[A-Z]+\d/.test(String(parte || "").toUpperCase()));
+            if (indiceConAncho <= 0) {
+                return { principal: partes[0] || "", accesorios: partes.slice(1) };
+            }
+
+            return {
+                principal: partes.slice(0, indiceConAncho + 1).join("-"),
+                accesorios: partes.slice(indiceConAncho + 1)
+            };
+        }
+
+        // Interpreta el codigo tecnico principal y sus accesorios.
+        function interpretarCodigoModulo(codigo) {
+            codigo = normalizarSinPuerta(codigo);
+
+            // Separa el codigo principal de los accesorios con guion o signo mas.
+            const partes = combinarTokensEspeciales(String(codigo || "").split(/[-+]/).filter(Boolean));
+
+            // Si no hay partes, devuelve lista vacia.
+            if (partes.length === 0) return [];
+
+            // Toma el codigo principal, recomponiendo tipos con guion antes del ancho.
+            const separado = separarCodigoPrincipalYAccesorios(codigo);
+            const principal = separado.principal;
+
+            // Toma el resto como accesorios o condiciones adicionales.
+            const accesorios = separado.accesorios;
+
+            // Primero intenta leer una nomenclatura conocida antes de H/P aunque tenga numeros internos.
+            const compactoConToken = separarTokenConDetalleCompacto(principal);
+            if (compactoConToken) {
+                const descripcion = [traducirToken(compactoConToken.token)];
+                const detalles = interpretarDetalleCompacto(compactoConToken.detalle, compactoConToken.token);
+                descripcion.push(...detalles);
+                accesorios.forEach(accesorio => descripcion.push(traducirToken(accesorio)));
+                return descripcion.filter(Boolean);
+            }
+
+            // Detecta tipo completo como todas las letras antes del ancho.
+            const match = principal.match(/^([A-Z]+(?:-[A-Z]+)*)(\d{2,3})(.*)$/);
+
+            // Si no coincide con formato de modulo, intenta traducir accesorios normales.
+            if (!match) return partes.map(parte => traducirToken(parte));
+
+            // Extrae cada parte capturada.
+            const [, tipo, ancho, detalleCompacto] = match;
+
+            // Guarda la descripcion armada.
+            const descripcion = [];
+
+            // Agrega tipo de modulo.
+            descripcion.push(traducirTipoModulo(tipo));
+
+            // Agrega ancho si existe.
+            if (ancho) descripcion.push(`Ancho ${Number.parseInt(ancho, 10) * 10}mm`);
+
+            // Interpreta detalles compactos despues del ancho, respetando el orden original.
+            const detalles = interpretarDetalleCompacto(detalleCompacto, tipo);
+
+            // Agrega los detalles compactos encontrados.
+            descripcion.push(...detalles);
+
+            // Si no vino altura explicita, aplica altura por defecto.
+            if (!detalles.some(texto => texto.startsWith("Altura"))) {
+                const alturaFinal = alturaPorDefecto(tipo);
+                if (alturaFinal) descripcion.push(traducirAltura(alturaFinal));
+            }
+
+            // Traduce accesorios despues de guiones.
+            accesorios.forEach(accesorio => descripcion.push(traducirToken(accesorio)));
+
+            // Devuelve descripcion sin valores vacios.
+            return descripcion.filter(Boolean);
+        }
+
+        // Separa casos como LATRH1 o LX2LH243.6P8, donde H/P marca altura/profundidad.
+        function separarTokenConDetalleCompacto(principal) {
+            // Normaliza el codigo principal.
+            const texto = String(principal || "").toUpperCase().trim();
+
+            // Busca el primer marcador Hnumero, HE o Pnumero dentro del texto, ignorando P de S/P o S-P.
+            const marcador = texto.match(/(HE|H\d+(?:[.,]\d+)?|(?<![\/-])P\d+(?:[.,]\d+)?)/);
+
+            // Si no hay H/P con numero, no aplica esta regla.
+            if (!marcador || marcador.index === 0) return null;
+
+            // Todo lo anterior al marcador es candidato a nomenclatura.
+            const candidato = texto.slice(0, marcador.index);
+
+            // Todo desde el marcador en adelante son detalles compactos.
+            const detalle = texto.slice(marcador.index);
+
+            // Acepta el candidato si existe en DB.
+            if (DB[candidato]) return { token: candidato, detalle };
+
+            // Si no existe exacto, busca el token conocido mas largo al final del candidato.
+            const token = buscarTokenConocido(candidato);
+            if (token && token === candidato) return { token, detalle };
+
+            // Sin token claro, no aplica.
+            return null;
+        }
+
+        // Interpreta detalles pegados despues del ancho, como IH36 o H12P6.7S/P.
+        function interpretarDetalleCompacto(detalle, tipo) {
+            // Normaliza el detalle.
+            let resto = String(detalle || "").toUpperCase().trim();
+
+            // Guarda las partes interpretadas en el orden encontrado.
+            const partes = [];
+
+            // Recorre de izquierda a derecha hasta consumir el texto.
+            while (resto.length > 0) {
+                // Ignora separadores compactos.
+                if (resto.startsWith("+") || resto.startsWith("-")) {
+                    resto = resto.slice(1);
+                    continue;
+                }
+
+                // Detecta altura HE, H12, H36, H8.6, etc.
+                const altura = resto.match(/^(HE|H\d+(?:[.,]\d+)?)/);
+                if (altura) {
+                    partes.push(traducirAltura(altura[0]));
+                    resto = resto.slice(altura[0].length);
+                    continue;
+                }
+
+                // Detecta sin puerta dentro del codigo compacto.
+                if (resto.startsWith("S/P") || resto.startsWith("S-P")) {
+                    partes.push(traducirToken("S/P"));
+                    resto = resto.slice(3);
+                    continue;
+                }
+
+                // Detecta cantidad de repisas pegada, como 1R, 1RP, 2RP o 3REP.
+                const repisaCompacta = resto.match(/^(\d+)R(?:P|EP)?/);
+                if (repisaCompacta) {
+                    partes.push(traducirRepisa(repisaCompacta[1]));
+                    resto = resto.slice(repisaCompacta[0].length);
+                    continue;
+                }
+
+                // Detecta profundidad P6.7, P58, P53, etc.
+                const profundidad = resto.match(/^P\d+(?:[.,]\d+)?/);
+                if (profundidad) {
+                    partes.push(traducirProfundidad(profundidad[0]));
+                    resto = resto.slice(profundidad[0].length);
+                    continue;
+                }
+
+                // Detecta G seguida de numero como cantidad de gavetas.
+                const gavetasCompactas = resto.match(/^G(\d+)/);
+                if (gavetasCompactas) {
+                    partes.push(traducirGavetas(gavetasCompactas[1]));
+                    resto = resto.slice(gavetasCompactas[0].length);
+                    continue;
+                }
+
+                // Detecta IN como una gaveta interna antes de leer I como apertura izquierda.
+                if (resto.startsWith("IN")) {
+                    partes.push("1 Interna");
+                    resto = resto.slice(2);
+                    continue;
+                }
+
+                // Detecta apertura izquierda o derecha.
+                if (resto.startsWith("I") || resto.startsWith("D")) {
+                    partes.push(traducirApertura(resto.charAt(0)));
+                    resto = resto.slice(1);
+                    continue;
+                }
+
+                // Detecta tokens conocidos que puedan venir pegados.
+                const token = buscarTokenConocido(resto);
+                if (token) {
+                    partes.push(traducirToken(token));
+                    resto = resto.slice(token.length);
+                    continue;
+                }
+
+                // Si nada coincide, conserva el caracter para no perder informacion.
+                partes.push(resto.charAt(0));
+                resto = resto.slice(1);
+            }
+
+            // Devuelve partes interpretadas.
+            return partes;
+        }
+
+        // Traduce el tipo inicial del modulo.
+        function traducirTipoModulo(tipo) {
+            // Diccionario especifico para tipos compactos.
+            const tipos = {
+                B: "Modulo Bajo",
+                A: "Modulo Alto",
+                S: "Modulo Suspendido",
+                BS: "Modulo Bajo Suspendido",
+                MBS: "Mueble Bajo Suspendido",
+                BAR: "Bar",
+                X: "Modulo Auxiliar",
+                E: "Modulo Esquinero",
+                EB: "Esquinero Bajo",
+                EA: "Esquinero Alto",
+                ES: "Esquinero Suspendido",
+                EX: "Esquinero Auxiliar",
+                MB: "Mueble de Bano",
+                CL: "Closet",
+                CLOSET: "Closet"
+            };
+
+            // Devuelve traduccion conocida o una descripcion generica del codigo.
+            return tipos[tipo] || DB[tipo] || `Modulo ${tipo}`;
+        }
+
+        // Traduce apertura I/D.
+        function traducirApertura(apertura) {
+            // I significa izquierda.
+            if (apertura === "I") return "Apertura Izquierda";
+
+            // D significa derecha.
+            if (apertura === "D") return "Apertura Derecha";
+
+            // Respaldo por si llega otro valor.
+            return apertura;
+        }
+
+        // Traduce codigos compactos de repisas como 1RP.
+        function traducirRepisa(cantidad) {
+            const numero = Number.parseInt(cantidad, 10);
+            if (!Number.isFinite(numero) || numero <= 0) return "Repisa";
+            return numero === 1 ? "1 Repisa" : `${numero} Repisas`;
+        }
+
+        // Traduce codigos compactos de gavetas como G6.
+        function traducirGavetas(cantidad) {
+            const numero = Number.parseInt(cantidad, 10);
+            if (!Number.isFinite(numero) || numero <= 0) return "Gavetas";
+            return numero === 1 ? "1 Gaveta" : `${numero} Gavetas`;
+        }
+
+        // Devuelve altura por defecto segun la familia del modulo.
+        function alturaPorDefecto(tipo) {
+            // Suspendidos usan H3 cuando no se especifica altura.
+            if (["BS", "MBS", "S", "ES"].includes(tipo)) return "H3";
+
+            // Bajos, muebles de bano, altos y esquineros comunes usan H4 cuando no se especifica altura.
+            if (["B", "MB", "ST", "EB", "E"].includes(tipo)) return "H4";
+
+            // Altos usan H4 por defecto, pero se muestra como altura final 760mm.
+            if (["A", "EA"].includes(tipo)) return "H4";
+
+            // Auxiliares y closets usan H11 por defecto.
+            if (["X", "CL", "CLOSET", "CM", "BAR"].includes(tipo)) return "H11";
+
+            // Sin altura por defecto para otros tipos.
+            return "";
+        }
+
+        // Traduce codigos de profundidad como P6.7 en milimetros.
+        function traducirProfundidad(profundidad) {
+            // Normaliza el codigo.
+            const codigo = String(profundidad || "").toUpperCase();
+
+            // Extrae el numero despues de P.
+            const match = codigo.match(/^P(\d+(?:[.,]\d+)?)$/);
+
+            // Si no hay numero, devuelve el codigo original.
+            if (!match) return codigo;
+
+            // Convierte P2 en 220mm, P3 en 320mm, P4 en 420mm, P6.7 en 670mm, P58 en 580mm, etc.
+            const numero = Number.parseFloat(match[1].replace(",", "."));
+            const mm = profundidadTotalDesdeNumeroP(numero);
+
+            // Devuelve descripcion clara.
+            return `Profundidad ${Math.round(mm)}mm`;
+        }
+
+        // Obtiene dimensiones compactas desde el codigo, como 625X950X600.
+        function obtenerDimensionesCodigo(cod) {
+            const dimensiones = obtenerDimensionesModulo(cod);
+            return [dimensiones.ancho, dimensiones.alto, dimensiones.profundidad]
+                .filter(valor => Number.isFinite(valor) && valor > 0)
+                .join("X");
+        }
+
+        // Obtiene dimensiones numericas del modulo desde el codigo.
+        function obtenerDimensionesModulo(cod) {
+            const codigo = normalizarSinPuerta(String(cod || "").toUpperCase().trim());
+            const resultado = { tipo: "", ancho: 0, alto: 0, profundidad: 0, profundidadEstructura: 0 };
+            if (!codigo) return resultado;
+
+            const separado = separarCodigoPrincipalYAccesorios(codigo);
+            const principal = separado.principal;
+            const alturaCodigoCompleto = extraerAlturaMm(codigo);
+            const profundidadCodigoCompleto = extraerProfundidadMm(codigo);
+            const compactoConToken = separarTokenConDetalleCompacto(principal);
+            const tipoMatch = principal.match(/^([A-Z]+(?:-[A-Z]+)*)(\d+(?:[.,]\d+)?)(.*)$/);
+
+            if (compactoConToken) {
+                resultado.tipo = compactoConToken.token;
+                resultado.alto = alturaCodigoCompleto || extraerAlturaMm(compactoConToken.detalle) || alturaPorDefectoEspecial(resultado.tipo);
+                resultado.profundidad = profundidadCodigoCompleto || extraerProfundidadMm(compactoConToken.detalle) || profundidadPorDefectoEspecial(resultado.tipo);
+                resultado.profundidadEstructura = resultado.profundidad ? profundidadEstructuraDesdeCodigo(codigo, resultado.profundidad, resultado.tipo) : 0;
+            } else if (tipoMatch) {
+                const [, tipo, ancho, detalle] = tipoMatch;
+                resultado.tipo = tipo;
+                resultado.ancho = convertirNumeroCodigoAMm(ancho);
+
+                const altura = alturaCodigoCompleto || extraerAlturaMm(detalle);
+                resultado.alto = altura || extraerAlturaMm(alturaPorDefecto(tipo));
+
+                const profundidad = profundidadCodigoCompleto || extraerProfundidadMm(detalle);
+                resultado.profundidad = profundidad || profundidadPorDefecto(tipo);
+                resultado.profundidadEstructura = profundidad ? profundidadEstructuraDesdeCodigo(codigo, profundidad, tipo) : resultado.profundidad;
+            }
+
+            return resultado;
+        }
+
+        // Convierte numeros de nomenclatura a milimetros: 50 -> 500, 62.5 -> 625.
+        function convertirNumeroCodigoAMm(valor) {
+            const numero = Number.parseFloat(String(valor || "").replace(",", "."));
+            if (!Number.isFinite(numero)) return 0;
+            return Math.round(numero * 10);
+        }
+
+        // Extrae altura en milimetros desde un texto que contenga Hnumero.
+        function extraerAlturaMm(texto) {
+            const limpio = String(texto || "").toUpperCase();
+
+            if (limpio.includes("HE")) return 1360;
+
+            const match = limpio.match(/H(\d+(?:[.,]\d+)?)/);
+            if (!match) return 0;
+
+            const codigo = `H${match[1].replace(",", ".")}`;
+            const desdeDb = DB[codigo] ? String(DB[codigo]).match(/(\d+(?:\.\d+)?)\s*mm/i) : null;
+            if (desdeDb) return Math.round(Number.parseFloat(desdeDb[1]));
+
+            return convertirNumeroCodigoAMm(match[1]);
+        }
+
+        // Extrae profundidad en milimetros desde un texto que contenga Pnumero.
+        function extraerProfundidadMm(texto) {
+            const match = String(texto || "").toUpperCase().match(/(?<!\/)P(\d+(?:[.,]\d+)?)/);
+            if (!match) return 0;
+
+            const numero = Number.parseFloat(match[1].replace(",", "."));
+            if (!Number.isFinite(numero)) return 0;
+
+            return profundidadTotalDesdeNumeroP(numero);
+        }
+
+        // Convierte el numero despues de P a profundidad total.
+        function profundidadTotalDesdeNumeroP(numero) {
+            if (!Number.isFinite(numero)) return 0;
+            if (numero >= 2 && numero <= 4 && Number.isInteger(numero)) return Math.round(numero * 100 + 20);
+            return Math.round(numero < 20 ? numero * 100 : numero * 10);
+        }
+
+        // Convierte profundidad total de codigo a profundidad de estructura para validar piezas.
+        function profundidadEstructuraDesdeCodigo(texto, profundidadTotal, tipo = "") {
+            const match = String(texto || "").toUpperCase().match(/(?<!\/)P(\d+(?:[.,]\d+)?)/);
+            const numero = match ? Number.parseFloat(match[1].replace(",", ".")) : 0;
+            const profundidad = Number(profundidadTotal) || 0;
+            const familia = String(tipo || "").toUpperCase();
+
+            if (!profundidad) return 0;
+            if (familia === "ST") return profundidad;
+            if (numero === 2) return profundidad - 20;
+            if ((numero === 3 || numero === 4) || numero >= 20) return profundidad;
+            return profundidad > 20 ? profundidad - 20 : 0;
+        }
+
+        // Devuelve profundidad de estructura cuando el codigo no trae P explicita.
+        function profundidadPorDefecto(tipo) {
+            const familia = String(tipo || "").toUpperCase();
+
+            if (["A", "EA"].includes(familia)) return 320;
+            if (["BS", "MBS", "S", "ES"].includes(familia)) return 530;
+            if (familia === "MB") return 530;
+            if (familia === "ST") return 600;
+            if (["B", "X", "CM", "BAR", "CL", "CLOSET", "EB", "EX"].includes(familia)) return 580;
+
+            return 0;
+        }
+
+        // Alturas por defecto para piezas compactas que no tienen ancho de modulo, como LATRH1 o LXTRP7.
+        function alturaPorDefectoEspecial(tipo) {
+            const familia = String(tipo || "").toUpperCase();
+            if (familia.startsWith("LX") || familia.startsWith("LXA")) return 2120;
+            if (familia.startsWith("LA")) return 760;
+            if (familia.startsWith("LB")) return 760;
+            return 0;
+        }
+
+        // Profundidades por defecto para laterales decorativos y piezas compactas.
+        function profundidadPorDefectoEspecial(tipo) {
+            const familia = String(tipo || "").toUpperCase();
+            if (familia.startsWith("LATR") || familia.startsWith("LA")) return 340;
+            if (familia.startsWith("LX")) return 580;
+            if (familia.startsWith("LB")) return 580;
+            return 0;
+        }
+
+        // Traduce codigos de altura como H4, H5 o H36.
+        function traducirAltura(altura) {
+            // Normaliza la altura.
+            const codigoAltura = String(altura || "").toUpperCase();
+
+            // Usa el diccionario si ya existe una descripcion exacta.
+            if (DB[codigoAltura]) return descripcionAlturaDB(codigoAltura);
+
+            // Extrae el numero despues de H.
+            const match = codigoAltura.match(/^H(\d+(?:[.,]\d+)?)$/);
+
+            // Si no hay numero, devuelve el codigo original.
+            if (!match) return codigoAltura;
+
+            // Convierte H36 en 360mm, H72 en 720mm, etc.
+            const mm = Number.parseFloat(match[1].replace(",", ".")) * 10;
+
+            // Devuelve descripcion clara.
+            return `Altura ${codigoAltura} (${mm}mm)`;
+        }
+
+        // Traduce un token usando primero el diccionario completo.
+        function traducirToken(token) {
+            // Normaliza token.
+            const limpio = String(token || "").toUpperCase().trim();
+
+            if (limpio === "SI") return "Sistema Invisible";
+
+            // Si existe en DB, devuelve descripcion.
+            if (DB[limpio]) return descripcionDB(limpio);
+
+            if (limpio === "SIN-ACV") return "Sin Accesorio";
+            if (limpio === "ACV-LE") return "Accesorio Vibo Legumbrero";
+            if (limpio === "ST") return "Sistema ST";
+            if (limpio === "IN") return "1 Interna";
+
+            const gavetas = limpio.match(/^G(\d+)$/);
+            if (gavetas) return traducirGavetas(gavetas[1]);
+
+            // Si es altura, la interpreta.
+            if (/^H\d/.test(limpio)) return traducirAltura(limpio);
+
+            // Si es profundidad, la interpreta.
+            if (/^P\d/.test(limpio)) return traducirProfundidad(limpio);
+
+            // Si no se conoce, devuelve el codigo original.
+            return limpio;
+        }
+
+        // Detecta Tiradera Interna como token separado o al final del codigo.
+        function tieneTiraderaInterna(cod) {
+            const codigo = String(cod || "").toUpperCase().trim();
+            if (!codigo) return false;
+
+            return codigo.split(/[-+]/).some(parte => parte === "TI" || /\dTI$/.test(parte));
+        }
+
+        // Detecta un token separado por guion o signo mas dentro del codigo.
+        function tieneTokenCodigo(cod, token) {
+            const objetivo = String(token || "").toUpperCase();
+            return String(cod || "").toUpperCase().split(/[-+]/).some(parte => parte === objetivo);
+        }
+
+        // Devuelve una descripcion de DB sin repetir partes separadas por slash.
+        function descripcionDB(token) {
+            // Lee valor original.
+            const valor = DB[token] || "";
+
+            // Divide significados alternos.
+            const partes = String(valor).split("/").map(p => p.trim()).filter(Boolean);
+
+            // Deduplica ignorando mayusculas.
+            const vistas = new Set();
+            const limpias = [];
+            partes.forEach(parte => {
+                const key = parte.toUpperCase();
+                if (!vistas.has(key)) {
+                    vistas.add(key);
+                    limpias.push(parte);
+                }
+            });
+
+            // Devuelve descripcion limpia.
+            return limpias.join(" / ");
+        }
+
+        // Devuelve solo la descripcion de altura cuando la DB incluye tambien el numero suelto.
+        function descripcionAlturaDB(token) {
+            // Toma descripcion limpia.
+            const descripcion = descripcionDB(token);
+
+            // Busca la primera parte que realmente describe altura.
+            const parteAltura = descripcion.split("/").map(p => p.trim()).find(p => p.toUpperCase().startsWith("ALTURA"));
+
+            // Devuelve la parte de altura si existe.
+            return parteAltura || descripcion;
+        }
+
+        // Busca el token mas largo conocido al inicio de un texto compacto.
+        function buscarTokenConocido(texto) {
+            // Ordena claves largas primero para evitar partir codigos compuestos.
+            const claves = Object.keys(DB).sort((a, b) => b.length - a.length);
+
+            // Devuelve la primera clave que coincida al inicio.
+            return claves.find(clave => texto.startsWith(clave)) || "";
+        }
+
+        // Renderiza todos los muebles agrupados por OP.
+        function renderizar(data) {
+            // Limpia la lista anterior.
+            listaEl.textContent = "";
+
+            // Si no hay resultados, muestra estado vacio.
+            if (data.length === 0) {
+                mostrarEstadoVacio("Sin resultados", "No hay muebles que coincidan con los filtros.");
+                actualizarStats(0, 0);
+                return;
+            }
+
+            // Agrupa las filas por OP y luego por codigo de mueble.
+            const porOP = agruparPorOpYMueble(data);
+
+            // Cuenta cuantos muebles se van creando.
+            let totalMuebles = 0;
+
+            // Crea un fragmento para insertar todo de una sola vez.
+            const fragment = document.createDocumentFragment();
+
+            // Recorre OP ordenadas alfabeticamente.
+            Object.keys(porOP).sort(compararNatural).forEach(op => {
+                // Crea el bloque visual de la OP.
+                const opBlock = crearElemento("section", "op-block");
+
+                // Crea el titulo de la OP.
+                const opTitle = crearElemento("div", "op-title", `OP: ${op}`);
+
+                // Agrega el titulo al bloque.
+                opBlock.appendChild(opTitle);
+
+                // Recorre los muebles dentro de la OP, mostrando primero los especiales.
+                Object.keys(porOP[op]).sort((a, b) => compararMueblesPorEspecial(porOP[op], a, b)).forEach(cod => {
+                    // Toma las piezas del mueble.
+                    const items = porOP[op][cod];
+
+                    // Crea la tarjeta visual.
+                    const tarjeta = crearTarjetaMueble(op, cod, items);
+
+                    // Agrega la tarjeta al bloque de OP.
+                    opBlock.appendChild(tarjeta);
+
+                    // Suma un mueble al total.
+                    totalMuebles++;
+                });
+
+                // Agrega el bloque al fragmento.
+                fragment.appendChild(opBlock);
+            });
+
+            // Inserta todo en pantalla.
+            listaEl.appendChild(fragment);
+
+            // Muestra barra de estadisticas.
+            statsEl.style.display = "flex";
+
+            // Actualiza contadores.
+            actualizarStats(totalMuebles, totalMuebles);
+
+            // Aplica filtros activos si existian.
+            filtrarUniversal();
+
+            // Si ya se habia validado, vuelve a validar la vista nueva.
+            if (VALIDADO) validarTodo();
+        }
+
+        // Agrupa filas por OP y codigo de mueble.
+        function agruparPorOpYMueble(data) {
+            // Objeto final de grupos.
+            const grupos = {};
+
+            // Recorre cada fila original.
+            data.forEach(row => {
+                // Obtiene OP o asigna valor por defecto.
+                const op = val(row, "op") || "Sin OP";
+
+                // Crea grupo de OP si no existe.
+                if (!grupos[op]) grupos[op] = {};
+
+                // Obtiene codigo de mueble o asigna valor por defecto.
+                const cod = val(row, "cod_mueble") || "Sin codigo";
+
+                // Crea grupo de mueble si no existe.
+                if (!grupos[op][cod]) grupos[op][cod] = [];
+
+                // Agrega la fila al grupo.
+                grupos[op][cod].push(row);
+            });
+
+            // Devuelve la estructura agrupada.
+            return grupos;
+        }
+
+        // Ordena primero muebles con piezas especiales y luego los normales.
+        function compararMueblesPorEspecial(grupoOP, codA, codB) {
+            // Detecta especiales en cada mueble.
+            const especialesA = obtenerEspecialesDesdeItems(grupoOP[codA]);
+            const especialesB = obtenerEspecialesDesdeItems(grupoOP[codB]);
+
+            // Prioriza cualquier mueble con especiales.
+            if (especialesA.length && !especialesB.length) return -1;
+            if (!especialesA.length && especialesB.length) return 1;
+
+            // Si ambos tienen especiales, ordena por el numero especial mas bajo.
+            if (especialesA.length && especialesB.length) {
+                const minA = Math.min(...especialesA);
+                const minB = Math.min(...especialesB);
+                if (minA !== minB) return minA - minB;
+            }
+
+            // Mantiene el orden natural para el resto.
+            return compararNatural(codA, codB);
+        }
+
+        // Extrae numeros especiales desde COD_PIEZA, por ejemplo ESP3PT => 3.
+        function obtenerEspecialesDesdeItems(items) {
+            // Evita repetidos y permite ordenar por numero.
+            const especiales = new Set();
+
+            // Revisa todas las piezas del mueble.
+            items.forEach(row => {
+                // Toma el codigo de pieza normalizado.
+                const pieza = String(val(row, "cod_pieza") || "").toUpperCase();
+
+                // Busca cualquier ESP seguido de numero.
+                const matches = pieza.matchAll(/\bESP\s*[-_]*\s*(\d+)/g);
+
+                // Agrega los numeros encontrados.
+                for (const match of matches) especiales.add(Number(match[1]));
+            });
+
+            // Devuelve lista unica ordenada.
+            return Array.from(especiales).filter(Number.isFinite).sort((a, b) => a - b);
+        }
+
+        // Crea la tarjeta de un mueble con encabezado, tabla y zona de validacion.
+        function crearTarjetaMueble(op, cod, items) {
+            // Calcula descripcion del codigo.
+            const nombre = obtenerNombre(cod);
+
+            // Calcula dimensiones completas interpretadas desde el codigo.
+            const dimensionesModulo = obtenerDimensionesModulo(cod);
+
+            // Detecta ancho desde el codigo, usando primero la lectura estructurada.
+            const anchoCalculado = dimensionesModulo.ancho || detectarAncho(cod);
+
+            // Obtiene el primer tipo no vacio.
+            const tipoVal = items.map(r => val(r, "Tipo")).find(t => t.trim() !== "") || "";
+
+            // Obtiene el primer material no vacio desde la columna L.
+            const materialNombre = obtenerPrimerValor(items, ["material_nombre"]);
+
+            // Obtiene la ubicacion desde columnas posibles del archivo.
+            const ubicacion = obtenerPrimerValor(items, ["ubicacion", "ubi", "nomueble"]);
+
+            // Obtiene el grosor desde materiales de piezas estructurales.
+            const grosorMaterial = obtenerGrosorMaterialDesdeItems(items);
+
+            // Detecta piezas especiales del mueble, por ejemplo ESP3PT.
+            const especiales = obtenerEspecialesDesdeItems(items);
+
+            // Genera texto universal para filtros.
+            const textoUniversal = construirTextoUniversal(op, cod, nombre, items);
+
+            // Crea contenedor principal del mueble.
+            const card = crearElemento("article", "mueble-container");
+
+            // Guarda datos seguros en dataset.
+            card.dataset.ancho = String(anchoCalculado);
+            card.dataset.alto = String(dimensionesModulo.alto || 0);
+            card.dataset.profundidad = String(dimensionesModulo.profundidad || 0);
+            card.dataset.profundidadEstructura = String(dimensionesModulo.profundidadEstructura || dimensionesModulo.profundidad || 0);
+            card.dataset.grosorMaterial = String(grosorMaterial);
+            card.dataset.tiraderaInterna = tieneTiraderaInterna(cod) ? "1" : "0";
+            card.dataset.tpm = tieneTokenCodigo(cod, "TPM") ? "1" : "0";
+            card.dataset.tipoModulo = dimensionesModulo.tipo || "";
+            card.dataset.codpuro = cod;
+            card.dataset.tipo = tipoVal.toUpperCase();
+            card.dataset.op = op;
+            card.dataset.universal = textoUniversal;
+            card.dataset.piezas = String(items.length);
+            card.dataset.especial = especiales.length ? "1" : "0";
+
+            // Crea encabezado visual.
+            card.appendChild(crearEncabezadoMueble(op, cod, nombre, tipoVal, materialNombre, ubicacion, grosorMaterial, especiales));
+
+            // Crea contenedor para errores de validacion.
+            const validationList = crearElemento("div", "validation-list");
+            validationList.setAttribute("aria-live", "polite");
+            card.appendChild(validationList);
+
+            // Crea tabla de piezas.
+            card.appendChild(crearTabla(items));
+
+            // Devuelve tarjeta completa.
+            return card;
+        }
+
+        // Crea el encabezado de una tarjeta.
+        function crearEncabezadoMueble(op, cod, nombre, tipoVal, materialNombre, ubicacion, grosorMaterial, especiales = []) {
+            // Crea contenedor de encabezado.
+            const header = crearElemento("div", "mueble-header");
+
+            // Crea columna izquierda.
+            const titleWrap = crearElemento("div", "mueble-title");
+
+            // Crea linea de codigo y ubicacion.
+            const codLine = crearElemento("div", "cod-line");
+
+            // Crea codigo visible.
+            codLine.appendChild(crearElemento("div", "cod-mueble", cod));
+
+            // Agrega dimensiones interpretadas al lado del codigo si existen.
+            const dimensiones = obtenerDimensionesCodigo(cod);
+            if (dimensiones) codLine.appendChild(crearElemento("span", "dim-tag", dimensiones));
+
+            // Agrega grosor usado para calculos al lado de las dimensiones.
+            if (grosorMaterial) codLine.appendChild(crearElemento("span", "thickness-tag", `(${grosorMaterial})`));
+
+            // Agrega ubicacion al lado del codigo si existe.
+            if (ubicacion) codLine.appendChild(crearElemento("span", "ubi-tag", formatearUbicacion(ubicacion)));
+
+            // Agrega linea de codigo a la columna izquierda.
+            titleWrap.appendChild(codLine);
+
+            // Crea linea de descripcion visible con especiales antes del subtitulo.
+            const descLine = crearElemento("div", "desc-line");
+
+            // Agrega etiquetas especiales si existen.
+            especiales.forEach(numero => {
+                descLine.appendChild(crearElemento("span", "special-tag", `Especial ${numero}`));
+            });
+
+            // Agrega la descripcion del codigo.
+            descLine.appendChild(crearElemento("span", "desc-tag", nombre));
+
+            // Inserta subtitulo en la columna izquierda.
+            titleWrap.appendChild(descLine);
+
+            // Crea columna derecha del encabezado.
+            const headerMeta = crearElemento("div", "header-meta");
+
+            // Crea contenedor de badges.
+            const badges = crearElemento("div", "badges");
+
+            // Agrega badge de OP.
+            badges.appendChild(crearElemento("span", "badge badge-op", `OP: ${op}`));
+
+            // Agrega badge de tipo si existe.
+            if (tipoVal) badges.appendChild(crearElemento("span", "badge badge-tipo", tipoVal));
+
+            // Agrega badges a la columna derecha.
+            headerMeta.appendChild(badges);
+
+            // Agrega material debajo de OP y Tipo si existe.
+            if (materialNombre) headerMeta.appendChild(crearElemento("div", "material-tag", materialNombre));
+
+            // Une titulo y columna derecha.
+            header.appendChild(titleWrap);
+            header.appendChild(headerMeta);
+
+            // Devuelve encabezado.
+            return header;
+        }
+
+        // Crea la tabla de piezas del mueble.
+        function crearTabla(items) {
+            // Crea contenedor con desplazamiento horizontal.
+            const wrap = crearElemento("div", "table-wrap");
+
+            // Crea tabla.
+            const table = document.createElement("table");
+
+            // Crea encabezado.
+            const thead = document.createElement("thead");
+
+            // Crea fila de encabezado.
+            const headRow = document.createElement("tr");
+
+            // Agrega una columna minima para marcar filas validadas.
+            const checkHead = document.createElement("th");
+            checkHead.className = "check-col";
+            checkHead.setAttribute("aria-label", "Validada");
+            headRow.appendChild(checkHead);
+
+            // Agrega solo las columnas visibles de la tabla.
+            COLS_TABLA.forEach(col => {
+                const th = document.createElement("th");
+                th.textContent = LABEL_COLUMNAS[col] || col;
+                headRow.appendChild(th);
+            });
+
+            // Inserta fila al encabezado.
+            thead.appendChild(headRow);
+
+            // Crea cuerpo de tabla.
+            const tbody = document.createElement("tbody");
+
+            // Crea filas de datos.
+            items.forEach(row => {
+                const tr = document.createElement("tr");
+
+                // Celda compacta donde se marcara si esta fila fue comparada.
+                const checkTd = document.createElement("td");
+                checkTd.className = "check-cell";
+                checkTd.dataset.col = "__check";
+                tr.appendChild(checkTd);
+
+                COLS_TABLA.forEach(col => {
+                    const td = document.createElement("td");
+                    td.textContent = val(row, col);
+                    td.dataset.col = col;
+                    if (COLS_NUMERICAS.has(col)) td.classList.add("num");
+                    tr.appendChild(td);
+                });
+
+                tbody.appendChild(tr);
+            });
+
+            // Une partes de tabla.
+            table.appendChild(thead);
+            table.appendChild(tbody);
+            wrap.appendChild(table);
+
+            // Devuelve tabla envuelta.
+            return wrap;
+        }
+
+        // Filtra todos los muebles usando los cuatro filtros como condiciones AND.
+        function filtrarUniversal() {
+            // Lee filtros activos en mayusculas.
+            const filtros = ["f1", "f2", "f3", "f4"]
+                .map(id => document.getElementById(id).value.toUpperCase().trim())
+                .filter(Boolean);
+
+            // Busca todas las tarjetas de muebles.
+            const contenedores = document.querySelectorAll(".mueble-container");
+
+            // Inicializa contador visible.
+            let visibles = 0;
+
+            // Inicializa contador de piezas visibles.
+            let piezasVisibles = 0;
+
+            // Inicializa contador de piezas totales.
+            let piezasTotal = 0;
+
+            // Recorre cada tarjeta y decide si mostrarla.
+            contenedores.forEach(div => {
+                const texto = div.dataset.universal || "";
+                const mostrar = filtros.every(filtro => texto.includes(filtro));
+                const piezas = Number.parseInt(div.dataset.piezas, 10) || 0;
+                piezasTotal += piezas;
+                div.style.display = mostrar ? "" : "none";
+                if (mostrar) {
+                    visibles++;
+                    piezasVisibles += piezas;
+                }
+            });
+
+            // Oculta bloques de OP que quedaron sin muebles visibles.
+            document.querySelectorAll(".op-block").forEach(block => {
+                const hayVisible = [...block.querySelectorAll(".mueble-container")].some(card => card.style.display !== "none");
+                block.style.display = hayVisible ? "" : "none";
+            });
+
+            // Actualiza contadores.
+            actualizarStats(visibles, contenedores.length, piezasVisibles, piezasTotal);
+        }
+
+        // Limpia los filtros y vuelve a mostrar todos los muebles.
+        function limpiarFiltros() {
+            // Vacia los cuatro campos de filtro.
+            ["f1", "f2", "f3", "f4"].forEach(id => {
+                document.getElementById(id).value = "";
+            });
+
+            // Reaplica el filtro sin condiciones.
+            filtrarUniversal();
+        }
+
+        // Muestra el nombre del documento cargado bajo el titulo principal.
+        function actualizarNombreDocumento(nombre) {
+            documentNameEl.textContent = nombre ? `Documento: ${nombre}` : "Carga un archivo Excel o CSV para comenzar.";
+        }
+
+        // Activa o desactiva la franja para comparar dos archivos.
+        function alternarModoComparacion() {
+            // Alterna clase visible del panel.
+            const activo = !comparePanelEl.classList.contains("show");
+            comparePanelEl.classList.toggle("show", activo);
+
+            // Actualiza texto del boton.
+            document.getElementById("btn-modo-comparar").textContent = activo ? "Ocultar comparacion" : "Comparar archivos";
+
+            // Mensaje inicial cuando se abre.
+            if (activo && DATA_BASE_COMPARACION.length === 0) {
+                compareResultEl.textContent = "Carga el archivo base. Luego se habilitara el segundo archivo para comparar.";
+            }
+        }
+
+        // Maneja la carga del archivo base de comparacion.
+        function manejarArchivoBaseComparacion(event) {
+            // Toma el archivo seleccionado.
+            const file = event.target.files[0];
+
+            // Si no hay archivo, termina.
+            if (!file) return;
+
+            // Limpia estado previo de comparacion.
+            DATA_ARCHIVO_COMPARAR = [];
+            MAPA_ARCHIVO_COMPARAR = {};
+            uploadCompararEl.value = "";
+            uploadCompararEl.disabled = true;
+            labelUploadCompararEl.classList.add("disabled");
+            compareResultEl.textContent = "Leyendo archivo base...";
+
+            // Lee archivo base.
+            leerArchivoComoData(file)
+                .then(data => {
+                    DATA_BASE_COMPARACION = data;
+                    MAPA_BASE_COMPARACION = data.length > 0 ? crearMapaColumnas(Object.keys(data[0]), data) : {};
+
+                    // Muestra el archivo base en la vista principal para revisarlo.
+                    DATA_GLOBAL = data;
+                    MAPA_COLUMNAS = MAPA_BASE_COMPARACION;
+                    limpiarAvisos();
+                    actualizarNombreDocumento(file.name);
+                    mostrarAvisosDeColumnas();
+                    renderizar(DATA_GLOBAL);
+
+                    // Habilita segundo archivo.
+                    uploadCompararEl.disabled = false;
+                    labelUploadCompararEl.classList.remove("disabled");
+                    compareResultEl.textContent = `Archivo base cargado: ${file.name}. Ahora carga el archivo a comparar.`;
+                })
+                .catch(error => {
+                    compareResultEl.textContent = "No se pudo leer el archivo base.";
+                    console.error(error);
+                });
+        }
+
+        // Maneja la carga del segundo archivo y ejecuta la comparacion.
+        function manejarArchivoComparar(event) {
+            // Toma el archivo seleccionado.
+            const file = event.target.files[0];
+
+            // Si no hay archivo o falta base, termina.
+            if (!file || DATA_BASE_COMPARACION.length === 0) return;
+
+            // Mensaje de espera.
+            compareResultEl.textContent = "Comparando archivos...";
+
+            // Lee segundo archivo.
+            leerArchivoComoData(file)
+                .then(data => {
+                    DATA_ARCHIVO_COMPARAR = data;
+                    MAPA_ARCHIVO_COMPARAR = data.length > 0 ? crearMapaColumnas(Object.keys(data[0]), data) : {};
+                    const resultado = compararArchivos(DATA_BASE_COMPARACION, MAPA_BASE_COMPARACION, DATA_ARCHIVO_COMPARAR, MAPA_ARCHIVO_COMPARAR);
+                    mostrarResultadoComparacion(resultado, file.name);
+                })
+                .catch(error => {
+                    compareResultEl.textContent = "No se pudo leer el archivo a comparar.";
+                    console.error(error);
+                });
+        }
+
+        // Compara dos archivos por piezas y medidas principales.
+        function compararArchivos(baseRows, baseMap, compareRows, compareMap) {
+            // Crea indices de ambos archivos.
+            const baseIndex = crearIndiceComparacion(baseRows, baseMap);
+            const compareIndex = crearIndiceComparacion(compareRows, compareMap);
+
+            // Listas de resultado.
+            const faltan = [];
+            const sobran = [];
+            const cambiadas = [];
+
+            // Revisa piezas del archivo base contra el segundo.
+            baseIndex.forEach((baseItem, key) => {
+                const compareItem = compareIndex.get(key);
+                if (!compareItem) {
+                    faltan.push(baseItem);
+                    return;
+                }
+                if (baseItem.firma !== compareItem.firma) {
+                    cambiadas.push({ base: baseItem, comparar: compareItem });
+                }
+            });
+
+            // Revisa piezas nuevas del segundo archivo.
+            compareIndex.forEach((compareItem, key) => {
+                if (!baseIndex.has(key)) sobran.push(compareItem);
+            });
+
+            // Devuelve resumen.
+            return {
+                baseTotal: baseRows.length,
+                compararTotal: compareRows.length,
+                faltan,
+                sobran,
+                cambiadas
+            };
+        }
+
+        // Crea indice para comparar piezas.
+        function crearIndiceComparacion(rows, mapa) {
+            // Mapa final.
+            const index = new Map();
+
+            // Cuenta repeticiones por clave para manejar piezas duplicadas.
+            const repetidos = new Map();
+
+            // Recorre cada fila.
+            rows.forEach((row, idx) => {
+                const item = crearItemComparacion(row, mapa, idx + 1);
+                const key = item.key;
+
+                // Agrega sufijo por repeticion para no pisar filas duplicadas.
+                const repeticion = (repetidos.get(key) || 0) + 1;
+                repetidos.set(key, repeticion);
+                const finalKey = repeticion > 1 ? `${key}#${repeticion}` : key;
+                index.set(finalKey, item);
+            });
+
+            // Devuelve indice.
+            return index;
+        }
+
+        // Crea una fila normalizada para comparar.
+        function crearItemComparacion(row, mapa, fila) {
+            // Identidad de pieza.
+            const op = valConMapa(row, "op", mapa) || "Sin OP";
+            const codMueble = valConMapa(row, "cod_mueble", mapa) || "Sin codigo";
+            const codPieza = valConMapa(row, "cod_pieza", mapa) || "Sin pieza";
+            const nomueble = valConMapa(row, "nomueble", mapa);
+            const jov = valConMapa(row, "jov", mapa);
+
+            // Valores que deben coincidir.
+            const valores = ["cant_piezas", "medida1", "medida2", "l1", "l2", "c1", "c2"]
+                .map(col => `${col}:${valConMapa(row, col, mapa)}`)
+                .join("|");
+
+            // Devuelve objeto comparativo.
+            return {
+                fila,
+                key: [op, codMueble, codPieza, nomueble, jov].map(normalizarComparacion).join("|"),
+                firma: valores,
+                etiqueta: `OP ${op} - ${codMueble} - ${codPieza}${nomueble ? ` - ${formatearUbicacion(nomueble)}` : ""}`
+            };
+        }
+
+        // Normaliza texto para comparar.
+        function normalizarComparacion(value) {
+            // Convierte a texto uniforme.
+            return String(value || "").toUpperCase().trim().replace(/\s+/g, " ");
+        }
+
+        // Muestra resumen y detalles de comparacion.
+        function mostrarResultadoComparacion(resultado, nombreArchivo) {
+            // Crea texto resumen.
+            compareResultEl.textContent = `Comparado con ${nombreArchivo}: ${resultado.faltan.length} faltan, ${resultado.sobran.length} sobran, ${resultado.cambiadas.length} cambiadas. Piezas base: ${resultado.baseTotal}. Piezas comparadas: ${resultado.compararTotal}.`;
+
+            // Limpia avisos anteriores.
+            limpiarAvisos();
+
+            // Crea detalle breve en la zona superior de resultados.
+            const detalle = crearElemento("div", "notice");
+            const partes = [];
+            partes.push(`Comparacion: ${resultado.faltan.length} faltan, ${resultado.sobran.length} sobran, ${resultado.cambiadas.length} cambiadas.`);
+            partes.push(...resultado.faltan.slice(0, 8).map(item => `Falta: ${item.etiqueta}`));
+            partes.push(...resultado.sobran.slice(0, 8).map(item => `Sobra: ${item.etiqueta}`));
+            partes.push(...resultado.cambiadas.slice(0, 8).map(item => `Cambia: ${item.base.etiqueta}`));
+
+            // Agrega nota si hay mas detalles.
+            const totalDetalles = resultado.faltan.length + resultado.sobran.length + resultado.cambiadas.length;
+            if (totalDetalles > 24) partes.push(`Hay ${totalDetalles - 24} diferencias adicionales no mostradas en este resumen.`);
+
+            // Inserta detalle como texto.
+            detalle.textContent = partes.join(" | ");
+            avisosEl.appendChild(detalle);
+        }
+
+        // Descifra el codigo escrito en el consultor independiente.
+        function consultarCodigoMueble() {
+            // Lee el codigo escrito.
+            const codigo = document.getElementById("codigo-consulta").value.trim();
+
+            // Busca el contenedor de resultado.
+            const resultado = document.getElementById("resultado-codigo");
+
+            // Si no hay codigo, muestra mensaje inicial.
+            if (!codigo) {
+                resultado.textContent = "Escribe un codigo para ver como se lee.";
+                return;
+            }
+
+            // Muestra la lectura usando el mismo traductor de las tarjetas.
+            resultado.textContent = obtenerNombre(codigo);
+        }
+
+        // Obtiene el primer valor no vacio de una lista de columnas posibles.
+        function obtenerPrimerValor(items, columnas) {
+            // Recorre filas del mueble.
+            for (const row of items) {
+                // Recorre columnas candidatas.
+                for (const col of columnas) {
+                    // Lee el valor con el mapeo normal.
+                    const value = val(row, col);
+
+                    // Devuelve el primer valor util.
+                    if (value) return value;
+                }
+            }
+
+            // Si no encuentra nada, devuelve vacio.
+            return "";
+        }
+
+        // Da formato uniforme a la ubicacion junto al codigo del mueble.
+        function formatearUbicacion(ubicacion) {
+            // Convierte a texto limpio.
+            let texto = String(ubicacion || "").trim();
+
+            // Quita la palabra Ubi si venia en el archivo.
+            texto = texto.replace(/^ubi\s*/i, "").trim();
+
+            // Si viene solo numero, lo muestra como referencia de columna C.
+            if (/^\d+$/.test(texto)) texto = `C${texto}`;
+
+            // Muestra solo la ubicacion entre parentesis.
+            return texto ? `(${texto})` : "";
+        }
+
+        // Valida la estructura de todos los muebles renderizados.
+        function validarTodo() {
+            // Marca que la vista ya fue validada.
+            VALIDADO = true;
+            INDICE_ERROR_ACTUAL = -1;
+
+            // Contadores de resultado.
+            let countOk = 0;
+            let countErr = 0;
+
+            // Recorre cada tarjeta de mueble.
+            document.querySelectorAll(".mueble-container").forEach(card => {
+                // Limpia estado anterior.
+                limpiarEstadoValidacion(card);
+
+                // Ejecuta validacion de una tarjeta.
+                const errores = validarMueble(card);
+
+                // Aplica estado visual segun resultado.
+                if (errores.length > 0) {
+                    card.classList.add("err");
+                    mostrarErroresEnTarjeta(card, errores);
+                    countErr++;
+                } else {
+                    card.classList.add("ok");
+                    countOk++;
+                }
+
+                // Actualiza badge de estado.
+                actualizarBadgeEstado(card, errores.length === 0);
+            });
+
+            // Actualiza chips de resumen.
+            chipOkEl.textContent = `${countOk} OK`;
+            chipErrEl.textContent = `${countErr} con errores`;
+            chipOkEl.style.display = countOk > 0 ? "" : "none";
+            chipErrEl.style.display = countErr > 0 ? "" : "none";
+            chipErrEl.style.cursor = countErr > 0 ? "pointer" : "";
+            chipErrEl.title = countErr > 0 ? "Click para ir al siguiente mueble con falla" : "";
+        }
+
+        // Salta al siguiente mueble con falla cada vez que se pulsa el contador de errores.
+        function irAlSiguienteError() {
+            const errores = Array.from(document.querySelectorAll(".mueble-container.err"))
+                .filter(card => card.offsetParent !== null);
+
+            if (errores.length === 0) return;
+
+            INDICE_ERROR_ACTUAL = (INDICE_ERROR_ACTUAL + 1) % errores.length;
+            const destino = errores[INDICE_ERROR_ACTUAL];
+
+            destino.scrollIntoView({ behavior: "smooth", block: "center" });
+            destino.classList.add("pulse-error");
+            window.setTimeout(() => destino.classList.remove("pulse-error"), 900);
+        }
+
+        // Valida un solo mueble y devuelve lista de errores.
+        function validarMueble(card) {
+            // Guarda errores encontrados.
+            const errores = [];
+
+            // Lee codigo del mueble.
+            const cod = (card.dataset.codpuro || "").toUpperCase();
+
+            // Lee ancho detectado desde el codigo.
+            const ancho = Number.parseInt(card.dataset.ancho, 10) || 0;
+
+            // Lee alto y profundidad interpretadas desde el codigo.
+            const alto = Number.parseInt(card.dataset.alto, 10) || 0;
+            const profundidadBase = Number.parseInt(card.dataset.profundidadEstructura, 10) || Number.parseInt(card.dataset.profundidad, 10) || 0;
+            const tieneTpm = card.dataset.tpm === "1";
+            const profundidad = profundidadBase;
+
+            // Lee el grosor del material definido desde piezas estructurales.
+            const grosor = obtenerGrosorMaterialDesdeCard(card);
+
+            // Calcula ancho interno de base/techo/ajustes.
+            const anchoInterno = ancho > 0 ? ancho - (grosor * 2) - 1 : 0;
+
+            // Cuenta filas que si entraron en una regla de validacion.
+            let filasValidadas = 0;
+
+            // Recorre filas de piezas.
+            card.querySelectorAll("tbody tr").forEach((tr, index) => {
+                // Toma los valores principales de la fila.
+                const pieza = textoCelda(tr, "cod_pieza").toUpperCase();
+                const medida1 = numeroCelda(tr, "medida1");
+                const medida2 = numeroCelda(tr, "medida2");
+                const numeroFila = index + 1;
+
+                // Si no hay codigo de pieza, no valida esa fila.
+                if (!pieza) return;
+
+                // Indica si esta fila tiene error.
+                let filaConError = false;
+
+                // Valida medidas principales segun pieza y descripcion del modulo.
+                const validacion = validarMedidasPieza(pieza, medida1, medida2, {
+                    ancho,
+                    alto,
+                    profundidad,
+                    grosor,
+                    anchoInterno,
+                    tieneTpm,
+                    tipo: card.dataset.tipoModulo || "",
+                    cod
+                });
+
+                if (!validacion.ok) {
+                    errores.push(`Fila ${numeroFila}: ${pieza} ${validacion.mensaje} Medidas encontradas: ${formatearMedida(medida1)} x ${formatearMedida(medida2)} mm.`);
+                    filaConError = true;
+                }
+
+                // Marca con check pequeno las filas y medidas que realmente fueron comparadas.
+                if (validacion.valida) {
+                    filasValidadas++;
+                    marcarFilaValidada(tr);
+                    marcarMedidasValidas(tr, validacion.objetivos || []);
+                }
+
+                // Marca visualmente la fila si fallo alguna regla.
+                if (filaConError) tr.classList.add("row-error");
+                else tr.classList.add("row-ok");
+            });
+
+            // Si ninguna pieza pudo compararse, recien ahi informa que faltan dimensiones utiles.
+            if (filasValidadas === 0 && !ancho && !alto && !profundidad) {
+                errores.push(`No he podido validar "${cod}" porque no pude detectar dimensiones suficientes desde el codigo del mueble.`);
+            }
+
+            // Devuelve todos los errores encontrados.
+            return errores;
+        }
+
+        // Limpia clases y mensajes de una validacion anterior.
+        function limpiarEstadoValidacion(card) {
+            // Quita clases de estado.
+            card.classList.remove("err", "ok");
+
+            // Quita marcas de filas con error.
+            card.querySelectorAll(".row-error").forEach(row => row.classList.remove("row-error"));
+
+            // Quita marcas de filas validadas correctamente.
+            card.querySelectorAll(".row-ok").forEach(row => row.classList.remove("row-ok"));
+
+            // Quita checks de comparacion anterior.
+            card.querySelectorAll(".row-check").forEach(check => check.remove());
+
+            // Quita checks de medidas coincidentes anteriores.
+            card.querySelectorAll(".measure-check").forEach(check => check.remove());
+
+            // Limpia lista de errores.
+            const validationList = card.querySelector(".validation-list");
+            validationList.textContent = "";
+            validationList.classList.remove("show");
+
+            // Quita badge de estado anterior.
+            const existingBadge = card.querySelector(".badge-status");
+            if (existingBadge) existingBadge.remove();
+        }
+
+        // Muestra errores dentro de la tarjeta.
+        function mostrarErroresEnTarjeta(card, errores) {
+            // Busca la caja de validacion.
+            const validationList = card.querySelector(".validation-list");
+
+            // Crea una lista para los errores.
+            const ul = document.createElement("ul");
+
+            // Agrega cada error como item.
+            errores.forEach(error => {
+                const li = document.createElement("li");
+                li.textContent = error;
+                ul.appendChild(li);
+            });
+
+            // Inserta lista en la caja.
+            validationList.appendChild(ul);
+
+            // Muestra la caja.
+            validationList.classList.add("show");
+        }
+
+        // Actualiza el badge OK/Error de una tarjeta.
+        function actualizarBadgeEstado(card, ok) {
+            // Busca contenedor de badges.
+            const badgesEl = card.querySelector(".badges");
+
+            // Crea badge nuevo.
+            const badge = document.createElement("span");
+
+            // Asigna clases segun estado.
+            badge.className = `badge ${ok ? "badge-ok" : "badge-err"} badge-status`;
+
+            // Asigna texto visible.
+            badge.textContent = ok ? "OK" : "Error";
+
+            // Agrega badge a la tarjeta.
+            badgesEl.appendChild(badge);
+        }
+
+        // Agrega un check pequeno a la primera celda de una fila validada.
+        function marcarFilaValidada(tr) {
+            const cell = tr.querySelector('[data-col="__check"]');
+            if (!cell || cell.querySelector(".row-check")) return;
+
+            const check = document.createElement("span");
+            check.className = "row-check";
+            check.title = "Fila comparada";
+            cell.appendChild(check);
+        }
+
+        // Agrega checks junto a MEDIDA1/MEDIDA2 cuando coinciden con valores esperados.
+        function marcarMedidasValidas(tr, objetivos) {
+            const valores = objetivos.filter(valor => Number.isFinite(valor) && valor > 0);
+            if (valores.length === 0) return;
+
+            ["medida1", "medida2"].forEach(col => {
+                const cell = tr.querySelector(`[data-col="${col}"]`);
+                if (!cell || cell.querySelector(".measure-check")) return;
+
+                const numero = numeroCelda(tr, col);
+                if (!Number.isFinite(numero)) return;
+                if (!valores.some(esperado => coincideMedida(numero, esperado))) return;
+
+                const check = document.createElement("span");
+                check.className = "measure-check";
+                check.title = "Medida coincidente";
+                cell.appendChild(check);
+            });
+        }
+
+        // Devuelve profundidad esperada segun tipo de mueble.
+        function obtenerProfundidadEsperada(tipo) {
+            // Usa la misma regla de profundidad de estructura que muestra el encabezado.
+            return profundidadPorDefecto(tipo) || 580;
+        }
+
+        // Valida una pieza contra las medidas esperadas del modulo.
+        function validarMedidasPieza(pieza, medida1, medida2, modulo) {
+            const nombre = normalizarPieza(pieza);
+
+            if (!Number.isFinite(medida1) || !Number.isFinite(medida2)) {
+                return { ok: true, mensaje: "", valida: false };
+            }
+
+            if (esZocalo(nombre)) {
+                const alturaZocalo = 126;
+                const ok = coincideMedida(medida1, alturaZocalo) || coincideMedida(medida2, alturaZocalo);
+
+                return {
+                    ok,
+                    mensaje: `deberia tener altura ${alturaZocalo} mm como zocalo; el largo puede variar.`,
+                    valida: true,
+                    objetivos: [alturaZocalo]
+                };
+            }
+
+            if (esPuerta(nombre)) {
+                if (!modulo.ancho || !modulo.alto) return { ok: true, mensaje: "", valida: false };
+
+                const cantidadPuertas = modulo.ancho > 700 ? 2 : 1;
+                const anchoPuerta = Math.round(modulo.ancho / cantidadPuertas) - 3;
+                const altoPuerta = modulo.alto - 3;
+                const ok = coincideParMedidas(medida1, medida2, altoPuerta, anchoPuerta);
+
+                return {
+                    ok,
+                    mensaje: `deberia medir ${altoPuerta} x ${anchoPuerta} mm como puerta, descontando 1.5 mm por lado.`,
+                    valida: true,
+                    objetivos: [altoPuerta, anchoPuerta]
+                };
+            }
+
+            if (esFrenteCajon(nombre)) {
+                if (!modulo.ancho) return { ok: true, mensaje: "", valida: false };
+
+                const anchoFrente = modulo.ancho - 3;
+                const ok = coincideMedida(medida1, anchoFrente) || coincideMedida(medida2, anchoFrente);
+
+                return {
+                    ok,
+                    mensaje: `deberia tener ancho ${anchoFrente} mm como frente de cajon, descontando 1.5 mm por lado.`,
+                    valida: true,
+                    objetivos: [anchoFrente]
+                };
+            }
+
+            if (esOrejaTipoPuerta(nombre)) {
+                if (!modulo.ancho) return { ok: true, mensaje: "", valida: false };
+
+                const altoOreja = modulo.alto ? modulo.alto - 3 : 0;
+                const ok = altoOreja
+                    ? coincideParMedidas(medida1, medida2, modulo.ancho, altoOreja)
+                    : (coincideMedida(medida1, modulo.ancho) || coincideMedida(medida2, modulo.ancho));
+
+                return {
+                    ok,
+                    mensaje: altoOreja
+                        ? `deberia medir ${modulo.ancho} x ${altoOreja} mm como oreja tipo puerta.`
+                        : `deberia conservar ${modulo.ancho} mm de ancho como oreja tipo puerta.`,
+                    valida: true,
+                    objetivos: altoOreja ? [modulo.ancho, altoOreja] : [modulo.ancho]
+                };
+            }
+
+            if (esRepisaPortacopas(nombre)) {
+                if (!modulo.anchoInterno) return { ok: true, mensaje: "", valida: false };
+
+                const profundidadPortacopas = 280;
+                const ok = coincideParMedidas(medida1, medida2, modulo.anchoInterno, profundidadPortacopas);
+
+                return {
+                    ok,
+                    mensaje: `deberia medir ${modulo.anchoInterno} x ${profundidadPortacopas} mm como repisa portacopas.`,
+                    valida: true,
+                    objetivos: [modulo.anchoInterno, profundidadPortacopas]
+                };
+            }
+
+            if (esTpm(nombre)) {
+                if (!modulo.anchoInterno || !modulo.profundidad) return { ok: true, mensaje: "", valida: false };
+
+                const profundidadTpm = modulo.profundidad - 52;
+                const ok = coincideParMedidas(medida1, medida2, modulo.anchoInterno, profundidadTpm);
+
+                return {
+                    ok,
+                    mensaje: `deberia medir ${modulo.anchoInterno} x ${profundidadTpm} mm porque TPM descuenta 52 mm solo en esa pieza.`,
+                    valida: true,
+                    objetivos: [modulo.anchoInterno, profundidadTpm]
+                };
+            }
+
+            if (esBaseConTiraderaInterna(nombre)) {
+                if (!modulo.anchoInterno || !modulo.profundidad) return { ok: true, mensaje: "", valida: false };
+
+                const profundidadBaseTi = modulo.profundidad - 22;
+                const ok = coincideParMedidas(medida1, medida2, modulo.anchoInterno, profundidadBaseTi);
+
+                return {
+                    ok,
+                    mensaje: `deberia medir ${modulo.anchoInterno} x ${profundidadBaseTi} mm porque la base con TI descuenta 22 mm de profundidad.`,
+                    valida: true,
+                    objetivos: [modulo.anchoInterno, profundidadBaseTi]
+                };
+            }
+
+            if (esBaseOTecho(nombre)) {
+                if (!modulo.anchoInterno || !modulo.profundidad) return { ok: true, mensaje: "", valida: false };
+
+                const ok = coincideParMedidas(medida1, medida2, modulo.anchoInterno, modulo.profundidad);
+                return {
+                    ok,
+                    mensaje: `deberia medir ${modulo.anchoInterno} x ${modulo.profundidad} mm segun ancho interno y profundidad.`,
+                    valida: true,
+                    objetivos: [modulo.anchoInterno, modulo.profundidad]
+                };
+            }
+
+            if (esRepisaMovil(nombre)) {
+                if (!modulo.anchoInterno || !modulo.profundidad) return { ok: true, mensaje: "", valida: false };
+
+                const anchoRepisaMovil = modulo.anchoInterno - 1;
+                const profundidadRepisa = profundidadRepisaMovil(modulo);
+                const ok = coincideParMedidas(medida1, medida2, anchoRepisaMovil, profundidadRepisa);
+
+                return {
+                    ok,
+                    mensaje: `deberia medir ${anchoRepisaMovil} x ${profundidadRepisa} mm porque REPM/REPMM usa profundidad propia de repisa movil.`,
+                    valida: true,
+                    objetivos: [anchoRepisaMovil, profundidadRepisa]
+                };
+            }
+
+            if (esMaletera(nombre)) {
+                if (!modulo.anchoInterno) return { ok: true, mensaje: "", valida: false };
+
+                const profundidadMaletera = profundidadRepisaMovil(modulo);
+                const ok = coincideParMedidas(medida1, medida2, modulo.anchoInterno, profundidadMaletera);
+
+                return {
+                    ok,
+                    mensaje: `deberia medir ${modulo.anchoInterno} x ${profundidadMaletera} mm como maletera.`,
+                    valida: true,
+                    objetivos: [modulo.anchoInterno, profundidadMaletera]
+                };
+            }
+
+            if (esRepisaTapa(nombre)) {
+                const anchoRepisa = modulo.ancho || modulo.anchoInterno;
+                const profundidadRepisa = modulo.profundidad || 470;
+                if (!anchoRepisa || !profundidadRepisa) return { ok: true, mensaje: "", valida: false };
+
+                const ok = coincideParMedidas(medida1, medida2, anchoRepisa, profundidadRepisa);
+
+                return {
+                    ok,
+                    mensaje: `deberia medir ${anchoRepisa} x ${profundidadRepisa} mm como repisa tapa.`,
+                    valida: true,
+                    objetivos: [anchoRepisa, profundidadRepisa]
+                };
+            }
+
+            if (esRepisaFija(nombre)) {
+                if (!modulo.anchoInterno || !modulo.profundidad) return { ok: true, mensaje: "", valida: false };
+
+                const profundidadRepisa = nombre.startsWith("REPF")
+                    ? modulo.profundidad - modulo.grosor - 2 - 6
+                    : modulo.profundidad;
+                const ok = coincideParMedidas(medida1, medida2, modulo.anchoInterno, profundidadRepisa);
+
+                return {
+                    ok,
+                    mensaje: `deberia medir ${modulo.anchoInterno} x ${profundidadRepisa} mm como repisa normal.`,
+                    valida: true,
+                    objetivos: [modulo.anchoInterno, profundidadRepisa]
+                };
+            }
+
+            if (esAjuste(nombre)) {
+                if (!modulo.anchoInterno) return { ok: true, mensaje: "", valida: false };
+
+                const alturasAjuste = [60, 80, 100, 150];
+                const ok = alturasAjuste.some(altura => coincideParMedidas(medida1, medida2, modulo.anchoInterno, altura));
+
+                return {
+                    ok,
+                    mensaje: `deberia medir ${modulo.anchoInterno} x 60/80/100/150 mm.`,
+                    valida: true,
+                    objetivos: [modulo.anchoInterno, ...alturasAjuste]
+                };
+            }
+
+            if (esPiezaDosDimensiones(nombre)) {
+                const segundaMedida = modulo.alto || modulo.profundidad;
+                if (!modulo.ancho || !segundaMedida) return { ok: true, mensaje: "", valida: false };
+
+                const ok = coincideParMedidas(medida1, medida2, modulo.ancho, segundaMedida);
+                return {
+                    ok,
+                    mensaje: `deberia medir ${modulo.ancho} x ${segundaMedida} mm segun las dos dimensiones detectadas del codigo.`,
+                    valida: true,
+                    objetivos: [modulo.ancho, segundaMedida]
+                };
+            }
+
+            if (esLateral(nombre)) {
+                if (!modulo.alto || !modulo.profundidad) return { ok: true, mensaje: "", valida: false };
+
+                const ok = coincideParMedidas(medida1, medida2, modulo.alto, modulo.profundidad);
+                return {
+                    ok,
+                    mensaje: `deberia medir ${modulo.alto} x ${modulo.profundidad} mm segun alto y profundidad del modulo.`,
+                    valida: true,
+                    objetivos: [modulo.alto, modulo.profundidad]
+                };
+            }
+
+            if (esRespaldo(nombre)) {
+                if (!modulo.ancho || !modulo.alto || !modulo.grosor) return { ok: true, mensaje: "", valida: false };
+
+                const anchoRespaldo = modulo.ancho - (modulo.grosor * 2) + 10;
+                const altoRespaldo = modulo.alto - (modulo.grosor * 2) + 10;
+                const ok = coincideParMedidas(medida1, medida2, anchoRespaldo, altoRespaldo);
+
+                return {
+                    ok,
+                    mensaje: `deberia medir ${anchoRespaldo} x ${altoRespaldo} mm, descontando dos espesores y sumando 5 mm por lado para ranura.`,
+                    valida: true,
+                    objetivos: [anchoRespaldo, altoRespaldo]
+                };
+            }
+
+            if (tieneSoloDosDimensiones(modulo)) {
+                const segundaMedida = modulo.alto || modulo.profundidad;
+                const ok = coincideParMedidas(medida1, medida2, modulo.ancho, segundaMedida);
+
+                return {
+                    ok,
+                    mensaje: `deberia medir ${modulo.ancho} x ${segundaMedida} mm porque el codigo solo tiene dos dimensiones detectadas.`,
+                    valida: true,
+                    objetivos: [modulo.ancho, segundaMedida]
+                };
+            }
+
+            return { ok: true, mensaje: "", valida: false };
+        }
+
+        // Extrae el grosor desde JOB/JOV en filas de base, techo o ajustes.
+        function obtenerGrosorMaterialDesdeItems(items) {
+            const candidatas = [];
+
+            items.forEach(row => {
+                const pieza = normalizarPieza(val(row, "cod_pieza"));
+                if (!esPiezaQueDefineGrosorModulo(pieza)) return;
+
+                const grosor = extraerGrosorMaterial(val(row, "jov"));
+                if (grosor) candidatas.push(grosor);
+            });
+
+            return candidatas.find(grosor => grosor > 0) || 18;
+        }
+
+        // Extrae el grosor del material guardado en la tarjeta.
+        function obtenerGrosorMaterialDesdeCard(card) {
+            const grosor = Number.parseFloat(card.dataset.grosorMaterial || "");
+            return Number.isFinite(grosor) && grosor > 0 ? grosor : 18;
+        }
+
+        // Profundidad por defecto para repisas moviles segun la estructura del modulo.
+        function profundidadRepisaMovil(modulo) {
+            const profundidad = Number(modulo.profundidad) || 0;
+            const tipo = String(modulo.tipo || "").toUpperCase();
+
+            if (["A", "EA"].includes(tipo) || profundidad === 320) return 250;
+            if (["B", "X", "CL", "CLOSET", "CM", "EB", "EX"].includes(tipo) || profundidad === 580) return 470;
+
+            return profundidad;
+        }
+
+        // Detecta codigos donde solo se pudo leer ancho y una segunda dimension.
+        function tieneSoloDosDimensiones(modulo) {
+            if (!modulo.ancho) return false;
+
+            const tieneAlto = Number.isFinite(modulo.alto) && modulo.alto > 0;
+            const tieneProfundidad = Number.isFinite(modulo.profundidad) && modulo.profundidad > 0;
+
+            return tieneAlto !== tieneProfundidad;
+        }
+
+        // Extrae un numero de grosor desde codigos/materiales como CPCP18CO.
+        function extraerGrosorMaterial(value) {
+            const texto = String(value || "").toUpperCase();
+            const match = texto.match(/(?:^|[^0-9])(\d{1,2}(?:[.,]\d+)?)(?=[A-Z]|[^0-9]|$)/);
+            const grosor = match ? Number.parseFloat(match[1].replace(",", ".")) : 0;
+
+            if (!Number.isFinite(grosor)) return 0;
+            return grosor >= 3 && grosor <= 40 ? grosor : 0;
+        }
+
+        // Piezas cuyo JOB/JOV define el grosor general del modulo.
+        function esPiezaQueDefineGrosorModulo(pieza) {
+            return esBaseOTecho(pieza) || esAjuste(pieza);
+        }
+
+        // Normaliza nombres de piezas para detectar familias.
+        function normalizarPieza(pieza) {
+            return String(pieza || "")
+                .toUpperCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/\s+/g, "")
+                .trim();
+        }
+
+        // Detecta bases y techos.
+        function esBaseOTecho(pieza) {
+            return esBase(pieza) || esTecho(pieza);
+        }
+
+        // Detecta puertas principales PT sin confundir piezas especiales de puerta abatible.
+        function esPuerta(pieza) {
+            const normal = normalizarPieza(pieza);
+            if (normal.includes("ABF") || normal.includes("ABE")) return false;
+            return normal === "PT" || normal.startsWith("PT-");
+        }
+
+        // Detecta frentes de cajon, incluso cuando vienen con prefijo especial como ESP4FC.
+        function esFrenteCajon(pieza) {
+            const normal = normalizarPieza(pieza);
+            const partes = normal.split("-").filter(Boolean);
+            return normal === "FC" ||
+                normal.endsWith("FC") ||
+                normal.includes("FRENTECAJON") ||
+                partes.some(parte => parte === "FC" || parte.endsWith("FC"));
+        }
+
+        // Detecta zocalos de melamina o laca.
+        function esZocalo(pieza) {
+            const normal = normalizarPieza(pieza);
+            return normal.includes("ZOC");
+        }
+
+        // Detecta orejas tipo puerta OTP.
+        function esOrejaTipoPuerta(pieza) {
+            const normal = normalizarPieza(pieza);
+            return normal === "OTP" || normal.startsWith("OTP");
+        }
+
+        // Detecta repisas portacopas, que manejan profundidad propia de 280 mm.
+        function esRepisaPortacopas(pieza) {
+            const normal = normalizarPieza(pieza);
+            return normal.includes("PORTACOP");
+        }
+
+        // Detecta maleteras.
+        function esMaletera(pieza) {
+            const normal = normalizarPieza(pieza);
+            return normal === "MALE" || normal.startsWith("MALE");
+        }
+
+        // Detecta repisas tapa, REPT, REPTA y variantes.
+        function esRepisaTapa(pieza) {
+            const normal = normalizarPieza(pieza);
+            return normal.startsWith("REPT");
+        }
+
+        // Detecta bases con codigos completos o abreviados, como BAS, BA o E-BAS-DEC-TI.
+        function esBase(pieza) {
+            const normal = normalizarPieza(pieza);
+            const partes = normal.split("-").filter(Boolean);
+
+            return normal.includes("BASE") ||
+                normal.includes("BAS") ||
+                partes.includes("BA") ||
+                normal === "BA" ||
+                normal.startsWith("BA-") ||
+                normal.endsWith("-BA");
+        }
+
+        // Detecta techos con codigos completos o abreviados.
+        function esTecho(pieza) {
+            const normal = normalizarPieza(pieza);
+            const partes = normal.split("-").filter(Boolean);
+
+            return normal.includes("TECHO") ||
+                normal.includes("TEC") ||
+                partes.includes("TE") ||
+                partes.includes("TCH") ||
+                normal === "TE" ||
+                normal === "TCH";
+        }
+
+        // Detecta bases con tiradera interna, como BAS-TI o E-BAS-DEC-TI.
+        function esBaseConTiraderaInterna(pieza) {
+            const normal = normalizarPieza(pieza);
+            if (!esBase(normal) || esTecho(normal)) return false;
+
+            return normal === "BAS-TI" ||
+                normal === "BASTI" ||
+                normal.endsWith("TI") ||
+                normal.includes("-TI") ||
+                normal.includes("TIRADERAINTERNA");
+        }
+
+        // Detecta ajustes AJ.
+        function esAjuste(pieza) {
+            const normal = normalizarPieza(pieza);
+            const partes = normal.split("-").filter(Boolean);
+
+            return normal.includes("AJUSTE") ||
+                partes.some(parte => /^AJ[A-Z0-9]*$/.test(parte)) ||
+                /^AJ[A-Z0-9]*$/.test(normal) ||
+                /(?:^|[^A-Z])AJ[A-Z0-9]*$/.test(normal);
+        }
+
+        // Detecta laterales principales.
+        function esLateral(pieza) {
+            const normal = normalizarPieza(pieza);
+            const partes = normal.split("-").filter(Boolean);
+
+            return normal === "LID" ||
+                normal === "LDD" ||
+                normal === "LATI" ||
+                normal === "LATD" ||
+                normal === "LI" ||
+                normal === "LD" ||
+                normal.startsWith("LAT") ||
+                normal.startsWith("LAD") ||
+                normal.startsWith("LAI") ||
+                normal.includes("LATERAL") ||
+                partes.includes("LID") ||
+                partes.includes("LDD") ||
+                partes.includes("LATI") ||
+                partes.includes("LATD") ||
+                partes.includes("LI") ||
+                partes.includes("LD");
+        }
+
+        // Detecta respaldos.
+        function esRespaldo(pieza) {
+            const normal = normalizarPieza(pieza);
+            const partes = normal.split("-").filter(Boolean);
+
+            return normal === "RES" ||
+                normal.startsWith("RES-") ||
+                normal.includes("RESP") ||
+                normal.includes("RSP") ||
+                normal.includes("FONDO") ||
+                normal.includes("TRASERA") ||
+                partes.includes("RES") ||
+                /(?:^|[^A-Z])RES[A-Z0-9]*$/.test(normal);
+        }
+
+        // Detecta repisas moviles, que descuentan 1 mm adicional de ancho.
+        function esRepisaMovil(pieza) {
+            const normal = normalizarPieza(pieza);
+            const partes = normal.split("-").filter(Boolean);
+
+            return normal === "REPM" ||
+                normal === "REPMM" ||
+                normal.startsWith("REPM") ||
+                partes.some(parte => parte.startsWith("REPM")) ||
+                /(?:^|[^A-Z])REPM[A-Z0-9]*$/.test(normal);
+        }
+
+        // Detecta repisas normales o fijas sin confundirlas con repisas moviles.
+        function esRepisaFija(pieza) {
+            const normal = normalizarPieza(pieza);
+            const partes = normal.split("-").filter(Boolean);
+
+            if (esRepisaMovil(normal)) return false;
+
+            return normal === "REP" ||
+                normal.startsWith("REPF") ||
+                normal === "REPISA" ||
+                partes.includes("REP") ||
+                partes.includes("REPISA") ||
+                partes.some(parte => parte.startsWith("REPF")) ||
+                /(?:^|[^A-Z])REP$/.test(normal);
+        }
+
+        // Detecta piezas planas que solo necesitan ancho y alto, como forramientos FXTR.
+        function esPiezaDosDimensiones(pieza) {
+            const normal = normalizarPieza(pieza);
+            const partes = normal.split("-").filter(Boolean);
+
+            return normal.startsWith("FXTR") ||
+                normal.startsWith("FBTR") ||
+                normal.startsWith("FATR") ||
+                normal === "PM" ||
+                normal.startsWith("FORR") ||
+                normal.includes("FORRAMIENTO") ||
+                partes.some(parte => parte === "PM" || parte.startsWith("FXTR") || parte.startsWith("FBTR") || parte.startsWith("FATR"));
+        }
+
+        // Detecta la pieza TPM, que tiene descuento propio de profundidad.
+        function esTpm(pieza) {
+            const normal = normalizarPieza(pieza);
+            return normal === "TPM" || normal.includes("-TPM");
+        }
+
+        // Compara un par de medidas sin importar el orden en la tabla.
+        function coincideParMedidas(medida1, medida2, esperado1, esperado2) {
+            return (coincideMedida(medida1, esperado1) && coincideMedida(medida2, esperado2)) ||
+                (coincideMedida(medida1, esperado2) && coincideMedida(medida2, esperado1));
+        }
+
+        // Muestra una medida o guion si no es numerica.
+        function formatearMedida(valor) {
+            return Number.isFinite(valor) ? String(valor) : "-";
+        }
+
+        // Detecta si una pieza debe validar ancho.
+        function esPiezaDeAncho(pieza) {
+            // Base, techo y ajustes suelen depender del ancho total.
+            return pieza.includes("BASE") || pieza.includes("TECHO") || pieza.startsWith("AJ_");
+        }
+
+        // Detecta si una pieza debe validar profundidad.
+        function esPiezaEstructural(pieza) {
+            // Piezas estructurales principales.
+            return pieza.startsWith("AJ_") || pieza.includes("BAS") || pieza.includes("TEC") || pieza.startsWith("LAT");
+        }
+
+        // Compara una medida con una esperada usando tolerancia.
+        function coincideMedida(valor, esperado) {
+            // Si el valor no es numerico, no coincide.
+            if (!Number.isFinite(valor)) return false;
+
+            // Devuelve true si esta dentro de la tolerancia.
+            return Math.abs(valor - esperado) <= TOLERANCIA_MM;
+        }
+
+        // Obtiene texto de una celda segun su columna.
+        function textoCelda(row, col) {
+            // Busca la celda por data-col.
+            const cell = row.querySelector(`[data-col="${col}"]`);
+
+            // Devuelve texto limpio.
+            return cell ? cell.textContent.trim() : "";
+        }
+
+        // Obtiene numero de una celda segun su columna.
+        function numeroCelda(row, col) {
+            // Lee texto de celda.
+            const texto = textoCelda(row, col);
+
+            // Cambia coma decimal por punto y convierte a numero.
+            const numero = Number.parseFloat(texto.replace(",", "."));
+
+            // Devuelve numero o NaN si no se pudo convertir.
+            return Number.isFinite(numero) ? numero : NaN;
+        }
+
+        // Detecta ancho desde el codigo del mueble.
+        function detectarAncho(cod) {
+            // Normaliza el codigo.
+            const codigo = String(cod || "").toUpperCase();
+
+            // Busca letras iniciales completas seguidas del ancho, como B60, BS60 o BAR63.
+            const match = codigo.match(/\b[A-Z]+(\d{2,3}(?:[.,]\d+)?)/);
+
+            // Si no encuentra, busca el primer numero de 2 o 3 digitos.
+            const fallback = codigo.match(/(\d{2,3}(?:[.,]\d+)?)/);
+
+            // Toma el numero encontrado.
+            const valor = match ? match[1] : fallback ? fallback[1] : "";
+
+            // Si no hay numero, devuelve 0.
+            if (!valor) return 0;
+
+            // Convierte codigos tipo 60 a 600 mm y 120 a 1200 mm.
+            return convertirNumeroCodigoAMm(valor);
+        }
+
+        // Construye texto de busqueda para los filtros universales.
+        function construirTextoUniversal(op, cod, nombre, items) {
+            // Une datos principales.
+            const base = [op, cod, nombre].join(" ");
+
+            // Une todos los valores de las filas.
+            const filas = items.map(row => Object.values(row).join(" ")).join(" ");
+
+            // Devuelve todo en mayusculas para comparar facil.
+            return `${base} ${filas}`.toUpperCase();
+        }
+
+        // Actualiza contadores visibles.
+        function actualizarStats(visibles, total, piezasVisibles = null, piezasTotal = null) {
+            // Actualiza contador visible.
+            document.getElementById("vis-count").textContent = String(visibles);
+
+            // Actualiza contador total.
+            document.getElementById("total-count").textContent = String(total);
+
+            // Calcula piezas desde las tarjetas si no se enviaron valores.
+            if (piezasVisibles === null || piezasTotal === null) {
+                const contenedores = document.querySelectorAll(".mueble-container");
+                piezasVisibles = 0;
+                piezasTotal = 0;
+                contenedores.forEach(div => {
+                    const piezas = Number.parseInt(div.dataset.piezas, 10) || 0;
+                    piezasTotal += piezas;
+                    if (div.style.display !== "none") piezasVisibles += piezas;
+                });
+            }
+
+            // Actualiza contador de piezas visible.
+            document.getElementById("vis-piece-count").textContent = String(piezasVisibles);
+
+            // Actualiza contador de piezas total.
+            document.getElementById("total-piece-count").textContent = String(piezasTotal);
+        }
+
+        // Muestra avisos sobre columnas faltantes.
+        function mostrarAvisosDeColumnas() {
+            // Busca columnas requeridas que no se encontraron.
+            const faltantes = COLS_REQUERIDAS.filter(col => !MAPA_COLUMNAS[col]);
+
+            // Si no falta nada, oculta chip y termina.
+            if (faltantes.length === 0) {
+                chipWarnEl.style.display = "none";
+                return;
+            }
+
+            // Muestra chip de advertencia.
+            chipWarnEl.textContent = `Faltan columnas: ${faltantes.join(", ")}`;
+            chipWarnEl.style.display = "";
+
+            // Crea aviso completo.
+            const notice = crearElemento("div", "notice", `Advertencia: no se encontraron estas columnas requeridas: ${faltantes.join(", ")}. La tabla se mostrara, pero la validacion puede quedar incompleta.`);
+
+            // Inserta aviso.
+            avisosEl.appendChild(notice);
+        }
+
+        // Limpia todos los avisos generales.
+        function limpiarAvisos() {
+            // Borra avisos.
+            avisosEl.textContent = "";
+
+            // Oculta chip de advertencia.
+            chipWarnEl.style.display = "none";
+        }
+
+        // Muestra un error general en la zona de lista.
+        function mostrarErrorGeneral(mensaje) {
+            // Limpia la lista.
+            listaEl.textContent = "";
+
+            // Crea aviso visible.
+            const errorBox = crearElemento("div", "notice", mensaje);
+
+            // Inserta aviso.
+            listaEl.appendChild(errorBox);
+        }
+
+        // Muestra estado vacio reutilizable.
+        function mostrarEstadoVacio(titulo, texto) {
+            // Limpia la lista.
+            listaEl.textContent = "";
+
+            // Crea contenedor vacio.
+            const empty = crearElemento("div", "empty");
+
+            // Crea titulo.
+            const h3 = document.createElement("h3");
+            h3.textContent = titulo;
+
+            // Crea parrafo.
+            const p = document.createElement("p");
+            p.textContent = texto;
+
+            // Une elementos.
+            empty.appendChild(h3);
+            empty.appendChild(p);
+            listaEl.appendChild(empty);
+        }
+
+        // Crea un elemento HTML seguro con clase y texto opcionales.
+        function crearElemento(tag, className = "", text = "") {
+            // Crea el elemento indicado.
+            const el = document.createElement(tag);
+
+            // Agrega clases si existen.
+            if (className) el.className = className;
+
+            // Agrega texto seguro si existe.
+            if (text) el.textContent = text;
+
+            // Devuelve elemento listo.
+            return el;
+        }
+
+        // Orden natural para mezclar texto y numeros de forma mas humana.
+        function compararNatural(a, b) {
+            // Usa comparacion local con sensibilidad numerica.
+            return String(a).localeCompare(String(b), "es", { numeric: true, sensitivity: "base" });
+        }
+    </script>
+</body>
+</html>
