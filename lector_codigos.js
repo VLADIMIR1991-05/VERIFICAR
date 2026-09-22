@@ -419,7 +419,7 @@ function extraerAlturaMm(texto) {
         }
 
 function extraerProfundidadMm(texto) {
-            const match = String(texto || "").toUpperCase().match(/(?<![A-CE-HJ-QS-Z\/])P(\d+(?:[.,]\d+)?)/);
+            const match = String(texto || "").toUpperCase().match(/(?<![A-CE-GJ-QS-Z\/])(?<!(?:^|[^Z])H)P(\d+(?:[.,]\d+)?)/);
             if (!match) return 0;
 
             const numero = Number.parseFloat(match[1].replace(",", "."));
@@ -442,7 +442,7 @@ function tipoUsaNumeroComoProfundidad(tipo) {
         }
 
 function profundidadEstructuraDesdeCodigo(texto, profundidadTotal, tipo = "") {
-            const match = String(texto || "").toUpperCase().match(/(?<![A-CE-HJ-QS-Z\/])P(\d+(?:[.,]\d+)?)/);
+            const match = String(texto || "").toUpperCase().match(/(?<![A-CE-GJ-QS-Z\/])(?<!(?:^|[^Z])H)P(\d+(?:[.,]\d+)?)/);
             const numero = match ? Number.parseFloat(match[1].replace(",", ".")) : 0;
             const profundidad = Number(profundidadTotal) || 0;
             const familia = String(tipo || "").toUpperCase();
@@ -453,6 +453,10 @@ function profundidadEstructuraDesdeCodigo(texto, profundidadTotal, tipo = "") {
             if (familia === "ST") return (numero === 3 || numero === 4) ? profundidad + 20 : profundidad;
             if (numero === 2) return profundidad - 20;
             if (numero === 3 || numero === 4) return profundidad;
+            // Paneles PM usan la profundidad total (PM240P6 = 600).
+            if (familia === "PM") return profundidad;
+            // Laterales de complemento LX/FX descuentan 20 aunque la P venga en cm (P69 = 670).
+            if (numero >= 20 && /^(LX|FX)/.test(familia)) return profundidad - 20;
             // P de 20 o mas (P55, P67) descuenta 20 mm solo en modulos; complementos (PM, TPL...) usan la total.
             if (numero >= 20 && !TIPOS_MODULO_ANCHO_DECIMAL.includes(familia)) return profundidad;
             return profundidad > 20 ? profundidad - 20 : 0;

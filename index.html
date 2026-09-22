@@ -6,7 +6,7 @@
     <!-- Permite que la pagina se adapte correctamente a celulares y tablets. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <!-- Titulo que aparece en la pestana del navegador. -->
-    <title>Validador de Despiece - Madeval</title>
+    <title>Despiece Madeval</title>
     <!-- Libreria para leer archivos Excel .xlsx desde el navegador. -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Base externa de nomenclaturas. Reemplaza db_codigos.js para actualizar codigos. -->
@@ -130,7 +130,7 @@
         /* Franja de filtros y acciones. */
         .controls {
             position: sticky;
-            top: 72px;
+            top: var(--alto-header, 72px);
             z-index: 18;
             display: grid;
             grid-template-columns: repeat(4, minmax(140px, 1fr)) auto auto auto;
@@ -144,9 +144,6 @@
 
         /* Consultor independiente para descifrar codigos de mueble. */
         .decoder {
-            position: sticky;
-            top: 139px;
-            z-index: 17;
             display: grid;
             grid-template-columns: minmax(180px, 340px) 1fr;
             gap: 10px;
@@ -820,6 +817,238 @@
         }
 
         /* Ajustes para tablet y movil horizontal. */
+        /* Pestanas principales: Consultar, Validar, Generar. */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            flex-basis: 100%;
+            overflow-x: auto;
+        }
+
+        .tab {
+            min-height: 36px;
+            padding: 8px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 7px;
+            background: transparent;
+            color: #d5ddd5;
+            cursor: pointer;
+            font-size: 0.86rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .tab[aria-selected="true"] {
+            background: #fffdf8;
+            border-color: #fffdf8;
+            color: var(--primary);
+        }
+
+        /* Ficha detallada del consultor. */
+        .ficha {
+            padding: 18px 28px 36px;
+        }
+
+        .ficha:empty {
+            display: none;
+        }
+
+        .ficha-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .ficha-dato {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            background: var(--card);
+        }
+
+        .ficha-etiqueta {
+            color: var(--muted);
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .ficha-subtitulo {
+            margin: 14px 0 6px;
+            font-size: 0.9rem;
+        }
+
+        .ficha-partes {
+            margin: 0 0 8px 18px;
+            font-size: 0.86rem;
+            line-height: 1.5;
+        }
+
+        .ficha-resumen {
+            margin-bottom: 14px;
+            font-size: 0.86rem;
+            line-height: 1.5;
+        }
+
+        /* Formulario del generador de despiece. */
+        .gen-form {
+            display: grid;
+            grid-template-columns: minmax(220px, 1.4fr) repeat(3, minmax(130px, 1fr));
+            gap: 10px 12px;
+            padding: 16px 28px;
+            background: rgba(255, 253, 248, 0.94);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .gen-campo {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            color: var(--muted);
+            font-size: 0.74rem;
+            font-weight: 700;
+        }
+
+        .gen-campo .f-input {
+            min-width: 0;
+            width: 100%;
+        }
+
+        .gen-codigos {
+            grid-row: span 3;
+        }
+
+        .gen-codigos textarea {
+            flex: 1;
+            min-height: 150px;
+            height: auto;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .gen-acciones {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            grid-column: 2 / -1;
+            align-items: end;
+        }
+
+        .btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .gen-resultado {
+            padding: 18px 28px 40px;
+        }
+
+        .gen-vacio {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .gen-totales {
+            margin-bottom: 14px;
+            padding: 10px 14px;
+            border-radius: 7px;
+            background: var(--success-soft);
+            color: var(--success);
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        .gen-tarjeta {
+            margin-bottom: 16px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-left: 6px solid var(--accent);
+            border-radius: 9px;
+            background: var(--card);
+            box-shadow: var(--shadow);
+        }
+
+        .gen-cabecera {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+        }
+
+        .gen-avisos {
+            margin: 10px 0 0 18px;
+            color: var(--warning);
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+
+        .gen-tarjeta .table-wrap {
+            margin-top: 12px;
+        }
+
+        .gen-pieza {
+            font-weight: 750;
+            white-space: nowrap;
+        }
+
+        .gen-formula {
+            min-width: 220px;
+            color: var(--muted);
+            font-size: 0.76rem;
+        }
+
+        @media (max-width: 980px) {
+            .ficha,
+            .gen-resultado {
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+
+            .gen-form {
+                grid-template-columns: 1fr 1fr;
+                padding: 14px 18px;
+            }
+
+            .gen-codigos,
+            .gen-acciones {
+                grid-column: 1 / -1;
+                grid-row: auto;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .ficha,
+            .gen-resultado {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            .gen-form {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            .tab {
+                flex: 1 1 0;
+                min-width: 0;
+                padding-left: 6px;
+                padding-right: 6px;
+                font-size: 0.78rem;
+                white-space: normal;
+                line-height: 1.15;
+            }
+        }
+
         @media (max-width: 980px) {
             .header,
             .controls,
@@ -1027,7 +1256,7 @@
         <!-- Contenedor del texto principal. -->
         <div class="header-title">
             <!-- Nombre visible de la herramienta. -->
-            <h1>Validador de Despiece</h1>
+            <h1>Despiece Madeval</h1>
             <!-- Nombre del documento cargado o instruccion inicial. -->
             <p id="document-name">Carga un archivo Excel o CSV para comenzar.</p>
         </div>
@@ -1053,7 +1282,79 @@
 
         <!-- Input real para seleccionar archivo; esta oculto por CSS. -->
         <input type="file" id="upload" accept=".xlsx,.xls,.csv">
+
+        <!-- Pestanas de la herramienta. -->
+        <nav class="tabs" role="tablist" aria-label="Modo de trabajo">
+            <button type="button" class="tab" role="tab" id="tab-consultar" data-vista="consultar" aria-selected="false">Consultar codigo</button>
+            <button type="button" class="tab" role="tab" id="tab-validar" data-vista="validar" aria-selected="true">Validar despiece</button>
+            <button type="button" class="tab" role="tab" id="tab-generar" data-vista="generar" aria-selected="false">Generar despiece</button>
+        </nav>
     </header>
+
+    <!-- Pestana Consultar: lectura del codigo y ficha detallada. -->
+    <div class="vista" id="vista-consultar" hidden>
+        <section class="decoder" aria-label="Consultor de codigo de mueble">
+            <!-- Entrada del codigo que se quiere consultar. -->
+            <input type="text" class="f-input" id="codigo-consulta" placeholder="Consultar codigo: B60IH4-G3-SLIM, A80H5..." autocomplete="off">
+            <!-- Resultado de lectura del codigo. -->
+            <div class="decoder-result" id="resultado-codigo">Escribe un codigo para ver como se lee.</div>
+        </section>
+        <!-- Ficha con medidas, sistema, coleccion y piezas que genera. -->
+        <section class="ficha" id="ficha-codigo" aria-live="polite"></section>
+    </div>
+
+    <!-- Pestana Generar: despiece a partir de codigos. -->
+    <div class="vista" id="vista-generar" hidden>
+        <section class="gen-form" aria-label="Datos para generar el despiece">
+            <label class="gen-campo gen-codigos">Codigos (uno por linea, "x2" para cantidad)
+                <textarea class="f-input" id="gen-codigos" placeholder="B60IH4&#10;B80H4-G3-SLIM x2&#10;A60DH5" spellcheck="false"></textarea>
+            </label>
+            <label class="gen-campo">Grosor casco (mm)
+                <input type="number" class="f-input" id="gen-casco" value="18" min="3" max="40" step="1" list="grosores">
+            </label>
+            <label class="gen-campo">Grosor respaldo (mm)
+                <input type="number" class="f-input" id="gen-respaldo" value="6" min="3" max="40" step="1" list="grosores">
+            </label>
+            <label class="gen-campo">Grosor repisas (mm)
+                <input type="number" class="f-input" id="gen-repisas" value="18" min="3" max="40" step="1" list="grosores">
+            </label>
+            <label class="gen-campo">Grosor puertas / cajones (mm)
+                <input type="number" class="f-input" id="gen-frentes-grosor" value="18" min="3" max="40" step="1" list="grosores">
+            </label>
+            <label class="gen-campo">Frentes en este despiece
+                <select class="f-input" id="gen-frentes">
+                    <option value="auto">Automatico segun linea</option>
+                    <option value="si">Si, incluir puertas y cajones</option>
+                    <option value="no">No (laca, enchape, vidrio...)</option>
+                </select>
+            </label>
+            <label class="gen-campo">Linea (opcional)
+                <input type="text" class="f-input" id="gen-linea" placeholder="KUHZ+MV, MCU+LM..." autocomplete="off">
+            </label>
+            <label class="gen-campo">Cantidad de cada codigo
+                <input type="number" class="f-input" id="gen-cantidad" value="1" min="1" step="1">
+            </label>
+            <label class="gen-campo">OP para exportar
+                <input type="text" class="f-input" id="gen-op" placeholder="GENERADO" autocomplete="off">
+            </label>
+            <div class="gen-acciones">
+                <button type="button" class="btn btn-primary" id="gen-generar">Generar despiece</button>
+                <button type="button" class="btn btn-secondary" id="gen-exportar" disabled>Exportar Excel</button>
+                <button type="button" class="btn btn-secondary" id="gen-validar" disabled>Validar este despiece</button>
+            </div>
+            <datalist id="grosores">
+                <option value="3"></option><option value="6"></option><option value="9"></option>
+                <option value="12"></option><option value="15"></option><option value="18"></option>
+                <option value="25"></option><option value="36"></option>
+            </datalist>
+        </section>
+        <section class="gen-resultado" id="gen-resultado" aria-live="polite">
+            <p class="gen-vacio">Escribe uno o varios codigos y pulsa "Generar despiece". Las medidas salen del mismo motor del validador.</p>
+        </section>
+    </div>
+
+    <!-- Pestana Validar: carga de archivo, filtros y resultados. -->
+    <div class="vista" id="vista-validar">
 
     <!-- Filtros y botones principales. -->
     <section class="controls" aria-label="Filtros y acciones">
@@ -1071,14 +1372,6 @@
         <button type="button" class="btn btn-secondary" id="btn-limpiar">Limpiar</button>
         <!-- Boton que activa el modo de comparacion entre dos archivos. -->
         <button type="button" class="btn btn-secondary" id="btn-modo-comparar">Comparar archivos</button>
-    </section>
-
-    <!-- Consultor independiente para descifrar un codigo de mueble manualmente. -->
-    <section class="decoder" aria-label="Consultor de codigo de mueble">
-        <!-- Entrada del codigo que se quiere consultar. -->
-        <input type="text" class="f-input" id="codigo-consulta" placeholder="Consultar codigo: BAR63H12P6.7S/P-PM..." autocomplete="off">
-        <!-- Resultado de lectura del codigo. -->
-        <div class="decoder-result" id="resultado-codigo">Escribe un codigo para ver como se lee.</div>
     </section>
 
     <!-- Panel para comparar un archivo base contra otro archivo. -->
@@ -1129,9 +1422,12 @@
             </label>
         </div>
     </main>
+    </div>
     <script src="./lector_codigos.js"></script>
     <script src="./reglas_validacion.js"></script>
     <script src="./reglas_coleccion.js"></script>
+    <script src="./generador_despiece.js"></script>
     <script src="./app.js"></script>
+    <script src="./app_generador.js"></script>
 </body>
 </html>

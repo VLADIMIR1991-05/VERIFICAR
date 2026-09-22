@@ -1,0 +1,890 @@
+==============================================================================
+REPORTE A - CLASIFICACION DE ERRORES DEL VALIDADOR (20 despieces reales)
+==============================================================================
+
+1. RESUMEN
+   Antes de esta revision : 1477 OK | 437 con error | 234 sin regla
+   Despues                : 1568 OK | 346 con error | 234 sin regla
+   +91 modulos pasan a OK, 0 regresiones (ningun modulo OK paso a error).
+   Lectura de codigos: 5704 codigos del corpus leen exactamente igual.
+
+   Criterio: un error es REGLA FALTANTE si la misma diferencia (tipo + pieza + mm)
+   se repite en 3 o mas modulos de 2 o mas archivos distintos. Si la diferencia
+   es unica, se marca como POSIBLE ERROR REAL del archivo (o caso especial a revisar).
+
+2. REGLAS NUEVAS YA IMPLEMENTADAS (patrones repetidos en produccion)
+   2.1 AJ-PP de paneles PPX/PPA/PRM = ancho - 60 (33 modulos, 8 archivos).
+   2.2 Frente vertical FV en linea/codigo Henzo descuenta 35 mm (14 modulos, 7 archivos).
+   2.3 Laterales de altos sobre refrigerador (A..RF): alto - 2 espesores x prof - 68 (13 modulos, 8 archivos).
+   2.4 FRE-PP de paneles PPX/PPA = ancho - 3 x alto - 3 (PPX tambien alto - 16) (20 modulos).
+   2.5 AJP de complementos Henzo LB/LBD/LBI/FVLB/FB = ancho interno - 100 (19 modulos).
+   2.6 OTP sola: alto o alto - 3; en linea Henzo sin HZ en el codigo: alto - 38 (EA, EB, ECL, OTP10).
+   2.7 OA: acompana el alto real del modulo aunque la OTP sea Henzo.
+   2.8 FLD: frente de cajon al ancho completo (8 modulos, 4 archivos).
+   2.9 PM..P6: profundidad total 600 (no descuenta 20) (8 modulos, 4 archivos).
+   2.10 CL..ZHP4: ahora lee P4 = 420 (antes quedaba en 580).
+   2.11 TPM: acepta tambien profundidad - 26 (ademas de - 52).
+   2.12 Techo FB Henzo: profundidad - 24. Techo de bastidor BS Henzo: profundidad - 11.
+   2.13 STC: laterales y respaldo 30 mm mas bajos.
+
+3. PATRONES REPETIDOS QUE QUEDAN (probable regla faltante - necesito confirmacion)
+   modulos | archivos | tipo|pieza|diferencia | ejemplos
+    10 |  6 | OTP|?|OTP/OA deben trabajar en pareja: si esta | OTP10H2-HZ, OTP10H2-HZ, OTP10H3-HZ
+         -> OTP/OA deben trabajar en pareja: si estan en la misma cantidad, el descuento de 3 mm debe aplicarse completo en todas las OTP o completo en todas las 
+     7 |  2 | ST|E-BASEINT|35,80 | ST23H6P1.6, ST64H6P1.6, ST70H6P1.6
+         -> E-BASEINT deberia medir 193 x 160 mm segun ancho interno y profundidad. Medidas encontradas: 158 x 80 mm.
+     4 |  4 | A|CI|0,-134 | A95H3RF-PUSH, A94H2RF-PUSH, A94H2RF-PUSH
+         -> CI deberia medir 60 x 913 mm como costado interno. Medidas encontradas: 60 x 1047 mm.
+     4 |  2 | FVLB|BAS|NaN | FVLB55IHZ-L-S-H3, FVLB60DHZ-L-S, FVLB60DHZ-L-S-H3
+         -> BAS deberia tener ancho interno 513 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 413 x 60 mm.
+     4 |  3 | |E-BAS-DEC|NaN | PDES-OC-I-90H12NKP3-LSP-1PULS-TIR-PL, PDES-OC-D-90H12NKP4-LSP-1PULS-TIR-PL, PDES-OC-D-80H11NKP6.7-LSP-1PULS-TIR-PL
+         -> E-BAS-DEC deberia tener ancho interno 863 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 143 x 320 mm.
+     4 |  3 | |E-TEC-DEC|NaN | PDES-OC-I-90H12NKP3-LSP-1PULS-TIR-PL, PDES-OC-D-90H12NKP4-LSP-1PULS-TIR-PL, PDES-OC-D-80H11NKP6.7-LSP-1PULS-TIR-PL
+         -> E-TEC-DEC deberia tener ancho interno 863 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 143 x 320 mm.
+     3 |  2 | |E-BAS-C|NaN | DINTEL-I-90H2P6,7, DINTEL-D-80H4P6,7, DINTEL-I-45H4P6,7
+         -> E-BAS-C deberia tener ancho interno 863 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 498 x 100 mm.
+     3 |  2 | |E-TEC-C|NaN | DINTEL-I-90H2P6,7, DINTEL-D-80H4P6,7, DINTEL-I-45H4P6,7
+         -> E-TEC-C deberia tener ancho interno 863 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 498 x 100 mm.
+     3 |  2 | A|ESP1RESP|11,11 | A94H58EX-PUSH, A94H58EXT-PUSH, A94H4EX-PUSH
+         -> ESP1RESP deberia medir 914 x 554 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 543 x 903 mm.
+     3 |  3 | LXE|LATI|0,20 | LXE8H224,6P69-RF-NIV, LXE8H2246P10-RF-NIV, LXE8H2436P7-RF-NIV-LDD
+         -> LATI deberia medir 2238 x 690 mm segun alto y profundidad del modulo. Medidas encontradas: 2238 x 670 mm.
+     3 |  3 | B|LATI|610,19 | B89.2FBAD-SLIM, B81FBAI-SLIM-HZ-SFR-BF-AQUA-BA-AQUA-BF, B90FBAD-SLIM-SFR-AQUA-BA-AQUA-BF
+         -> LATI deberia medir 760 x 580 mm segun alto y profundidad del modulo. Medidas encontradas: 150 x 561 mm.
+     3 |  2 | B|LAI|677,15 | B60HS-HZ-REJ-US, B81HS-HZ-REJ-US, B60HS-HZ-REJ-US
+         -> LAI deberia medir 760 x 580 mm segun alto y profundidad del modulo. Medidas encontradas: 83 x 565 mm.
+     3 |  2 | BS|LATI|-190,-15 | BS32I-HZ, BS85-HZ, BS90-HZ
+         -> LATI deberia medir 570 x 75 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 90 mm.
+     3 |  2 | BS|LATD|-190,-15 | BS32I-HZ, BS85-HZ, BS90-HZ
+         -> LATD deberia medir 570 x 75 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 90 mm.
+
+   Preguntas concretas:
+   - ST..P1.6: E-BASEINT sale 158 x 80 (esperado 193 x 160). Cual es la formula?
+   - A..RF: el CI (costado interno) mide 1047 en vez de 60 x 913. Que pieza es en estos modulos?
+   - PDES / DINTEL / FVLB: no tienen profundidad en el codigo; cual es la profundidad de E-BAS/E-TEC?
+   - BS..HZ: laterales 760 x 90 (el codigo no trae H). Los bastidores Henzo van a 760 y 90 de fondo?
+   - B..FBA (fregadero angular): LATI 150 x 561. Son piezas de otro tipo de modulo?
+   - LXE..P69: laterales a 670 (P69 - 20). Confirmar que siempre descuentan 20.
+
+4. POSIBLES ERRORES REALES DEL ARCHIVO (diferencia unica, no se repite)
+   248 modulos. Ojo: aqui tambien caen codigos especiales que el lector todavia
+   interpreta mal (ej. A90.2H8.1(H5) lee alto 81 mm). No todo es error de despiece:
+   es la lista para revisar a mano, ordenada por archivo.
+
+   [Semana 16-4 total  ok  f.xls]  10 modulos
+     - A90.2H8.1(H5)-ACS-EE-PUSH
+         PT: PT deberia medir 78 x 448 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 807 x 448 mm.
+         REPMM: REPMM deberia medir 864 x 250 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 317 x 250 mm.
+         (+8 filas mas)
+     - ASM120H60-ACMOV-S/B-LLT-1PULS
+         PT: PT deberia medir 597 x 597 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 597 x 1197 mm.
+         RESP: RESP deberia medir 1174 x 574 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 587 x 1174 mm.
+     - FLD60H1P53.2-XX
+         LATI: LATI deberia medir 190 x 532 mm segun alto y profundidad del modulo. Medidas encontradas: 190 x 512 mm.
+         LATD: LATD deberia medir 190 x 532 mm segun alto y profundidad del modulo. Medidas encontradas: 190 x 512 mm.
+     - LBD67HZ-L-D
+         LAT-HZ: LAT-HZ deberia medir 760 x 670 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 633 x 670 mm segun ancho interno y profundidad. Medidas encontradas: 533 x 60 mm.
+     - MBS30H2G2IN-SLIM-HZ
+         FRI-SP: FRI-SP deberia medir 263 x 530 mm como fondo/posicion/friso. Medidas encontradas: 260 x 100 mm.
+         FRI-SP: FRI-SP deberia medir 263 x 530 mm como fondo/posicion/friso. Medidas encontradas: 260 x 100 mm.
+         (+3 filas mas)
+     - REP56.8TAP31
+         REPTA: REPTA deberia medir 568 x 470 mm como repisa tapa. Medidas encontradas: 568 x 310 mm.
+         REPTA: REPTA deberia medir 568 x 470 mm como repisa tapa. Medidas encontradas: 568 x 310 mm.
+         (+10 filas mas)
+     - REP66.8TAP31
+         REPTA: REPTA deberia medir 668 x 470 mm como repisa tapa. Medidas encontradas: 668 x 310 mm.
+         REPTA: REPTA deberia medir 668 x 470 mm como repisa tapa. Medidas encontradas: 668 x 310 mm.
+         (+1 filas mas)
+     - ST45P24H93
+         BAS: BAS deberia medir 413 x 240 mm segun ancho interno y profundidad. Medidas encontradas: 283 x 240 mm.
+         AJPS: AJPS deberia medir 413 x 60/80/100/150 mm. Medidas encontradas: 283 x 60 mm.
+     - TAPADEC180E3P50
+         TAPAE3: TAPAE3 deberia medir 1800 x 500 mm como tapa decorativa. Medidas encontradas: 1830 x 530 mm.
+     - X60.5IH12P6.7HCG1H28-MRV-ON-PUSH
+         FRE: FRE deberia medir 568 x 650 mm como fondo/posicion/friso. Medidas encontradas: 100 x 602 mm.
+
+   [Semana 17-3 total  ok  f.xlsx]  17 modulos
+     - FLD80H1-XX-P45
+         LATI: LATI deberia medir 190 x 450 mm segun alto y profundidad del modulo. Medidas encontradas: 190 x 430 mm.
+         LATD: LATD deberia medir 190 x 450 mm segun alto y profundidad del modulo. Medidas encontradas: 190 x 430 mm.
+     - TAPA120E3-P60
+         TAPAE3: TAPAE3 deberia medir 1200 x 600 mm como tapa decorativa. Medidas encontradas: 1230 x 630 mm.
+         TAPAE3: TAPAE3 deberia medir 1200 x 600 mm como tapa decorativa. Medidas encontradas: 1230 x 630 mm.
+     - X60IP6.7HCG1H28-MRV-S/B-PUSH-ON
+         RESP: RESP deberia medir 574 x 254 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 2094 x 574 mm.
+         LATI: LATI deberia medir 280 x 650 mm segun alto y profundidad del modulo. Medidas encontradas: 2120 x 650 mm.
+         (+1 filas mas)
+     - B51IFP66-SFR
+         ESP1BAS: ESP1BAS deberia medir 473 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 473 x 640 mm.
+         ESP1BAS: ESP1BAS deberia medir 473 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 473 x 640 mm.
+     - B51DFP66-SFR
+         ESP2BAS: ESP2BAS deberia medir 473 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 473 x 640 mm.
+     - LB98HZ-U-D
+         LAT-HZ: LAT-HZ deberia medir 760 x 980 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 943 x 980 mm segun ancho interno y profundidad. Medidas encontradas: 843 x 60 mm.
+     - LB98HZ-U-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 980 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 943 x 980 mm segun ancho interno y profundidad. Medidas encontradas: 843 x 60 mm.
+     - MBS60H2LAVABO-HZ
+         PT: PT deberia medir 342 x 597 mm como puerta Henzo, descontando 35 mm y 1.5 mm por lado. Medidas encontradas: 342 x 297 mm.
+     - MZ-A60H2AB-SIM-ON-NE-RSP-TPT
+         RESP-TP-PT: RESP-TP-PT deberia medir 574 x 354 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 377 x 597 mm.
+         RESP-TP-PT: RESP-TP-PT deberia medir 574 x 354 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 377 x 597 mm.
+         (+1 filas mas)
+     - MZ-A60H62P67-D4L-CF1H15-SI-O-NE-RSP-TST-
+         RESP-TP-ST: RESP-TP-ST deberia medir 574 x 594 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 617 x 597 mm.
+         E-LID: E-LID deberia medir 620 x 670 mm segun alto y profundidad del modulo. Medidas encontradas: 620 x 650 mm.
+         (+6 filas mas)
+     - VDY60H240R3G4-SLIM
+         TAPA: TAPA deberia medir 600 x 2400 mm como tapa decorativa. Medidas encontradas: 600 x 570 mm.
+     - VDY80H240R3G4-SLIM
+         TAPA: TAPA deberia medir 800 x 2400 mm como tapa decorativa. Medidas encontradas: 800 x 570 mm.
+         TAPA: TAPA deberia medir 800 x 2400 mm como tapa decorativa. Medidas encontradas: 800 x 570 mm.
+     - X60DH12R-REX-SI-G2I-MRV-NK-PUSH
+         COS-REP: COS-REP deberia medir 563 x 580 mm como repisa normal. Medidas encontradas: 130 x 442 mm.
+         TACO-REP: TACO-REP deberia medir 563 x 60 mm como tacos, usando ancho total menos 2 espesores laterales y 1 mm de fuga. Medidas encontradas: 541 x 60 
+         (+1 filas mas)
+     - PDES-OC-I-90H11NKP6.7-TIR-NE-SIERRA
+         ESP1E-BAS-DEC: ESP1E-BAS-DEC deberia tener ancho interno 863 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 143 x 3
+         ESP1E-TEC-DEC: ESP1E-TEC-DEC deberia tener ancho interno 863 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 143 x 3
+         (+2 filas mas)
+     - X60.5IP6.7HCG1H23-SL-NK-PUSH-ON
+         ESP2RESP: ESP2RESP deberia medir 579 x 204 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 2094 x 579 mm.
+     - LB104HZ-U-D
+         LAT-HZ: LAT-HZ deberia medir 760 x 1040 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 1003 x 1040 mm segun ancho interno y profundidad. Medidas encontradas: 903 x 60 mm.
+         (+2 filas mas)
+     - X25P3S/P-NK-LSP
+         RES: RES deberia medir 224 x 2094 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 2210 x 224 mm.
+         E-LID: E-LID deberia medir 2120 x 320 mm segun alto y profundidad del modulo. Medidas encontradas: 2236 x 320 mm.
+         (+1 filas mas)
+
+   [Semana 19-8 total  ok  f.xls]  12 modulos
+     - A96H3RF-PUSH
+         REPMP: REPMP deberia medir 922 x 470 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 451 x 510 mm.
+     - A101H46.5RF-PUSH
+         ESP1REPMP: ESP1REPMP deberia medir 972 x 470 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 476 x 470 mm.
+     - A94H76EX-PUSH
+         ESP3REPM: ESP3REPM deberia medir 902 x 250 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 241 x 250 mm.
+         ESP3RESP: ESP3RESP deberia medir 914 x 734 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 723 x 903 mm.
+     - FB99.3HZ-I-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 993 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 956 x 993 mm segun ancho interno y profundidad. Medidas encontradas: 956 x 60 mm.
+     - FB99HZ-I-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 990 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 953 x 990 mm segun ancho interno y profundidad. Medidas encontradas: 953 x 60 mm.
+     - A90.6EX-ACSE-EE-PUSH
+         ESP1BAS-EE: ESP1BAS-EE deberia medir 869 x 320 mm segun ancho interno y profundidad. Medidas encontradas: 869 x 302 mm.
+     - ECL110P900DH12RS-P-RE3
+         ESP4TECL: ESP4TECL deberia medir 1069 x 9000 mm segun ancho interno y profundidad. Medidas encontradas: 1084 x 580 mm.
+         ESP4TECL: ESP4TECL deberia medir 1069 x 9000 mm segun ancho interno y profundidad. Medidas encontradas: 580 x 304 mm.
+         (+6 filas mas)
+     - B30COG2IN-MRV-T-F-S/B-E
+         POS-MRV: POS-MRV deberia medir 212 x 83/184/300 mm como posicion Merivobox (ancho interno - 51). Medidas encontradas: 212 x 380 mm.
+     - B60G3IN-MRV-S/B
+         FC: FC deberia tener ancho 597 mm como frente de cajon, descontando 1.5 mm por lado. Medidas encontradas: 342 x 447 mm.
+         FC: FC deberia tener ancho 597 mm como frente de cajon, descontando 1.5 mm por lado. Medidas encontradas: 342 x 447 mm.
+         (+10 filas mas)
+     - B60H1.0FF-REJ
+         RESP: RESP deberia medir 574 x -16 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 74 x 574 mm.
+         LATI: LATI deberia medir 10 x 580 mm segun alto y profundidad del modulo. Medidas encontradas: 100 x 580 mm.
+         (+1 filas mas)
+     - CL45H12RS/P-RE3
+         D-LATI: D-LATI deberia medir 2310 x 580 mm segun alto y profundidad del modulo. Medidas encontradas: 2310 x 560 mm.
+         D-LATD: D-LATD deberia medir 2310 x 580 mm segun alto y profundidad del modulo. Medidas encontradas: 2310 x 560 mm.
+     - CP60P6.7H99-HC-S/B-RFH
+         REPF: REPF deberia medir 563 x 624 mm como repisa fija, descontando grosor estructura, 1 mm de fuga, grosor respaldo y 1 mm de fuga. Medidas encon
+
+   [Semana 21-7 total  ok  f.xlsx]  14 modulos
+     - X80P6.7HCG1H21-SLIM-PUSH
+         ESP2RESP: ESP2RESP deberia medir 774 x 184 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 2094 x 774 mm.
+     - FB450HZ-I-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 4500 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 4463 x 4500 mm segun ancho interno y profundidad. Medidas encontradas: 413 x 60 mm.
+         (+1 filas mas)
+     - EX90DP34H12PT60F-PUSH
+         ESP2TEC: ESP2TEC deberia medir 863 x 340 mm segun ancho interno y profundidad. Medidas encontradas: 863 x 320 mm.
+         ESP2BAS: ESP2BAS deberia medir 863 x 340 mm segun ancho interno y profundidad. Medidas encontradas: 863 x 320 mm.
+         (+1 filas mas)
+     - A96H48RF-PUSH
+         ESP3REPMP: ESP3REPMP deberia medir 922 x 470 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 451 x 470 mm.
+     - B50S-P-SIN ACCE ACV-LE-50X3
+         ESP4E-TEC-DEC: ESP4E-TEC-DEC deberia medir 463 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 463 x 554 mm.
+     - B96G2-SLIM-HZ
+         FC: FC deberia tener ancho 957 mm como frente de cajon, descontando 1.5 mm por lado. Medidas encontradas: 342 x 687 mm.
+         FC: FC deberia tener ancho 957 mm como frente de cajon, descontando 1.5 mm por lado. Medidas encontradas: 342 x 687 mm.
+         (+7 filas mas)
+     - BOT43IH6P1.6-CRU-TI
+         REPMM: REPMM deberia medir 392 x 70 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 392 x 110 mm.
+     - BOT45IH6P1.6-CRU-TI
+         REPMM: REPMM deberia medir 412 x 70 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 412 x 110 mm.
+     - BOT45IH6P1.6-PUSH
+         REPMM: REPMM deberia medir 412 x 70 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 412 x 110 mm.
+     - CR29H1TR
+         CR: CR deberia medir 190 x 290 mm como cornisa. Medidas encontradas: 250 x 290 mm.
+     - FB50HZ-I-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 500 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 463 x 500 mm segun ancho interno y profundidad. Medidas encontradas: 463 x 60 mm.
+     - FB70P2HZ-I-D
+         LATI-HZ: LATI-HZ deberia medir 760 x 220 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 200 mm.
+         LATD-HZ: LATD-HZ deberia medir 760 x 220 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 200 mm.
+     - MB70P55LAVABO-G1-SLIM-HZ
+         PT: PT deberia medir 722 x 347 mm como puerta Henzo, descontando 35 mm y 1.5 mm por lado. Medidas encontradas: 342 x 347 mm.
+         REPF: REPF deberia medir 663 x 504 mm como repisa fija, descontando grosor estructura, 1 mm de fuga, grosor respaldo y 1 mm de fuga. Medidas encon
+     - X60IH12HCTEKG1H26-SLIM-REJILLA-PUSH
+         FRE: FRE deberia medir 563 x 580 mm como fondo/posicion/friso. Medidas encontradas: 100 x 597 mm.
+         TAPAREF: TAPAREF deberia medir 600 x 580 mm como tapa decorativa. Medidas encontradas: 100 x 554 mm.
+         (+1 filas mas)
+
+   [Semana 24-8 total  ok  f.xls]  13 modulos
+     - B60DH3-PUSH-S-EST-NC
+         ESP3BAS: ESP3BAS deberia medir 563 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 563 x 420 mm.
+         ESP3TEC: ESP3TEC deberia medir 563 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 563 x 420 mm.
+         (+1 filas mas)
+     - CJ68.5P64
+         ESP6BAS-DEC: ESP6BAS-DEC deberia medir 648 x 640 mm segun ancho interno y profundidad. Medidas encontradas: 560 x 645 mm.
+     - ECL96*87IRS-P-LLT
+         ESP7TECL: ESP7TECL deberia medir 929 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 944 x 580 mm.
+         ESP7TECL: ESP7TECL deberia medir 929 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 580 x 274 mm.
+         (+5 filas mas)
+     - ECL87*96IRS-P-LLT
+         ESP9TECL: ESP9TECL deberia medir 839 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 854 x 580 mm.
+         ESP9TECL: ESP9TECL deberia medir 839 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 580 x 364 mm.
+         (+5 filas mas)
+     - CJ68.5P60
+         ESP60FC: ESP60FC deberia tener ancho 682 mm como frente de cajon, descontando 1.5 mm por lado. Medidas encontradas: 685 x 72 mm.
+     - CM80AL-C1-SLIM-CG-BR-LSU
+         D-LATI: D-LATI deberia medir 2120 x 580 mm segun alto y profundidad del modulo. Medidas encontradas: 2120 x 560 mm.
+         D-LATD: D-LATD deberia medir 2120 x 580 mm segun alto y profundidad del modulo. Medidas encontradas: 2120 x 560 mm.
+         (+6 filas mas)
+     - ECL110DP70C1S/P-P6P4-LSU
+         TECLP6P4: TECLP6P4 deberia medir 1069 x 700 mm segun ancho interno y profundidad. Medidas encontradas: 1084 x 580 mm.
+         TECLP6P4: TECLP6P4 deberia medir 1069 x 700 mm segun ancho interno y profundidad. Medidas encontradas: 420 x 104 mm.
+         (+7 filas mas)
+     - ECL110IP70C1S/P-P4P6-LSU
+         TECLP4P6: TECLP4P6 deberia medir 1069 x 700 mm segun ancho interno y profundidad. Medidas encontradas: 1084 x 580 mm.
+         TECLP4P6: TECLP4P6 deberia medir 1069 x 700 mm segun ancho interno y profundidad. Medidas encontradas: 420 x 104 mm.
+         (+7 filas mas)
+     - LB105HZ-U-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 1050 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 1013 x 1050 mm segun ancho interno y profundidad. Medidas encontradas: 913 x 60 mm.
+     - LBD67HZ-L-D
+         LAT-HZ: LAT-HZ deberia medir 760 x 670 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 633 x 670 mm segun ancho interno y profundidad. Medidas encontradas: 533 x 60 mm.
+     - BS60IH3-PUSH
+         LATI: LATI deberia medir 570 x 75 mm segun alto y profundidad del modulo. Medidas encontradas: 500 x 75 mm.
+         LATD: LATD deberia medir 570 x 75 mm segun alto y profundidad del modulo. Medidas encontradas: 500 x 75 mm.
+     - LBD67H50LIN-L-S
+         LAT: LAT deberia medir 500 x 670 mm segun alto y profundidad del modulo. Medidas encontradas: 500 x 150 mm.
+         BAS=>2:PROF: BAS=>2:PROF 50M deberia medir 633 x 670 mm segun ancho interno y profundidad. Medidas encontradas: 533 x 120 mm.
+     - LBD67H242.8LIN-L-S
+         LAT: LAT deberia medir 2428 x 670 mm segun alto y profundidad del modulo. Medidas encontradas: 2428 x 150 mm.
+         BAS=>2:PROF: BAS=>2:PROF 50M deberia medir 633 x 670 mm segun ancho interno y profundidad. Medidas encontradas: 533 x 120 mm.
+         (+2 filas mas)
+
+   [Semana 26-7 total  ok  f1.xlsx]  1 modulos
+     - TUTU18CO
+         BAS-DEC: BAS-DEC deberia tener ancho interno 143 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 563 x 600 mm.
+         TEC-DEC: TEC-DEC deberia tener ancho interno 143 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 563 x 600 mm.
+         (+1 filas mas)
+
+   [Semana 27-9 total  ok  f.xls]  9 modulos
+     - CM60DRFI-SIAL-BD-CG-BN
+         FRI-SI: FRI-SI deberia medir 569 x 580 mm como fondo/posicion/friso. Medidas encontradas: 135 x 538 mm.
+     - CM60IC1-G2Z2-FI-SI-LDD
+         FRI-SI: FRI-SI deberia medir 569 x 580 mm como fondo/posicion/friso. Medidas encontradas: 135 x 538 mm.
+         FRI-ZAP-SI: FRI-ZAP-SI deberia medir 569 x 580 mm como fondo/posicion/friso. Medidas encontradas: 150 x 538 mm.
+         (+1 filas mas)
+     - CM60IRFI-SIAL-BD-CG-BN
+         FRI-SI: FRI-SI deberia medir 569 x 580 mm como fondo/posicion/friso. Medidas encontradas: 135 x 538 mm.
+     - ECL90C1IPT60-BD-CG
+         FV: FV deberia medir 2117 x 297 mm como frente vertical. Medidas encontradas: 2117 x 657 mm.
+     - ECL90RDPT60-BD-CG
+         FV: FV deberia medir 2117 x 297 mm como frente vertical. Medidas encontradas: 2117 x 657 mm.
+     - MB45P60MRV-AC-RS-ON
+         POS-MRV: POS-MRV deberia medir 362 x 83/184/300 mm como posicion Merivobox (ancho interno - 51). Medidas encontradas: 362 x 435 mm.
+     - MET-X30H11P3-E5A-C/R-V-CG-LSP
+         RESP: RESP 1-4 deberia medir 274 x 2094 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 353 x 248 mm.
+         RESP: RESP 2-5 deberia medir 274 x 2094 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 328 x 248 mm.
+         (+1 filas mas)
+     - TAPADEC185P3
+         TA: TA deberia medir 1850 x 320 mm como tapa decorativa. Medidas encontradas: 1850 x 341 mm.
+         TA: TA deberia medir 1850 x 320 mm como tapa decorativa. Medidas encontradas: 1850 x 341 mm.
+     - X76,5P6.7HCG1H28-SL-PUSH-ON
+         RESP: RESP deberia medir 739 x 254 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 2094 x 739 mm.
+         LATI: LATI deberia medir 280 x 650 mm segun alto y profundidad del modulo. Medidas encontradas: 2120 x 650 mm.
+         (+1 filas mas)
+
+   [Semana 3-5 total  ok  f.xls]  12 modulos
+     - A120H139.2P6-BARPG-SB-T1-2PULS-LLT-LSU-LRE-PUSH
+         ESP4RES: ESP4RES deberia medir 1174 x 1366 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 1379 x 1174 mm.
+     - HPIVI-90H11NK-DINH25.4-TIR-PL
+         ESP6TEC-DIN: ESP6TEC-DIN deberia tener ancho interno 217 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 863 x 70 
+         ESP6BAS-DIN: ESP6BAS-DIN deberia tener ancho interno 217 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 863 x 70 
+     - B-60P4S/P-SOP-BX24
+         AJP45: AJP45 deberia medir 203 x 60/80/100/150 mm. Medidas encontradas: 563 x 100 mm.
+     - B80P6.7HS
+         AJ-RJ: AJ-RJ deberia medir 763 x 60/80/100/150 mm. Medidas encontradas: 631 x 93 mm.
+     - S60H1P4G1-MRV-ON
+         FON-MRV: FON-MRV deberia medir 512 x 474/480 mm como fondo Merivobox (ancho interno - 51). Medidas encontradas: 512 x 324 mm.
+     - A94H3RF-PUSH
+         REPMM: REPMM deberia medir 902 x 470 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 442 x 470 mm.
+     - B60DH2-NK-PUSH
+         BAS: BAS deberia medir 563 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 463 x 580 mm.
+         AJF: AJF deberia medir 563 x 60/80/100/150 mm. Medidas encontradas: 463 x 60 mm.
+         (+8 filas mas)
+     - B60IH2-NK-PUSH
+         BAS: BAS deberia medir 563 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 463 x 580 mm.
+         AJF: AJF deberia medir 563 x 60/80/100/150 mm. Medidas encontradas: 463 x 60 mm.
+         (+3 filas mas)
+     - LBTP67.2H886E8.6
+         AJX2: AJX2 deberia medir 635 x 60/80/100/150 mm. Medidas encontradas: 880 x 110 mm.
+     - LBTP67.8H886E8.6
+         AJX2: AJX2 deberia medir 641 x 60/80/100/150 mm. Medidas encontradas: 880 x 110 mm.
+     - LBTP130H886E8.6
+         AJX2: AJX2 deberia medir 1263 x 60/80/100/150 mm. Medidas encontradas: 880 x 110 mm.
+     - ST35P2H2
+         LATI: LATI deberia medir 380 x 220 mm segun alto y profundidad del modulo. Medidas encontradas: 380 x 200 mm.
+         LATD: LATD deberia medir 380 x 220 mm segun alto y profundidad del modulo. Medidas encontradas: 380 x 200 mm.
+         (+1 filas mas)
+
+   [Semana 30-1 total  ok  f.xls]  40 modulos
+     - A65H6MH-TI-BF-LBA
+         ESP2BAS-DEC-MH: ESP2BAS-DEC-MH deberia medir 613 x 320 o 298 mm segun ancho interno y profundidad. Medidas encontradas: 613 x 450 mm.
+     - A61IH6EX-CP/S-EE-STC-BF
+         PT: PT deberia medir 1137 x 607 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 758 x 227 mm.
+         FC: FC deberia tener ancho 607 mm como frente de cajon, descontando 1.5 mm por lado. Medidas encontradas: 573 x 331 mm.
+         (+4 filas mas)
+     - B61HS-REJILLA-HZ
+         FRE: FRE deberia medir 573 x 580 mm como fondo/posicion/friso. Medidas encontradas: 100 x 607 mm.
+         AJ-RJ: AJ-RJ deberia medir 573 x 60/80/100/150 mm. Medidas encontradas: 561 x 93 mm.
+     - FB75HZ-I-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 750 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 713 x 750 mm segun ancho interno y profundidad. Medidas encontradas: 713 x 60 mm.
+         (+2 filas mas)
+     - A60IH105EX-CP-J-EE-PUSH
+         ESP2REPM: ESP2REPM deberia medir 562 x 250 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 166 x 250 mm.
+         ESP2BAS: ESP2BAS deberia medir 563 x 320 mm segun ancho interno y profundidad. Medidas encontradas: 563 x 302 mm.
+     - BS60D-HZ-BF
+         PT: PT deberia medir 532 x 597 mm como puerta Henzo, descontando 35 mm y 1.5 mm por lado. Medidas encontradas: 722 x 597 mm.
+         LATI-HZ: LATI-HZ deberia medir 570 x 75 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 90 mm.
+         (+1 filas mas)
+     - CL79P3R-BF
+         MALE: MALE deberia medir 759 x 210 mm como maletera. Medidas encontradas: 759 x 250 mm.
+     - CM80RFI-SLIM-BF
+         FRI-SB: FRI-SB deberia medir 735 x 135 mm como friso SB (ancho interno - 34). Medidas encontradas: 706 x 135 mm.
+         FON-SS: FON-SS deberia medir 713 x 490 mm como fondo Slim (ancho interno - 56). Medidas encontradas: 674 x 490 mm.
+         (+1 filas mas)
+     - FB145HZ-I-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 1450 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 1413 x 1450 mm segun ancho interno y profundidad. Medidas encontradas: 1413 x 60 mm.
+     - LATRH3
+         LATR: LATR deberia medir 570 x 340 mm segun alto y profundidad del modulo. Medidas encontradas: 570 x 600 mm.
+     - MBS80H2-S/P-LIXD-LDXD
+         LATI: LATI deberia medir 380 x 530 mm segun alto y profundidad del modulo. Medidas encontradas: 380 x 600 mm.
+         LATD: LATD deberia medir 380 x 530 mm segun alto y profundidad del modulo. Medidas encontradas: 380 x 600 mm.
+         (+2 filas mas)
+     - REP63TAP20
+         REPTA: REPTA deberia medir 630 x 470 mm como repisa tapa. Medidas encontradas: 630 x 200 mm.
+     - ST60P1.5
+         LATI: LATI deberia medir 760 x 150 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 440 mm.
+         LATD: LATD deberia medir 760 x 150 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 440 mm.
+         (+1 filas mas)
+     - X53ES/P
+         REPM: REPM deberia medir 492 x 470 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 492 x 542 mm.
+     - X60.5HEHCTEK-G1H26SMRV-REJILLA-ON
+         FRE: FRE deberia medir 568 x 580 mm como fondo/posicion/friso. Medidas encontradas: 100 x 602 mm.
+         TAPAREF: TAPAREF deberia medir 605 x 580 mm como tapa decorativa. Medidas encontradas: 100 x 554 mm.
+         (+1 filas mas)
+     - BAR105H11P6S/P-BM-T1-D-ZOC
+         LID: LID deberia medir 2120 x 600 mm segun alto y profundidad del modulo. Medidas encontradas: 2236 x 600 mm.
+         LDD: LDD deberia medir 2120 x 600 mm segun alto y profundidad del modulo. Medidas encontradas: 2236 x 600 mm.
+         (+1 filas mas)
+     - CL90RP3S/P
+         MALE: MALE deberia medir 869 x 210 mm como maletera. Medidas encontradas: 869 x 250 mm.
+     - FB87HZ-I-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 870 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 833 x 870 mm segun ancho interno y profundidad. Medidas encontradas: 833 x 60 mm.
+     - FB90HZ-I-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 900 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 863 x 900 mm segun ancho interno y profundidad. Medidas encontradas: 863 x 60 mm.
+     - MBS60-LV-HZ-BF
+         PT: PT deberia medir 532 x 597 mm como puerta Henzo, descontando 35 mm y 1.5 mm por lado. Medidas encontradas: 532 x 297 mm.
+     - TAPADEC130P10
+         TA: TA deberia medir 1300 x 80 mm como tapa decorativa. Medidas encontradas: 1300 x 100 mm.
+     - TAPADEC175P10
+         TA: TA deberia medir 1750 x 80 mm como tapa decorativa. Medidas encontradas: 1750 x 100 mm.
+     - X60.5DHCTEKG1H26-MRV-REJILLA-PUSH-ON
+         PT: PT deberia medir 257 o 947 o -693 x 602 mm como puerta (entera o fraccionada 947 + resto). Medidas encontradas: 757 x 602 mm.
+         FRE: FRE deberia medir 568 x 580 mm como fondo/posicion/friso. Medidas encontradas: 100 x 602 mm.
+         (+5 filas mas)
+     - BSX145PLEDH223
+         PT: PT deberia medir 2227 x 722 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 2227 x 360 mm.
+     - FB70HZ-I-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 700 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 663 x 700 mm segun ancho interno y profundidad. Medidas encontradas: 663 x 60 mm.
+         (+2 filas mas)
+     - TAPADEC100P10
+         TA: TA deberia medir 1000 x 80 mm como tapa decorativa. Medidas encontradas: 1000 x 100 mm.
+     - TAPADEC160P10
+         TA: TA deberia medir 1600 x 80 mm como tapa decorativa. Medidas encontradas: 1600 x 100 mm.
+     - X45IR-H43-PUSH
+         PT: PT deberia medir 427 o 947 o -523 x 447 mm como puerta (entera o fraccionada 947 + resto). Medidas encontradas: 2117 x 447 mm.
+         RESP: RESP deberia medir 424 x 404 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 2094 x 424 mm.
+         (+2 filas mas)
+     - X60.5DHCTEKG1H26-MRV-LID-REJILLA-PUSH-ON
+         PT: PT deberia medir 257 o 947 o -693 x 602 mm como puerta (entera o fraccionada 947 + resto). Medidas encontradas: 757 x 602 mm.
+         FRE: FRE deberia medir 568 x 580 mm como fondo/posicion/friso. Medidas encontradas: 100 x 602 mm.
+         (+5 filas mas)
+     - EA75IH6PT45-PUSH
+         BAS: BAS deberia medir 713 x 320 mm segun ancho interno y profundidad. Medidas encontradas: 713 x 580 mm.
+         TEC: TEC deberia medir 713 x 320 mm segun ancho interno y profundidad. Medidas encontradas: 713 x 580 mm.
+         (+3 filas mas)
+     - EX90IHEPT45R-PUSH
+         FV: FV deberia medir 1357 x 447 mm como frente vertical. Medidas encontradas: 1357 x 665 mm.
+     - FB102HZ-I-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 1020 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 983 x 1020 mm segun ancho interno y profundidad. Medidas encontradas: 983 x 60 mm.
+         (+2 filas mas)
+     - X60.5HEHCTEK-G1H26SMRV-LDD-REJILLA-ON
+         FRE: FRE deberia medir 568 x 580 mm como fondo/posicion/friso. Medidas encontradas: 100 x 602 mm.
+         TAPAREF: TAPAREF deberia medir 605 x 580 mm como tapa decorativa. Medidas encontradas: 100 x 554 mm.
+         (+1 filas mas)
+     - A62D-TI-BF
+         PT: PT deberia medir 757 x 307 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 757 x 617 mm.
+     - B62DF-SFR-BF
+         PT: PT deberia medir 757 x 307 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 757 x 617 mm.
+     - BSCL89.6H3-PUSH
+         PT: PT deberia medir 567 x 445 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 387 x 445 mm.
+         LATI: LATI deberia medir 570 x 75 mm segun alto y profundidad del modulo. Medidas encontradas: 390 x 75 mm.
+         (+1 filas mas)
+     - BSX144PLEDH223
+         PT: PT deberia medir 2227 x 717 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 2227 x 357 mm.
+     - CR165H1
+         CR: CR deberia medir 190 x 1650 mm como cornisa. Medidas encontradas: 550 x 1650 mm.
+         CR: CR deberia medir 190 x 1650 mm como cornisa. Medidas encontradas: 550 x 1650 mm.
+     - FB115HZ-I-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 1150 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 1113 x 1150 mm segun ancho interno y profundidad. Medidas encontradas: 1113 x 60 mm.
+         (+2 filas mas)
+     - X60.5IHCTEKG1H26-MRV-LDD-REJILLA-PUSH-ON
+         PT: PT deberia medir 257 o 947 o -693 x 602 mm como puerta (entera o fraccionada 947 + resto). Medidas encontradas: 757 x 602 mm.
+         FRE: FRE deberia medir 568 x 580 mm como fondo/posicion/friso. Medidas encontradas: 100 x 602 mm.
+         (+5 filas mas)
+
+   [Semana 32-5 total  ok  f.xls]  20 modulos
+     - BOT68H6P1.6-TI-LBA-SIN-PERF-BISAGRAS
+         ESP1REPMM: ESP1REPMM deberia medir 642 x 70 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 642 x 110 mm.
+         ESP1REPMM: ESP1REPMM deberia medir 642 x 70 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 642 x 110 mm.
+     - BOT32H6P1.6-TI-LBA-SIN-PERF-BISAGRAS
+         ESP2REPMM: ESP2REPMM deberia medir 282 x 70 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 282 x 110 mm.
+         ESP2REPMM: ESP2REPMM deberia medir 282 x 70 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 282 x 110 mm.
+     - MB40BA-SI-HZ
+         ESP4BAS: ESP4BAS deberia medir 363 x 530 mm segun ancho interno y profundidad. Medidas encontradas: 363 x 580 mm.
+     - B70G1H13-SI
+         BAS: BAS deberia medir 663 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 669 x 540 mm.
+         AJP: AJP deberia medir 663 x 60/80/100/150 mm. Medidas encontradas: 669 x 115 mm.
+         (+10 filas mas)
+     - B70G3-SI
+         BAS: BAS deberia medir 669 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 669 x 540 mm.
+         RESP: RESP deberia medir 680 x 740 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 670 x 680 mm.
+         (+8 filas mas)
+     - B89P6G2H13-SI-ON
+         FC: FC deberia tener ancho 887 mm como frente de cajon, descontando 1.5 mm por lado. Medidas encontradas: 127 x 442 mm.
+         BAS: BAS deberia medir 853 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 859 x 580 mm.
+         (+4 filas mas)
+     - BS60H90-PUSH
+         PT: PT deberia medir 897 x 597 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 897 x 297 mm.
+     - FV60LH100
+         FV: FV deberia medir 997 x 597 mm como frente vertical. Medidas encontradas: 1000 x 600 mm.
+     - FV60LH240
+         FV: FV deberia medir 2397 x 597 mm como frente vertical. Medidas encontradas: 2400 x 600 mm.
+     - FV69.7LH12.7
+         FV: FV deberia medir 124 x 694 mm como frente vertical. Medidas encontradas: 127 x 697 mm.
+         FV: FV deberia medir 124 x 694 mm como frente vertical. Medidas encontradas: 127 x 697 mm.
+     - FV69.7LH17
+         FV: FV deberia medir 167 x 694 mm como frente vertical. Medidas encontradas: 170 x 697 mm.
+         FV: FV deberia medir 167 x 694 mm como frente vertical. Medidas encontradas: 170 x 697 mm.
+         (+2 filas mas)
+     - FV69.7LH34.2
+         FV: FV deberia medir 339 x 694 mm como frente vertical. Medidas encontradas: 342 x 697 mm.
+         FV: FV deberia medir 339 x 694 mm como frente vertical. Medidas encontradas: 342 x 697 mm.
+     - FV70LH82
+         FV: FV deberia medir 817 x 697 mm como frente vertical. Medidas encontradas: 820 x 700 mm.
+         FV: FV deberia medir 817 x 697 mm como frente vertical. Medidas encontradas: 820 x 700 mm.
+     - ML1-CL90C2-LI-I-LD-J-LF
+         TEC: TEC deberia tener ancho interno -51 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 869 x 530 mm.
+         BAS: BAS deberia tener ancho interno -51 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 869 x 530 mm.
+         (+2 filas mas)
+     - ML1-CL90C2-LI-J-LD-I-LF
+         TEC: TEC deberia tener ancho interno -51 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 869 x 530 mm.
+         BAS: BAS deberia tener ancho interno -51 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 869 x 530 mm.
+         (+6 filas mas)
+     - ML1-CL90C2-LI-J-LD-J-LF
+         TEC: TEC deberia tener ancho interno -51 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 869 x 530 mm.
+         BAS: BAS deberia tener ancho interno -51 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 869 x 530 mm.
+         (+2 filas mas)
+     - ML1-CL90C2-LI-J-LDE3-LF
+         TEC: TEC deberia tener ancho interno -51 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 869 x 530 mm.
+         BAS: BAS deberia tener ancho interno -51 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 869 x 530 mm.
+         (+2 filas mas)
+     - ML1-CM90C1G4-SI-LI-I-LD-J-LF
+         TEC: TEC deberia tener ancho interno -51 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 869 x 530 mm.
+         BAS: BAS deberia tener ancho interno -51 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 869 x 530 mm.
+         (+5 filas mas)
+     - OA20H90
+         OA: OA deberia medir 900 o 897 x 60/80/100/150 mm como oreja auxiliar segun pareja OTP/OA. Medidas encontradas: 900 x 200 mm.
+         OA: OA deberia medir 900 o 897 x 60/80/100/150 mm como oreja auxiliar segun pareja OTP/OA. Medidas encontradas: 900 x 200 mm.
+     - VV60R4G2RV-SI-AL-GF-BN-ECT-LLT
+         FC: FC deberia tener ancho 597 mm como frente de cajon, descontando 1.5 mm por lado. Medidas encontradas: 201 x 488 mm.
+         FON-SI: FON-SI deberia medir 522 x 475/425 mm como fondo Sistema invisible (ancho interno - 41). Medidas encontradas: 450 x 425 mm.
+         (+4 filas mas)
+
+   [Semana 34-0 total  ok.xlsx]  2 modulos
+     - FB61HZ-I-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 610 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 573 x 610 mm segun ancho interno y profundidad. Medidas encontradas: 573 x 60 mm.
+     - B65P6MH-G1MRV-ON-HZ-S-B
+         ESP1TEC: ESP1TEC deberia medir 613 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 613 x 554 mm.
+
+   [Semana 36-9 total  ok  x.xls]  5 modulos
+     - B76.2P67H30G1-MRV-ON
+         BAS: BAS deberia medir 725 x 650 mm segun ancho interno y profundidad. Medidas encontradas: 728 x 650 mm.
+         AJF: AJF deberia medir 725 x 60/80/100/150 mm. Medidas encontradas: 728 x 60 mm.
+         (+5 filas mas)
+     - B92P70-CAMP-MES-RM
+         REPMM: REPMM deberia medir 882 x 570 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 882 x 112 mm.
+         RESP-REM: RESP-REM deberia medir 894 x 734 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 760 x 690 mm.
+         (+2 filas mas)
+     - CP76.2P6.7H125-HC-RFH
+         REPF: REPF deberia medir 725 x 624 mm como repisa fija, descontando grosor estructura, 1 mm de fuga, grosor respaldo y 1 mm de fuga. Medidas encon
+         TEC: TEC deberia medir 725 x 650 mm segun ancho interno y profundidad. Medidas encontradas: 728 x 650 mm.
+         (+2 filas mas)
+     - LBTP100H886E8.6
+         AJX2: AJX2 deberia medir 963 x 60/80/100/150 mm. Medidas encontradas: 880 x 110 mm.
+     - LBTP130H886E8.6
+         AJX2: AJX2 deberia medir 1263 x 60/80/100/150 mm. Medidas encontradas: 880 x 110 mm.
+         AJX2: AJX2 deberia medir 1263 x 60/80/100/150 mm. Medidas encontradas: 880 x 110 mm.
+
+   [Semana 37-1 total  ok  f.xls]  10 modulos
+     - AX60IH1G1-SLIM-BF
+         PT: PT deberia medir 187 x 597 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 597 x 757 mm.
+         FRE: FRE deberia medir 569 x 190 mm como fondo/posicion/friso. Medidas encontradas: 597 x 100 mm.
+         (+1 filas mas)
+     - BSCL90-PTC-H207-BF
+         PT: PT deberia medir 2067 x 447 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 2057 x 447 mm.
+     - CL71P4R-RAS-BF
+         MALE: MALE deberia medir 679 x 310 mm como maletera. Medidas encontradas: 679 x 395 mm.
+         REPMP: REPMP deberia medir 678 x 310 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 678 x 395 mm.
+         (+2 filas mas)
+     - FLD90H1-P55
+         LATI: LATI deberia medir 190 x 550 mm segun alto y profundidad del modulo. Medidas encontradas: 190 x 535 mm.
+         LATD: LATD deberia medir 190 x 550 mm segun alto y profundidad del modulo. Medidas encontradas: 190 x 535 mm.
+     - TAPA90E3-P58
+         TAPAE3: TAPAE3 deberia medir 900 x 580 mm como tapa decorativa. Medidas encontradas: 930 x 610 mm.
+     - B15BOTP4
+         TEC: TEC deberia medir 119 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 119 x 400 mm.
+         BAS: BAS deberia medir 119 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 119 x 400 mm.
+         (+4 filas mas)
+     - B60MH-EMP-G1-EX-ON-HZ-US
+         FV: FV deberia medir 722 x 597 mm como frente vertical Henzo (-35 mm). Medidas encontradas: 383 x 597 mm.
+         TEC: TEC deberia medir 569 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 563 x 554 mm.
+         (+3 filas mas)
+     - BSCL93-PTC-H207-BF
+         PT: PT deberia medir 2067 x 462 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 2057 x 462 mm.
+     - CL90RP4S/P-RAS
+         TEC: TEC deberia medir 869 x 420 mm segun ancho interno y profundidad. Medidas encontradas: 869 x 400 mm.
+         BAS: BAS deberia medir 869 x 420 mm segun ancho interno y profundidad. Medidas encontradas: 869 x 400 mm.
+         (+4 filas mas)
+     - FLD110H1-XX
+         AJP: AJP deberia medir 1069 x 60/80/100/150 mm. Medidas encontradas: 1063 x 60 mm.
+         AJF: AJF deberia medir 1069 x 60/80/100/150 mm. Medidas encontradas: 1063 x 60 mm.
+         (+1 filas mas)
+
+   [Semana 38-7 total  ok  f.xlsx]  14 modulos
+     - A60DH5V-AR-BF
+         PT: PT deberia medir 947 x 597 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 947 x 150 mm.
+     - A60IH5V-AR-BF
+         PT: PT deberia medir 947 x 597 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 947 x 150 mm.
+     - A90H5V-AR-BF
+         PT: PT deberia medir 947 x 447 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 947 x 150 mm.
+     - A102H3RF-BF
+         REPMP: REPMP deberia medir 988 x 470 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 988 x 510 mm.
+     - AX60IH12H1G1-SB
+         PT: PT deberia medir 2307 x 597 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 947 x 597 mm.
+         FRE: FRE deberia medir 569 x 2310 mm como fondo/posicion/friso. Medidas encontradas: 100 x 597 mm.
+     - CL60RS/P+R14-EXT-SB
+         FRI-CAM: FRI-CAM deberia medir 569 x 580 mm como fondo/posicion/friso. Medidas encontradas: 147 x 597 mm.
+         MALE: MALE deberia medir 569 x 470 mm como maletera. Medidas encontradas: 569 x 490 mm.
+         (+13 filas mas)
+     - A60DH5V-AR-LID-LDD-BF
+         PT: PT deberia medir 947 x 597 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 947 x 150 mm.
+     - A60IH5V-AR-LID-LDD-BF
+         PT: PT deberia medir 947 x 597 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 947 x 150 mm.
+         PT: PT deberia medir 947 x 597 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 947 x 150 mm.
+     - A94H3RF-BF
+         REPMP: REPMP deberia medir 908 x 470 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 908 x 510 mm.
+     - AX38DH12P40R-BF
+         TEC: TEC deberia medir 349 x 400 mm segun ancho interno y profundidad. Medidas encontradas: 349 x 420 mm.
+         BAS: BAS deberia medir 349 x 400 mm segun ancho interno y profundidad. Medidas encontradas: 349 x 420 mm.
+         (+4 filas mas)
+     - CL60RP4S/P-RAS
+         TEC: TEC deberia medir 569 x 420 mm segun ancho interno y profundidad. Medidas encontradas: 569 x 400 mm.
+         BAS: BAS deberia medir 569 x 420 mm segun ancho interno y profundidad. Medidas encontradas: 569 x 400 mm.
+         (+10 filas mas)
+     - A45DH5V-AR-LID-LDD-BF
+         PT: PT deberia medir 947 x 447 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 947 x 150 mm.
+     - A72H3RF-BF
+         REPMP: REPMP deberia medir 688 x 470 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 688 x 510 mm.
+     - EB90DPT45P4-HZ-BF
+         AJP: AJP deberia medir 869 x 60/80/100/150 mm. Medidas encontradas: 900 x 60 mm.
+
+   [Semana 39-0 total  ok modif.xls]  6 modulos
+     - FB69HZ-I-D
+         LAT-HZ: LAT-HZ deberia medir 760 x 690 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 653 x 690 mm segun ancho interno y profundidad. Medidas encontradas: 553 x 60 mm.
+         (+4 filas mas)
+     - LB80HZ-U-D
+         LAT-HZ: LAT-HZ deberia medir 760 x 800 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 763 x 800 mm segun ancho interno y profundidad. Medidas encontradas: 663 x 60 mm.
+     - OTP10HE
+         OTP: OTP deberia medir 1360 o 1357 o 1322 x 100 mm como oreja tipo puerta segun pareja OTP/OA. Medidas encontradas: 1547 x 100 mm.
+     - X55IH12RF-INV-PUSH-HZ
+         PT: PT deberia medir 2272 o 947 o 1357 x 547 mm como puerta (entera o fraccionada 947 + resto). Medidas encontradas: 1547 x 547 mm.
+         PT: PT deberia medir 2272 o 947 o 1357 x 547 mm como puerta (entera o fraccionada 947 + resto). Medidas encontradas: 722 x 547 mm.
+     - BS60IH71
+         PT: PT deberia medir 707 x 597 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 757 x 597 mm.
+         LATI: LATI deberia medir 710 x 75 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 75 mm.
+         (+1 filas mas)
+     - A95H7-LAT-INTERNO-TI-LBA
+         ESP1REPMM: ESP1REPMM deberia medir 912 x 250 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 447 x 250 mm.
+
+   [Semana 40-7 total  ok.xls]  11 modulos
+     - CP76.5P61H1320-HC-FH-H20-RFH-AHG
+         ESP2TEC: ESP2TEC deberia medir 728 x 610 mm segun ancho interno y profundidad. Medidas encontradas: 728 x 590 mm.
+         ESP2BAS: ESP2BAS deberia medir 728 x 610 mm segun ancho interno y profundidad. Medidas encontradas: 728 x 590 mm.
+     - B90P4-CAMP-MES-RM-REJ
+         ESP3REPMM: ESP3REPMM deberia medir 862 x 310 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 862 x 112 mm.
+         ESP3RESP-REM: ESP3RESP-REM deberia medir 874 x 734 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 740 x 690 mm.
+         (+2 filas mas)
+     - B76.5H2.7G1-SLIM
+         RESP: RESP deberia medir 739 x 1 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 244 x 739 mm.
+         LATI: LATI deberia medir 27 x 580 mm segun alto y profundidad del modulo. Medidas encontradas: 270 x 580 mm.
+         (+1 filas mas)
+     - B90FP62BAI-SLIM-TPM-SFR-B2C-AQUA-BA-AQUA
+         FC: FC deberia tener ancho 897 mm como frente de cajon, descontando 1.5 mm por lado. Medidas encontradas: 722 x 447 mm.
+         BAS: BAS deberia medir 863 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 863 x 600 mm.
+         (+5 filas mas)
+     - FB60.5HZ-I-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 605 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 568 x 605 mm segun ancho interno y profundidad. Medidas encontradas: 468 x 60 mm.
+     - OTP10H2
+         OTP: OTP deberia medir 380 o 377 o 342 x 100 mm como oreja tipo puerta segun pareja OTP/OA. Medidas encontradas: 217 x 100 mm.
+     - X60H229P44S-PE3
+         ESP1AJP: ESP1AJP deberia medir 563 x 60/80/100/150 mm. Medidas encontradas: 527 x 60 mm.
+         ESP1RESP: ESP1RESP deberia medir 574 x 2264 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 2227 x 537 mm.
+         (+6 filas mas)
+     - A63H51S/P-V
+         TEC: TEC deberia medir 599 x 320 mm segun ancho interno y profundidad. Medidas encontradas: 599 x 580 mm.
+         BAS: BAS deberia medir 599 x 320 mm segun ancho interno y profundidad. Medidas encontradas: 599 x 580 mm.
+         (+6 filas mas)
+     - A85H51S/P-V
+         TEC: TEC deberia medir 819 x 320 mm segun ancho interno y profundidad. Medidas encontradas: 819 x 580 mm.
+         BAS: BAS deberia medir 819 x 320 mm segun ancho interno y profundidad. Medidas encontradas: 819 x 580 mm.
+         (+6 filas mas)
+     - CL78RP4S/P-RAS
+         MALE: MALE deberia medir 749 x 310 mm como maletera. Medidas encontradas: 749 x 395 mm.
+         REPMP: REPMP deberia medir 748 x 310 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 748 x 395 mm.
+     - REP74.8TAP39.5
+         REPTA: REPTA deberia medir 748 x 470 mm como repisa tapa. Medidas encontradas: 748 x 395 mm.
+         REPTA: REPTA deberia medir 748 x 470 mm como repisa tapa. Medidas encontradas: 748 x 395 mm.
+         (+1 filas mas)
+
+   [Semana 41-6 total  ok.xls]  29 modulos
+     - X78H12R-REX-SI-G2I-SLIM-PUSH
+         ESP1COS-REP: ESP1COS-REP deberia medir 743 x 580 mm como repisa normal. Medidas encontradas: 130 x 442 mm.
+         ESP1TACO-REP: ESP1TACO-REP deberia medir 743 x 60 mm como tacos, usando ancho total menos 2 espesores laterales y 1 mm de fuga. Medidas encontradas: 721 x
+         (+1 filas mas)
+     - ECL90X110IRS-P-LID
+         ESP2TECL: ESP2TECL deberia medir 869 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 884 x 580 mm.
+         ESP2TECL: ESP2TECL deberia medir 869 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 580 x 501 mm.
+         (+5 filas mas)
+     - ECL90X110DRS-P
+         ESP3TECL: ESP3TECL deberia medir 869 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 884 x 580 mm.
+         ESP3TECL: ESP3TECL deberia medir 869 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 580 x 504 mm.
+         (+5 filas mas)
+     - BOT45IH7P1.6-CRU-TI-LBA
+         ESP4REPMM: ESP4REPMM deberia medir 412 x 70 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 412 x 110 mm.
+         ESP4REPMM: ESP4REPMM deberia medir 412 x 70 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 412 x 110 mm.
+     - BOT45DH7P1.6-CRU-TI-LBA
+         ESP5REPMM: ESP5REPMM deberia medir 412 x 70 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 412 x 110 mm.
+         ESP5REPMM: ESP5REPMM deberia medir 412 x 70 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 412 x 110 mm.
+     - BOT35IH5P1.6-CRU-TI-LBA
+         ESP6REPMM: ESP6REPMM deberia medir 312 x 70 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 312 x 110 mm.
+         ESP6REPMM: ESP6REPMM deberia medir 312 x 70 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 312 x 110 mm.
+     - BOT35DH5P1.6-CRU-TI-LBA
+         ESP7REPMM: ESP7REPMM deberia medir 312 x 70 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 312 x 110 mm.
+         ESP7REPMM: ESP7REPMM deberia medir 312 x 70 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 312 x 110 mm.
+     - A60DH6P6-PUSH
+         RESP: RESP deberia medir 574 x 1114 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 1024 x 574 mm.
+         LATI: LATI deberia medir 1140 x 580 mm segun alto y profundidad del modulo. Medidas encontradas: 1050 x 580 mm.
+         (+1 filas mas)
+     - A104H3RF-PUSH
+         REPMM: REPMM deberia medir 1002 x 470 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 492 x 470 mm.
+         REPMM: REPMM deberia medir 1002 x 470 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 492 x 470 mm.
+     - B60H2.7G1-MRV-ON
+         RESP: RESP deberia medir 574 x 1 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 244 x 574 mm.
+         LATI: LATI deberia medir 27 x 580 mm segun alto y profundidad del modulo. Medidas encontradas: 270 x 580 mm.
+         (+1 filas mas)
+     - CP60P60H99-HC-S/B-RFH
+         REPF: REPF deberia medir 563 x 574 mm como repisa fija, descontando grosor estructura, 1 mm de fuga, grosor respaldo y 1 mm de fuga. Medidas encon
+         LATI: LATI deberia medir 990 x 600 mm segun alto y profundidad del modulo. Medidas encontradas: 990 x 580 mm.
+         (+6 filas mas)
+     - EXDE135P67H12-PT67D-EX-NK-S/Z-CAUCH-NE-E
+         AJP: AJP deberia medir 1313 x 60/80/100/150 mm. Medidas encontradas: 1155 x 60 mm.
+         AJP45: AJP45 deberia medir 1313 x 60/80/100/150 mm. Medidas encontradas: 1155 x 100 mm.
+         (+1 filas mas)
+     - MBS66P6H3G1-SLIM-HZ-UM-SR
+         FON-SS-U: FON-SS-U deberia medir 573 x 490 mm como fondo sistema Slim. Medidas encontradas: 604 x 490 mm.
+         POS-SS-U: POS-SS-U deberia medir 552 x 89/101/128 mm como posicion sistema Slim. Medidas encontradas: 111 x 199 mm.
+         (+1 filas mas)
+     - ASM60IH55.7P6-SI-PUSH
+         COS-REP: COS-REP deberia medir 563 x 580 mm como repisa normal. Medidas encontradas: 130 x 442 mm.
+         TACO-REP: TACO-REP deberia medir 563 x 60 mm como tacos, usando ancho total menos 2 espesores laterales y 1 mm de fuga. Medidas encontradas: 541 x 60 
+         (+2 filas mas)
+     - B90P6.7F-SFR
+         BAS: BAS deberia medir 863 x 650 mm segun ancho interno y profundidad. Medidas encontradas: 863 x 630 mm.
+         LATI-HZ: LATI-HZ deberia medir 760 x 650 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 630 mm.
+         (+1 filas mas)
+     - B113-LINT
+         REPF: REPF deberia medir 1093 x 554 mm como repisa fija, descontando grosor estructura, 1 mm de fuga, grosor respaldo y 1 mm de fuga. Medidas enco
+         LATIN: LATIN deberia medir 760 x 580 mm segun alto y profundidad del modulo. Medidas encontradas: 353 x 468 mm.
+     - CR100H20TR
+         CR: CR deberia medir 200 x 1000 mm como cornisa. Medidas encontradas: 230 x 1000 mm.
+     - LB120HZ-U-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 1200 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 1163 x 1200 mm segun ancho interno y profundidad. Medidas encontradas: 1063 x 60 mm.
+     - LBI65HZ-L-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 650 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 613 x 650 mm segun ancho interno y profundidad. Medidas encontradas: 513 x 60 mm.
+     - LBI67HZ-L-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 670 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 633 x 670 mm segun ancho interno y profundidad. Medidas encontradas: 533 x 60 mm.
+     - CBB120H85.6P3NK-LINT-BA-LD-I-LI-J-UT
+         ESP1E-TEC-PROV: ESP1E-TEC-PROV deberia medir 1163 x 320 mm segun ancho interno y profundidad. Medidas encontradas: 1169 x 266 mm.
+         ESP1E-RES: ESP1E-RES deberia medir 1174 x 830 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 846 x 1180 mm.
+         (+1 filas mas)
+     - CBA120H139P3-BA-LD-I-LI-J-UT
+         ESP2E-TEC-PROV: ESP2E-TEC-PROV deberia medir 1163 x 320 mm segun ancho interno y profundidad. Medidas encontradas: 1169 x 302 mm.
+         ESP2E-RES: ESP2E-RES deberia medir 1174 x 1364 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 1365 x 1180 mm.
+         (+1 filas mas)
+     - CB1X45H11NKP3-LDE3-LIE3-BA-LRE-UT
+         E-TEC-PROV: E-TEC-PROV deberia tener ancho interno -27 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 419 x 266 
+         E-RES: E-RES deberia medir -16 x 2094 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 2236 x 430 mm.
+         (+2 filas mas)
+     - CB1X60H11NKP3-LD-I-LI-J-BA-UT
+         E-TEC-PROV: E-TEC-PROV deberia tener ancho interno -27 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 569 x 266 
+         E-RES: E-RES deberia medir -16 x 2094 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 2236 x 580 mm.
+         (+6 filas mas)
+     - CB5X90ESCH11NKP3-ON-LDE3-LI-J-UT
+         FON-MRV: FON-MRV deberia medir -38 x 474/480 mm como fondo Merivobox (ancho interno - 51). Medidas encontradas: 787 x 324 mm.
+         POS-MRV: POS-MRV deberia medir -38 x 83/184/300 mm como posicion Merivobox (ancho interno - 51). Medidas encontradas: 787 x 83 mm.
+         (+3 filas mas)
+     - CBA45H2P3-LDE3-LIE3-LBA-UT
+         E-TEC-PROV: E-TEC-PROV deberia medir 413 x 320 mm segun ancho interno y profundidad. Medidas encontradas: 419 x 302 mm.
+         E-RES: E-RES deberia medir 424 x 354 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 355 x 430 mm.
+         (+1 filas mas)
+     - CBA60H2P3-LD-I-LI-J-UT
+         E-TEC-PROV: E-TEC-PROV deberia medir 563 x 320 mm segun ancho interno y profundidad. Medidas encontradas: 569 x 302 mm.
+         E-RES: E-RES deberia medir 574 x 354 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 355 x 580 mm.
+         (+4 filas mas)
+     - CBA90H2P3-LDE3-LI-J-UT
+         E-TEC-PROV: E-TEC-PROV deberia medir 863 x 320 mm segun ancho interno y profundidad. Medidas encontradas: 869 x 302 mm.
+         E-RES: E-RES deberia medir 874 x 354 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 355 x 880 mm.
+         (+1 filas mas)
+     - CBA120H2P3-LINT-LD-I-LI-J-UT
+         E-TEC-PROV: E-TEC-PROV deberia medir 1163 x 320 mm segun ancho interno y profundidad. Medidas encontradas: 1169 x 302 mm.
+         E-RES: E-RES deberia medir 1174 x 354 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 355 x 1180 mm.
+         (+1 filas mas)
+
+   [Semana 44-0 total  ok.xls]  6 modulos
+     - A174.7DH4P31.9-1PCOslide16-LLT-1PULS
+         ESP2RES: ESP2RES deberia medir 1721 x 734 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 705 x 910 mm.
+         ESP2E-LID: ESP2E-LID deberia medir 760 x 299 mm segun alto y profundidad del modulo. Medidas encontradas: 724 x 289 mm.
+         (+4 filas mas)
+     - A209.7IH4P33.4-1PCOslide16-LLT-1PULS
+         ESP3RES: ESP3RES deberia medir 2071 x 734 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 705 x 960 mm.
+         ESP3E-LID: ESP3E-LID deberia medir 760 x 314 mm segun alto y profundidad del modulo. Medidas encontradas: 724 x 240 mm.
+         (+4 filas mas)
+     - LOFT-CAM-P-P1000H1400P575-NETX
+         ESP5BAS-CALADO: ESP5BAS-CALADO deberia medir 9963 x 10000 mm segun ancho interno y profundidad. Medidas encontradas: 950 x 525 mm.
+         ESP5BAS-E3-CALADO: ESP5BAS-E3-CALADO deberia medir 9963 x 10000 mm segun ancho interno y profundidad. Medidas encontradas: 980 x 555 mm.
+     - MET-X45H11P3-E5A-C/R-V-CU-LSP
+         BAS: BAS deberia medir 413 x 320 mm segun ancho interno y profundidad. Medidas encontradas: 398 x 288 mm.
+         REP: REP deberia medir 413 x 320 mm como repisa normal. Medidas encontradas: 398 x 288 mm.
+         (+4 filas mas)
+     - CR140H14
+         CR: CR deberia medir 140 x 1400 mm como cornisa. Medidas encontradas: 250 x 1400 mm.
+     - CR214H14
+         CR: CR deberia medir 140 x 2140 mm como cornisa. Medidas encontradas: 250 x 2140 mm.
+
+   [Semana 6-8 total  ok  f1.xlsx]  16 modulos
+     - A97RF-PUSH
+         REPMM: REPMM deberia medir 932 x 470 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 457 x 470 mm.
+     - B76.5P67H2.8G1-MRV-S/B
+         RESP: RESP deberia medir 739 x 2 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 254 x 739 mm.
+         LATI: LATI deberia medir 28 x 650 mm segun alto y profundidad del modulo. Medidas encontradas: 280 x 650 mm.
+         (+1 filas mas)
+     - CP76.5P6.7H124-HC-S/B-RFH
+         REPF: REPF deberia medir 728 x 624 mm como repisa fija, descontando grosor estructura, 1 mm de fuga, grosor respaldo y 1 mm de fuga. Medidas encon
+     - FB130HZ-I-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 1300 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 1263 x 1300 mm segun ancho interno y profundidad. Medidas encontradas: 1163 x 60 mm.
+         (+2 filas mas)
+     - LOF-CAM-P-94.4H135P45-ACS
+         BAS: BAS LOF deberia tener ancho interno 907 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 856 x 362 mm.
+     - A90.6H5ACF-EP
+         RESP: RESP deberia medir 880 x 924 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 932 x 869 mm.
+         RESP: RESP deberia medir 880 x 924 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 932 x 869 mm.
+     - A94H3RF
+         REPMM: REPMM deberia medir 902 x 470 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 442 x 470 mm.
+     - B60P4G2-MRV-S/B-END
+         FON-MRV: FON-MRV deberia medir 512 x 474/480 mm como fondo Merivobox (ancho interno - 51). Medidas encontradas: 512 x 324 mm.
+     - FB90P3HZ-LIN-I-D
+         LATI-HZ: LATI-HZ deberia medir 760 x 320 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 420 mm.
+         LATD-HZ: LATD-HZ deberia medir 760 x 320 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 420 mm.
+         (+6 filas mas)
+     - LB104HZ-LIN-U-D
+         LAT-HZ: LAT-HZ deberia medir 760 x 1040 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS=>2:PROF: BAS=>2:PROF 50M deberia medir 1003 x 1040 mm segun ancho interno y profundidad. Medidas encontradas: 903 x 120 mm.
+         (+2 filas mas)
+     - LBI34H5-L-S
+         LAT: LAT deberia medir 950 x 340 mm segun alto y profundidad del modulo. Medidas encontradas: 950 x 150 mm.
+         BAS: BAS deberia medir 303 x 340 mm segun ancho interno y profundidad. Medidas encontradas: 203 x 60 mm.
+     - LBI44HZ-LIN-L-D
+         LAT-HZ: LAT-HZ deberia medir 760 x 440 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS=>2:PROF: BAS=>2:PROF 50M deberia medir 403 x 440 mm segun ancho interno y profundidad. Medidas encontradas: 303 x 120 mm.
+     - A70H3RF-PUSH
+         REPMM: REPMM deberia medir 662 x 470 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 322 x 470 mm.
+     - B61HS-COMB-LACA/MEL
+         FRE: FRE deberia medir 573 x 580 mm como fondo/posicion/friso. Medidas encontradas: 100 x 607 mm.
+         AJ-RJ: AJ-RJ deberia medir 573 x 60/80/100/150 mm. Medidas encontradas: 561 x 93 mm.
+     - FB84P2HZ-I-S
+         LATI-HZ: LATI-HZ deberia medir 760 x 220 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 200 mm.
+         LATD: LATD deberia medir 760 x 220 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 200 mm.
+         (+2 filas mas)
+     - LB82HZ-U-S
+         LAT-HZ: LAT-HZ deberia medir 760 x 820 mm segun alto y profundidad del modulo. Medidas encontradas: 760 x 150 mm.
+         BAS: BAS deberia medir 783 x 820 mm segun ancho interno y profundidad. Medidas encontradas: 683 x 60 mm.
+
+   [semana 5-5 total  ok  f.xls]  1 modulos
+     - B82G1-MRV-FU
+         PT: PT deberia medir 757 x 407 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 567 x 407 mm.
+         PT: PT deberia medir 757 x 407 mm como puerta, descontando 1.5 mm por lado. Medidas encontradas: 567 x 407 mm.
+
+5. MIXTOS (regla faltante + error puntual en el mismo modulo)
+   29 modulos: A95H3RF-PUSH, A94H58EX-PUSH, A94H58EXT-PUSH, OTP10H148.6, BAR120P6.9-EXE-LSU-LRE-PM-T1-CAUCH-NE-DE, LXE8H224,6P69-RF-NIV, B89.2FBAD-SLIM, B81FBAI-SLIM-HZ-SFR-BF-AQUA-BA-AQUA-BF, BAR90H11P6S/P-PM-T1-D-ZOC-LSU-LRE, ML1-CM95-3RG5-P47-SI-LIE3-LD-I-LSI-LSU, ML1-CM95-3RG5-P47-SI-LI-J-LDE3-LSU, ML1-EC110P80DC1-LI-I-LDE3-LF, ML1-EC110P80IC1-LD-I-LIE3-LF, VLM65H240R2C2-TA-LSU, BAR110H12P6.7S/P-LSU-LR-PM-E3T1, B60HS-HZ-REJ-US, B81HS-HZ-REJ-US, B60HS-HZ-REJ-US, LXE8H2246P10-RF-NIV, BAR108H12P6.7S/P-LSU-LRE-PM-T1, OTP10H212.3, BAR80H12P6.7S/P-LSU-LRE-PM-T1, OTP10H55.7, A94H4EX-PUSH, BAR110P6.7S/P-LSU-LRE-PM-T1, DINTEL-D-80H4P6,7, DINTEL-I-45H4P6,7, B90FBAD-SLIM-SFR-AQUA-BA-AQUA-BF, BS32I-HZ
+
+6. SIN REGLA (234): codigos de material, accesorios o modulos sin receta (no se cuentan como error).

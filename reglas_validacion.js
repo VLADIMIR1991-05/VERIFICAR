@@ -421,12 +421,14 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                     ? Math.min(anchoPuertaCodigo, Math.max(modulo.ancho - anchoPuertaCodigo, 0) || anchoPuertaCodigo)
                     : modulo.ancho;
                 const anchoFrente = anchoFrenteBase - 3;
-                const altoFrente = modulo.alto - 3;
+                // Henzo (por codigo o linea) descuenta 35 mm de alto, igual que las puertas.
+                const descuentoHenzo = tieneHenzo(modulo.cod, modulo.linea) ? 35 : 0;
+                const altoFrente = modulo.alto - 3 - descuentoHenzo;
                 const ok = coincideParMedidas(medida1, medida2, altoFrente, anchoFrente);
 
                 return {
                     ok,
-                    mensaje: `deberia medir ${altoFrente} x ${anchoFrente} mm como frente vertical.`,
+                    mensaje: `deberia medir ${altoFrente} x ${anchoFrente} mm como frente vertical${descuentoHenzo ? " Henzo (-35 mm)" : ""}.`,
                     valida: true,
                     objetivos: [altoFrente, anchoFrente]
                 };
@@ -451,11 +453,13 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                 if (!modulo.ancho) return { ok: true, mensaje: "", valida: false };
 
                 const anchoFrente = modulo.ancho - 3;
-                const ok = coincideMedida(medida1, anchoFrente) || coincideMedida(medida2, anchoFrente);
+                // FLD (frente de cajon libre) va al ancho completo en produccion.
+                const anchosFrente = modulo.tipo === "FLD" ? [anchoFrente, modulo.ancho] : [anchoFrente];
+                const ok = anchosFrente.some(ancho => coincideMedida(medida1, ancho) || coincideMedida(medida2, ancho));
 
                 return {
                     ok,
-                    mensaje: `deberia tener ancho ${anchoFrente} mm como frente de cajon, descontando 1.5 mm por lado.`,
+                    mensaje: `deberia tener ancho ${anchosFrente.join(" o ")} mm como frente de cajon, descontando 1.5 mm por lado.`,
                     valida: true,
                     objetivos: [anchoFrente]
                 };
@@ -550,11 +554,18 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                 const medidaB = modulo.profundidad || modulo.alto;
                 if (!medidaA || !medidaB) return { ok: true, mensaje: "", valida: false };
 
-                const ok = coincideParMedidas(medida1, medida2, medidaA, medidaB);
+                // Frentes FRE-PP de paneles PPX/PPA: ancho - 3 x alto - 3 (PPX hasta 16 mm menos de alto).
+                const opcionesPanel = /^(PPX|PPA)$/.test(modulo.tipo || "") && nombre.startsWith("FRE") && modulo.ancho && modulo.alto
+                    ? [[modulo.ancho - 3, modulo.alto - 3], [modulo.ancho - 3, modulo.alto - 16]]
+                    : [];
+                const ok = coincideParMedidas(medida1, medida2, medidaA, medidaB)
+                    || opcionesPanel.some(([a, b]) => coincideParMedidas(medida1, medida2, a, b));
 
                 return {
                     ok,
-                    mensaje: `deberia medir ${medidaA} x ${medidaB} mm como fondo/posicion/friso.`,
+                    mensaje: opcionesPanel.length
+                        ? `deberia medir ${opcionesPanel[0][0]} x ${opcionesPanel.map(o => o[1]).join(" o ")} mm como frente de panel.`
+                        : `deberia medir ${medidaA} x ${medidaB} mm como fondo/posicion/friso.`,
                     valida: true,
                     objetivos: [medidaA, medidaB]
                 };
@@ -613,7 +624,8 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                 if (!modulo.anchoInterno || !modulo.profundidad) return { ok: true, mensaje: "", valida: false };
 
                 const profundidadTpm = modulo.profundidad - 52;
-                const ok = coincideParMedidas(medida1, medida2, modulo.anchoInterno, profundidadTpm);
+                // En produccion tambien aparece con 26 mm de descuento.
+                const ok = [profundidadTpm, modulo.profundidad - 26].some(prof => coincideParMedidas(medida1, medida2, modulo.anchoInterno, prof));
 
                 return {
                     ok,
@@ -669,6 +681,9 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                 const profundidadesBase = tieneTiraderaInterna(modulo.cod) && esBase(nombre)
                     ? [modulo.profundidad, modulo.profundidad - 22]
                     : [modulo.profundidad];
+                // Complementos Henzo FB: techo 24 mm menos profundo. Bastidor BS: techo Henzo 11 mm menos.
+                if (modulo.tipo === "FB" && !esBase(nombre)) profundidadesBase.push(modulo.profundidad - 24);
+                if (modulo.tipo === "BS" && !esBase(nombre)) profundidadesBase.push(modulo.profundidad - 11);
                 const ok = profundidadesBase.some(prof => coincideParMedidas(medida1, medida2, modulo.anchoInterno, prof));
                 return {
                     ok,
@@ -760,11 +775,16 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                 if (!modulo.anchoInterno) return { ok: true, mensaje: "", valida: false };
 
                 const alturasAjuste = [60, 80, 100, 150];
-                const ok = alturasAjuste.some(altura => coincideParMedidas(medida1, medida2, modulo.anchoInterno, altura));
+                const largosAjuste = [modulo.anchoInterno];
+                // Complementos Henzo LB/LBD/LBI/FVLB/FB: ajuste 100 mm mas corto.
+                if (/^(LB|LBD|LBI|FVLB|FB)$/.test(modulo.tipo || "")) largosAjuste.push(modulo.anchoInterno - 100);
+                // Paneles PPX/PPA/PRM: ajuste AJ-PP = ancho - 60.
+                if (/^(PPX|PPA|PRM)$/.test(modulo.tipo || "") && modulo.ancho) largosAjuste.push(modulo.ancho - 60);
+                const ok = largosAjuste.some(largo => alturasAjuste.some(altura => coincideParMedidas(medida1, medida2, largo, altura)));
 
                 return {
                     ok,
-                    mensaje: `deberia medir ${modulo.anchoInterno} x 60/80/100/150 mm.`,
+                    mensaje: `deberia medir ${largosAjuste.join(" o ")} x 60/80/100/150 mm.`,
                     valida: true,
                     objetivos: [modulo.anchoInterno, ...alturasAjuste]
                 };
@@ -788,10 +808,18 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                 const profundidadLateral = profundidadLateralModulo(modulo);
                 if (!altoLateral || !profundidadLateral) return { ok: true, mensaje: "", valida: false };
 
-                const ok = coincideParMedidas(medida1, medida2, altoLateral, profundidadLateral);
+                const opciones = [[altoLateral, profundidadLateral]];
+                const codigoMayus = String(modulo.cod || "").toUpperCase();
+                // Altos sobre refrigerador (RF): laterales entre base y techo y 68 mm menos profundos.
+                if (modulo.tipo === "A" && /\d(H[\d.]+)?RF/.test(codigoMayus) && modulo.grosor) {
+                    opciones.push([altoLateral - modulo.grosor * 2, profundidadLateral - 68]);
+                }
+                // STC: estructura 30 mm mas baja.
+                if (tieneTokenCodigo(codigoMayus, "STC")) opciones.push([altoLateral - 30, profundidadLateral]);
+                const ok = opciones.some(([alto, prof]) => coincideParMedidas(medida1, medida2, alto, prof));
                 return {
                     ok,
-                    mensaje: `deberia medir ${altoLateral} x ${profundidadLateral} mm segun alto y profundidad del modulo.`,
+                    mensaje: `deberia medir ${opciones.map(o => o.join(" x ")).join(" o ")} mm segun alto y profundidad del modulo.`,
                     valida: true,
                     objetivos: [altoLateral, profundidadLateral]
                 };
@@ -815,7 +843,8 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
 
                 const anchoRespaldo = modulo.ancho - (modulo.grosor * 2) + 10;
                 const altoRespaldo = modulo.alto - (modulo.grosor * 2) + 10;
-                const ok = coincideParMedidas(medida1, medida2, anchoRespaldo, altoRespaldo);
+                const altosRespaldo = tieneTokenCodigo(String(modulo.cod || "").toUpperCase(), "STC") ? [altoRespaldo, altoRespaldo - 30] : [altoRespaldo];
+                const ok = altosRespaldo.some(alto => coincideParMedidas(medida1, medida2, anchoRespaldo, alto));
 
                 return {
                     ok,
@@ -949,13 +978,22 @@ function alturasPermitidasOreja(modulo, tipoOreja) {
             if (!base) return [];
 
             const contexto = modulo.contextoOrejas || {};
-            if (!contexto.emparejadas) return tieneHenzo(modulo.cod) ? [base - 3] : [base];
-
-            const descuento = contexto.descuentoEn || "";
-            if (descuento === "OTP") return tipoOreja === "OTP" ? [base - 3] : [base];
-            if (descuento === "OA") return tipoOreja === "OA" ? [base - 3] : [base];
-
-            return [base, base - 3];
+            const alto = Number(modulo.alto) || 0;
+            let alturas;
+            if (!contexto.emparejadas) {
+                // Oreja sola: con o sin la fuga de 3 mm (produccion usa ambas).
+                alturas = tieneHenzo(modulo.cod) ? [base - 3] : [base, base - 3];
+                // Linea Henzo (KUHZ...) sin HZ en el codigo: descuenta 35 + 3 como las puertas.
+                if (!tieneHenzo(modulo.cod) && tieneHenzo("", modulo.linea)) alturas.push(alto - 38);
+            } else {
+                const descuento = contexto.descuentoEn || "";
+                if (descuento === "OTP") alturas = tipoOreja === "OTP" ? [base - 3] : [base];
+                else if (descuento === "OA") alturas = tipoOreja === "OA" ? [base - 3] : [base];
+                else alturas = [base, base - 3];
+            }
+            // La OA no lleva descuento Henzo: acompana el alto real del modulo.
+            if (tipoOreja === "OA" && alto && alto !== base) alturas.push(alto, alto - 3);
+            return [...new Set(alturas)];
         }
 
 function anchosPermitidosOreja(modulo) {

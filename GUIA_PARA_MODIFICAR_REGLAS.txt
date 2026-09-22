@@ -33,6 +33,17 @@ ARCHIVOS IMPORTANTES
    Maneja pantalla, carga de Excel, filtros, renderizado y comparacion.
    Normalmente no debes tocarlo para agregar reglas de medidas.
 
+8. generador_despiece.js
+   Recetas: que piezas lleva cada tipo de modulo (funcion recetaModulo) y
+   tablas de gavetas (POSICIONES_GAVETA, FRENTES_CAJON_H4), repisas por
+   altura y cantos tipicos. Las MEDIDAS no se escriben aqui: salen de
+   validarMedidasPieza, asi que al corregir una regla en reglas_validacion.js
+   el generador se corrige solo.
+
+9. app_generador.js
+   Pantalla de las pestanas Consultar codigo y Generar despiece
+   (ficha, tabla, exportar a Excel y "Validar este despiece").
+
 
 DONDE AGREGAR UNA NUEVA REGLA
 
