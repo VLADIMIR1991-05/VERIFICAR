@@ -1,0 +1,2399 @@
+==============================================================================
+REVISION DEL EXCEL "Nomenclaturas y codigos Madeval" CONTRA LA BASE db_codigos.js
+Fecha: 2026-09-22   -   NADA DE ESTO ESTA APLICADO TODAVIA
+==============================================================================
+
+1. RESUMEN
+------------------------------------------------------------------------------
+El Excel tiene 26 hojas. Se revisaron todas, fila por fila.
+Pares codigo -> significado encontrados: 1364 claves distintas (sin contar ejemplos ni textos explicativos).
+
+  - Ya estan en la base con el mismo significado ........ 1103
+  - No estan en la base (nuevas) ......................... 196
+      * recomiendo agregar ............................... 181
+      * agregar solo despues de confirmar ................ 9
+      * NO agregar (rompen lecturas o el Excel esta mal) . 6
+  - Estan en la base pero con otro texto ................. 59
+  - Son plantillas, no codigos reales (ej. AC-BD(MEDIDA)R)  6
+
+Conclusion: la base YA contiene casi todo este Excel (se importo antes), incluidos
+varios errores del Excel que se copiaron tal cual. Por eso NO recomiendo borrar y
+reemplazar la base: perderia ~1.300 claves que vienen de otras fuentes (listado
+ZICOM, colecciones, acabados) y no ganaria nada.
+
+RECOMENDACION: (a) agregar las claves nuevas de la seccion 4, (b) corregir los
+textos de las secciones 5 y 6, y (c) corregir el Excel con la lista de la seccion 3.
+
+Prueba de seguridad: se simulo la base con todos los cambios propuestos y se leyeron
+5.704 codigos de prueba. Ninguna medida (ancho/alto/profundidad) cambia; la
+validacion de piezas sigue dando exactamente lo mismo. Solo cambian descripciones.
+
+2. COMO USA EL VALIDADOR ESTAS CLAVES (importante para decidir)
+------------------------------------------------------------------------------
+- El validador parte cada codigo por guiones: B60I-ACK-ELEV -> B60I | ACK | ELEV.
+  Por eso una clave con guion (ACK-ELEV, CU-LI, AL-APLM) SOLO se reconoce cuando el
+  codigo completo es exactamente esa clave (por ejemplo en el consultor, o si el
+  cod_mueble es un complemento como LBI34HZ-L-S). Dentro de un modulo se lee por partes.
+- Las claves cortas sin guion (BA, RV, F, H...) se usan dentro de cualquier codigo.
+  Una clave corta nueva puede cambiar como se leen codigos que hoy estan bien.
+- Un codigo solo tiene UN significado en la base. Cuando el Excel le da varios
+  segun la coleccion (CU = Curcu o Cobre; NE = Negro laca, perfil o vidrio),
+  el validador muestra todos juntos separados por "/".
+
+3. ERRORES ENCONTRADOS EN EL EXCEL (corregir en el Excel original)
+------------------------------------------------------------------------------
+* 1_Alturas
+  Sin errores. Coincide con la base.
+* 2_Lectura_codigos
+  Es una hoja de explicacion; no se importa. Ejemplo X60IH9DE-SLIM: el validador hoy lee "DE" como D (Derecha) + E (Esquinero) en vez de Despensa (ver seccion 8).
+* 3_Nomenclatura_modulos_bajos
+  Fila 52 repite el titulo "NOMENCLATURA MODULOS BAJOS" y la fila 53 (B45BA-SLIM-HZ) es un ejemplo, no una nomenclatura.
+* 4_Nomenclatura_modulos_altos
+  Titulo dice "MODULOS BAJOS" (es altos). AB-GIR dice "Abatible Simple" (deberia ser Giratorio). AB-PLE termina en punto.
+* 6_Nomenclatura_Modulos_Auxiliar
+  Titulo dice "ALTOS PLEGABLES" (copiado). Erratas: "Multible" (DM), "mircoondas" (HC), "Modulois" (f47).
+* 9_Modulacion Aurora
+  El texto explicativo (f3) esta copiado de Shaker 2.0. Errata "decoratuva" (PATAE6-AU).
+* 10_Complementos Linea Tradicion
+  T(ANCHO)-TR es una plantilla, no un codigo. QU = "Cuatro" sin contexto.
+* 12_Modulacion_Loft
+  Errata "Gratito" en el ejemplo MET-B104H3P3... Colores CU/GF/NE/DO/CG/LU repetidos en 4 hojas con textos distintos.
+* 13_Coleccion_Curcu
+  ERROR GRAVE: los desayunadores "Recto Espina de Pez" (f59-78) y "Chaflanado Espina de Pez" (f80-99) usan EXACTAMENTE los mismos codigos (CU-DES...EP). Ademas los subtitulos f86 y f93 dicen "Recto" dentro del bloque Chaflanado. CU = "Lateral Curcu" choca con CU = Cobre.
+* 14_Bases_Lago
+  Correcto. Solo tiene ejemplos.
+* 15_Materia
+  Codigos con prefijo TI-, CG- chocan con TI (Tiradera Interna) y CG (Cacao Gold) si se leen por partes.
+* 16_Henzo
+  OTP = "Oreta Tipo Recto" (errata; es Oreja Tipo Puerta). FB1100... usa 1100 para el ancho 110 (los demas usan 60, 90, 100, 120). Los LB..HZ-LIN-U dicen "Izquierdo" (un tipo U no tiene lado). Orejas OTP10/15/20 tienen la misma descripcion (no dicen el ancho). Filas 22-23 son explicacion, no descripcion. S, D, I, F aqui significan Simple/Doble/Tipo I/Frente Fraccionado, chocan con Suspendido/Derecha/Izquierda/Fregadero.
+* 17_Duo
+  Titulo dice "COMPLEMENTOS HENZO". Nota de FU copiada de FF. Forros FB..DUO dicen "Henzo" y profundidades 220/340/440 cm (son 22/34/44 cm). FV92 dice "Ancho 920" (los demas en cm). FV..H3DUO-U dice "Lateral Bajo" aunque el codigo es FV. A-DR..-MO dice "madera clara color oscuro". CAJA MTX GRANITO y CAJA MTX GRANITOP sin descripcion. Codigos A-DR-220H115-MC"L" llevan comillas dentro.
+* 17_Decorativo
+  RMV repetido (f43-44). A90H132V dice ancho 60cm. 1PCO-1LR y 2PCO-1LR repetidos con significados distintos. LATD repetido: f171 deberia ser LATI (izquierdo). SOP-BX12, ECT, BNT, PTCOP, PFD, PFI, PPX, TIR-PL, TIR-NE repetidos con textos distintos. A60H4P3S/P-COP total 10 (deberia ser 20?). A90H3 incluye repisa (en 45/60 no). X60P3S/P-CP 36 copas (deberia ser 20?). S/P-CP-T descripcion cortada. "BTL B-CP" con espacio. MZ-I, MZ-C, MZ-REP sin descripcion. Alturas "H13.2" vs "H132" mezcladas. Erratas: Giratora, epqueña, Excedra, dobre, metalcia, "Repisa con con".
+* 4_Nomenclatura_componentes
+  Los componentes llevan guion inicial (-TPM). -C-H, -C-S, -C-R, -H-S, -H-R, -S-R se repiten 3 veces (45/60/90) con el mismo codigo. -H = CUCHILLERO y -P = PORTAPLATOS chocan con H = Altura y P = Profundidad. Erratas: OSUCURO, VERTICA, SUBDIVISIO, ORGALINE vs ORGANILE.
+* 5_Complementos
+  TR = "Tipo recto" choca con TR = "Vidrio Transparente" (Decorativo). RF = Refrigerador choca con RF = Repisero Fraccionado.
+* 6_Mesones
+  Errata "Izquiedo" en GOTI (la base ya esta corregida). CG-DES12P4H1.0 y CG-DES12.4P4H0.8: el ancho 12 / 12.4 parece incompleto.
+* 7_Estructuras_mesones
+  Correcto.
+* 7_Bastidores
+  BS = Bastidor choca con BS = Modulo Bajo Suspendido. PLE choca con AB-PLE.
+* 8_Accesorios_Herrajes_Unic
+  AC-BASE ISLA 105 dice "ancho: 105" (los demas en mm). AC-PVT4588.6 le falta la H (AC-PVT45H88.6). Varias claves son plantillas: AC-BD(MEDIDA)R, AC-PATA-X-H(Altura). Filas 37-50 vacias.
+* 9_Zocalos
+  Titulo dice "ACCESORIOS/HERRAJES" (copiado).
+* 10_Cubik Living
+  "Ms" en minuscula (deberia ser M1?). UT tiene un parentesis sin cerrar. BA choca con BA = Basurero (ACV-BA, AQUA-BA). TE choca con TE = Textil.
+
+4. CLAVES NUEVAS (no estan en la base)
+------------------------------------------------------------------------------
+4.1 RECOMIENDO AGREGAR (181)  -  formato: CODIGO = texto propuesto   [hoja fila]
+
+  -- 3_Nomenclatura_modulos_bajos
+  AB-DES-SALICE = Módulo de puerta Descendente con herraje "Pacta" de Salice   [3_Nomenclatura_modulos_bajos f50]
+  -- 4_Nomenclatura_modulos_altos
+  PTA-ANCHA = Puerta Ancha   [4_Nomenclatura_modulos_altos f31]
+  -- 11_Complementos_Line
+  LINE = Line   [11_Complementos_Line f4]
+  -- 15_Materia
+  AL-APLM = Vidrio Acanalado Plata Mate + Perfil color Plata   [15_Materia f6]
+  AL-APLB = Vidrio Acanalado Plata Brillante + Perfil color Plata   [15_Materia f7]
+  BZ-ABNM = Vidrio Acanalado Bronce Mate + Perfil Color Bronce   [15_Materia f8]
+  BZ-ABNB = Vidrio Acanalado Bronce Brillante + Perfil Color Bronce   [15_Materia f9]
+  CH-ACHM = Vidrio Acanalado Champagne Mate + Perfil Color Champagne   [15_Materia f10]
+  CH-ACHB = Vidrio Acanalado Champagne Brillante + Perfil Color Champagne   [15_Materia f11]
+  TI-ATIM = Vidrio Acanalado Titanio Mate + Perfil Color Titanio   [15_Materia f12]
+  TI-ATIB = Vidrio Acanalado Titanio Brillante + Perfil Color Titanio   [15_Materia f13]
+  CG-ACGM = Vidrio Acanalado Cacao Gold Mate + Perfil Color Cacao Gold   [15_Materia f14]
+  CG-ACGB = Vidrio Acanalado Cacao Gold Brillante + Perfil Color Cacao Gold   [15_Materia f15]
+  CG-PGRI = Piedra Color Grigio + Perfil Color Cacao Gold   [15_Materia f19]
+  TI-PTAU = Piedra Color Taupe + Perfil Color Titanio   [15_Materia f20]
+  -- 17_Decorativo
+  S/P-T = Sin puertas, con tubo redondo   [17_Decorativo f49, 17_Decorativo f168]
+  LATD = Lateral de vidrio lado derecho   [17_Decorativo f50, 17_Decorativo f170, 17_Decorativo f171]
+  LATI = Lateral de vidrio lado izquierdo   [17_Decorativo f51]
+  BT-SI = Botellero con gaveta Sistema Invisible   [17_Decorativo f52]
+  S/P-COP = Módulo Abierto sin puertas con porta copas   [17_Decorativo f53]
+  S/P-BLT = Módulo abierto Sin puertas para botellas de vino   [17_Decorativo f54]
+  S/Z = Sin zócalo (el módulo no tiene patas, va directo al piso)   [17_Decorativo f57]
+  PPB = Panel de pared bajo (con ajustes de 6mm fijación)   [17_Decorativo f93]
+  PPA = Panel de pared alto (con ajustes de 6mm fijación)   [17_Decorativo f94]
+  PPX = Panel de pared auxiliar (con ajustes de 6mm fijación)   [17_Decorativo f95, 17_Decorativo f374]
+  AT = Vidrio Acanalado Claro   [17_Decorativo f152]
+  KZF = Perfil Crystal Aluminio   [17_Decorativo f154]
+  KGF = Perfil Crystal Grafito   [17_Decorativo f155]
+  KNE = Perfil Crystal Negro   [17_Decorativo f156]
+  1PCO-2LR = Conjunto de 2 módulos con 1 puerta corrediza. 2 módulos con repisas   [17_Decorativo f159]
+  2PCO-2LR = Conjunto de 3 módulos con 1 puerta corrediza. 3 Módulos con repisas   [17_Decorativo f161]
+  1PCO-1LV = Conjunto de 2 módulos con 1 puerta corrediza. 1 Módulo vacío sin repisas para electrodoméstico + 1 módulo ciego con frente fijo   [17_Decorativo f162]
+  2PCO-1LV = Conjunto de 3 módulos con 2 puertas corredizas. 1 Módulo vacío sin repisas para electrodoméstico + 1 módulo ciego con frente fijo + 1 Módulo con repisa fija   [17_Decorativo f164]
+  RAS = Repisas al Ras   [17_Decorativo f172]
+  A45H4P16S/P-COP = Tapa + 1 Repisa con 1 fila de 4 Copas. Total 8 Copas   [17_Decorativo f176]
+  A45H4P3S/P-COP = Tapa + 1 Repisa con 2 filas de 4 Copas. Total 16 Copas   [17_Decorativo f177]
+  A45H2P16S/P-COP = Tapa con 1 fila de 4 Copas   [17_Decorativo f178]
+  A45H2P3S/P-COP = Tapa con 2 filas de 4 Copas. Total 8 Copas   [17_Decorativo f179]
+  A45H3P16S/P-COP = Tapa con 1 fila de 8 Copas   [17_Decorativo f180]
+  A45H3P3S/P-COP = Tapa con 2 filas de 8 Copas. Total 16 Copas   [17_Decorativo f181]
+  A45H5P16S/P-COP = Tapa + 2 Repisas con 1 fila de 4 Copas. Total 12 Copas   [17_Decorativo f182]
+  A45H5P3S/P-COP = Tapa + 2 Repisas con 2 filas de 4 Copas. 24 Copas   [17_Decorativo f183]
+  A45H6P16S/P-COP = Tapa + 2 Repisas con 1 fila de 4 Copas. Total 12 Copas   [17_Decorativo f184]
+  A45H6P3S/P-COP = Tapa + 2 Repisas con 2 filas de 4 Copas. Total 24 Copas   [17_Decorativo f185]
+  A45H7P16S/P-COP = Tapa + 3 Repisas con 1 fila de 4 Copas. Total 16 Copas   [17_Decorativo f186]
+  A45H7P3S/P-COP = Tapa + 3 Repisas con 2 filas de 4 Copas. Total 32 Copas   [17_Decorativo f187]
+  A45HEP16S/P-COP = Tapa + 3 Repisas con 1 fila de 4 Copas. Total 16 Copas   [17_Decorativo f188]
+  A45HEP3S/P-COP = Tapa + 3 Repisas con 2 filas de 4 Copas. Total 32 Copas   [17_Decorativo f189]
+  A60H4P16S/P-COP = Tapa + 1 Repisas con 1 fila de 5 Copas. Total 10 Copas   [17_Decorativo f191]
+  A60H2P16S/P-COP = Tapa con 1 fila de 5 Copas   [17_Decorativo f193]
+  A60H2P3S/P-COP = Tapa con 2 filas de 5 copas. Total 10 Copas   [17_Decorativo f194]
+  A60H3P16S/P-COP = Tapa con 1 fila de 10 Copas   [17_Decorativo f195]
+  A60H3P3S/P-COP = Tapa con 2 filas de 10 copas. Total 20 Copas   [17_Decorativo f196]
+  A60H5P16S/P-COP = Tapa + 2 Repisas con 1 fila de 5 Copas. Total 15 Copas   [17_Decorativo f197]
+  A60H5P3S/P-COP = Tapa + 2 Repisas con 2 filas de 5 Copas. Total 30 Copas   [17_Decorativo f198]
+  A60H6P16S/P-COP = Tapa + 2 Repisas con 1 fila de 5 Copas. Total 15 Copas   [17_Decorativo f199]
+  A60H6P3S/P-COP = Tapa + 2 Repisas con 2 filas de 5 Copas. Total 30 Copas   [17_Decorativo f200]
+  A60H7P16S/P-COP = Tapa + 3 Repisas con 1 fila de 5 Copas. Total 20 Copas   [17_Decorativo f201]
+  A60H7P3S/P-COP = Tapa + 3 Repisas con 2 filas de 5 Copas. Total 40 Copas   [17_Decorativo f202]
+  A60HEP16S/P-COP = Tapa + 3 Repisas con 1 fila de 5 Copas. Total 20 Copas   [17_Decorativo f203]
+  A60HEP3S/P-COP = Tapa + 3 Repisas con 2 filas de 5 Copas. Total 40 Copas   [17_Decorativo f204]
+  A90H4P16S/P-COP = Tapa + 1 Repisas con 1 fila de 8 Copas. Total 16 Copas   [17_Decorativo f206]
+  A90H4P3S/P-COP = Tapa + 1 Repisas con 2 fila de 8 Copas. Total 32 Copas   [17_Decorativo f207]
+  A90H2P16S/P-COP = Tapa con 1 fila de 8 Copas   [17_Decorativo f208]
+  A90H2P3S/P-COP = Tapa con 2 filas de 8 Copas. Total 16 Copas   [17_Decorativo f209]
+  A90H5P16S/P-COP = Tapa + 2 Repisas con 1 fila de 8 Copas. Total 24 Copas   [17_Decorativo f212]
+  A90H5P3S/P-COP = Tapa + 2 Repisas con 2 filas de 8 Copas. Total 48 Copas   [17_Decorativo f213]
+  A90H6P16S/P-COP = Tapa + 2 Repisas con 1 fila de 8 Copas. Total 24 Copas   [17_Decorativo f214]
+  A90H6P3S/P-COP = Tapa + 2 Repisas con 2 filas de 8 Copas. Total 48 Copas   [17_Decorativo f215]
+  A90H7P16S/P-COP = Tapa + 3 Repisas con 1 fila de 8 Copas. Total 32 Copas   [17_Decorativo f216]
+  A90H7P3S/P-COP = Tapa + 3 Repisas con 2 filas de 8 Copas. Total 64 Copas   [17_Decorativo f217]
+  A90HEP16S/P-COP = Tapa + 3 Repisas con 1 fila de 8 Copas. Total 32 Copas   [17_Decorativo f218]
+  A90HEP3S/P-COP = Tapa + 3 Repisas con 2 filas de 8 Copas. Total 64 Copas   [17_Decorativo f219]
+  A45H3P16S/P-BLT = 3 Botellas al costado izquierdo   [17_Decorativo f223]
+  A45H3P3S/P-BLT = 6 Botellas al costado izquierdo   [17_Decorativo f224]
+  A60H3P16S/P-BLT = 3 Botellas al costado izquierdo + 2 Botellas lado derecho   [17_Decorativo f225]
+  A60H3P3S/P-BLT = 6 Botellas al costado izquierdo + 4 Botellas lado derecho   [17_Decorativo f226]
+  A45H4P16S/P-BLT = 4 Botellas al costado izquierdo   [17_Decorativo f228]
+  A45H4P3S/P-BLT = 8 Botellas al costado izquierdo   [17_Decorativo f229]
+  A60H4P16S/P-BLT = 4 Botellas al costado izquierdo + 3 Botellas lado derecho   [17_Decorativo f230]
+  A60H4P3S/P-BLT = 8 Botellas al costado izquierdo + 6 Botellas lado derecho   [17_Decorativo f231]
+  A45H5P16S/P-BLT = 5 Botellas al costado izquierdo   [17_Decorativo f233]
+  A45H5P3S/P-BLT = 10 Botellas al costado izquierdo   [17_Decorativo f234]
+  A60H5P16S/P-BLT = 5 Botellas al costado izquierdo + 4 Botellas lado derecho   [17_Decorativo f235]
+  A60H5P3S/P-BLT = 10 Botellas al costado izquierdo + 8 Botellas lado derecho   [17_Decorativo f236]
+  A45H6P16S/P-BLT = 6 Botellas al costado izquierdo   [17_Decorativo f238]
+  A45H6P3S/P-BLT = 12 Botellas al costado izquierdo   [17_Decorativo f239]
+  A60H6P16S/P-BLT = 6 Botellas al costado izquierdo + 5 Botellas lado derecho   [17_Decorativo f240]
+  A60H6P3S/P-BLT = 12 Botellas al costado izquierdo + 10 Botellas lado derecho   [17_Decorativo f241]
+  A45H7P16S/P-BLT = 7 Botellas al costado izquierdo   [17_Decorativo f243]
+  A45H7P3S/P-BLT = 14 Botellas al costado izquierdo   [17_Decorativo f244]
+  A60H7P16S/P-BLT = 7 Botellas al costado izquierdo + 6 Botellas lado derecho   [17_Decorativo f245]
+  A60H7P3S/P-BLT = 14 Botellas al costado izquierdo + 12 Botellas lado derecho   [17_Decorativo f246]
+  BTL-A-CP = Módulo de Vinos Tipo A (Pines de vinos a la izquierda) + Porta copas 4 copas   [17_Decorativo f250]
+  BTL-CP = Módulo de Vinos Tipo Con Pines para vinos en ambos lados + Porta copas 5 copas   [17_Decorativo f252]
+  BTL-HRZ = Módulo con Pines para Vineras y Gavetas con soporte para botellas de vino   [17_Decorativo f255]
+  BTL-REP-T1 = Módulo de Vinos Tipo Bar T1 (2 Repisas) + Gavetas con soporte para botellas de vino   [17_Decorativo f258]
+  BTL-REP-T2 = Módulo de Vinos Tipo Bar T2 (2 Repisas + 1 repisa inferior de menor profundidad) + Gavetas con soporte para botellas de vino   [17_Decorativo f261]
+  X45P3S/P-CP = Módulo Vinera Ancho 45cm Altura H11 y Profundidad 32cm con pines cortos para colgar, y con capacidad para 16 copas   [17_Decorativo f265]
+  SBTVIN = Soporte Botellas de Vino   [17_Decorativo f276]
+  SACVIN = Soporte Accesorios Vinos   [17_Decorativo f277]
+  ACBV-CLA = Accesorio Cuero Botellas de vino. Color Cuero Claro   [17_Decorativo f278]
+  ACBV-OSC = Accesorio Cuero Botellas de vino. Color Cuero Oscuro   [17_Decorativo f279]
+  ACV-CLA = Accesorio de cuero para accesorios de vino. Color Cuero Claro   [17_Decorativo f280]
+  ACV-OSC = Accesorio de cuero para accesorios de vino. Color Cuero Oscuro   [17_Decorativo f281]
+  RFV = Módulo con puerta Fraccionada de madera y vidrio. Con repisas de vidrio   [17_Decorativo f286]
+  TP-DS = Módulo de despensa con divisiones y espacios de almacenamiento   [17_Decorativo f288]
+  REXT = Repisa Extraible   [17_Decorativo f289]
+  LEX6 = Legumbrero x6   [17_Decorativo f290]
+  EXDSP = Esquinero de despensa   [17_Decorativo f291]
+  T2 = Tipo 2 (2 repisas grandes + 1 pequeña)   [17_Decorativo f296]
+  T3 = Tipo 3 (1 repisa + Módulo para cafetera)   [17_Decorativo f297]
+  BM = Base Madera (Mismo acabado que la estructura del módulo)   [17_Decorativo f298]
+  EXG = Puertas Pocket Door Exedra Salice   [17_Decorativo f301]
+  CAUCH-NE = Caucho Negro Exedra Gravity   [17_Decorativo f302]
+  CAUCH-GF = Caucho Gris Exedra Gravity   [17_Decorativo f303]
+  DEX55-DEX110 = Distanciador 55mm + Distanciador 110mm   [17_Decorativo f306]
+  D-ZOC = Destaje para Zócalo   [17_Decorativo f307]
+  VIN = Tipo Vinera   [17_Decorativo f309]
+  BCO = Bar Coplanar   [17_Decorativo f313]
+  MZ-F = Parante F Mozione (1 Punto de Fijación al piso y 2 Puntos de Fijación a la Pared)   [17_Decorativo f318]
+  MZ-J = Parante J Mozione   [17_Decorativo f319]
+  MZ-JAR = Jardinera Mozione   [17_Decorativo f327]
+  CAJA-SI-S = Bandeja Decorativa Extraible (Al piso o a la base)   [17_Decorativo f328]
+  VIN-SI-S = Bandeja Decorativa Extraible con accesorio para vinos (Al piso o a la base)   [17_Decorativo f329]
+  MZ-SOPR = Soporte Mozione para Repisa   [17_Decorativo f333]
+  MZ-SOPM = Soporte Mozione para Módulo   [17_Decorativo f334]
+  RSP-TST = Respaldo Tipo Estructura   [17_Decorativo f335]
+  RSP-TPT = Respaldo Tipo Puerta   [17_Decorativo f336]
+  MG1 = Módulo Mozione con 1 gaveta (Si es H1 o H2, solo es gaveta. Si es mayor a H2 Puede ser módulo de Microondas)   [17_Decorativo f338]
+  CAFG1 = Módulo Mozione de Cafetera con 1 gaveta   [17_Decorativo f339]
+  MZ-BR = Módulo de Bar Mozione   [17_Decorativo f341]
+  MZ-S = Módulo Mozione Suspendido   [17_Decorativo f342]
+  MZ-A = Módulo Mozione Alto   [17_Decorativo f343]
+  D4L = 4 Lados Decorativos   [17_Decorativo f344]
+  AB-COMI = Abatible Compas con doble frente   [17_Decorativo f346]
+  HPIVD = Hoja Pivot Apertura Derecha   [17_Decorativo f351]
+  HPIVI = Hoja Pivot Apertura Izquierda   [17_Decorativo f352]
+  DINH1 = Dintel H1   [17_Decorativo f353]
+  DINH2 = Dintel H2   [17_Decorativo f354]
+  DINH3 = Dintel H3   [17_Decorativo f355]
+  DINH4 = Dintel H4   [17_Decorativo f356]
+  DINH5 = Dintel H5   [17_Decorativo f357]
+  TIR-PL = Tiradera Sierra Plateado Mate   [17_Decorativo f358, 17_Decorativo f365]
+  TIR-NE = Tiradera Sierra Negro Mate   [17_Decorativo f359, 17_Decorativo f366]
+  PDES-OC-I = Puerta de despensa oculta apertura izquierda   [17_Decorativo f363]
+  PDES-OC-D = Puerta de despensa oculta apertura derecha   [17_Decorativo f364]
+  DINTEL-I = Dintel para puerta de despensa oculta Izquierdo   [17_Decorativo f367]
+  DINTEL-D = Dintel para puerta de despensa oculta Derecho   [17_Decorativo f368]
+  CORBAT = Corbatero   [17_Decorativo f375]
+  ESPEJO = Espejo   [17_Decorativo f376]
+  ACC-CLA = Accesorio Cuero Claro   [17_Decorativo f377]
+  ACC-OSC = Accesorio Cuero Oscuro   [17_Decorativo f378]
+  CMBLINE = Accesorio Comboline Color Negro   [17_Decorativo f381]
+  COPA = Accesorio Porta Copas Comboline   [17_Decorativo f382]
+  ROLLO = Accesorio Porta Rollo   [17_Decorativo f383]
+  GANCHO = Ganchos para colgar   [17_Decorativo f384]
+  HORIZON-BIG 120 = Accesorio Horizon Big Metálico con tubo redondo, ganchos y soporte para jabonera redonda   [17_Decorativo f385]
+  PRM = Panel para Repisa Metálica   [17_Decorativo f388]
+  -- 5_Complementos
+  TAPA = Tapa   [5_Complementos f22]
+  CAJA = Caja   [5_Complementos f41]
+  -- 6_Mesones
+  PM-ES = Premesón tablero crudo, medida especial   [6_Mesones f6]
+  -- 7_Bastidores
+  BSX = Bastidor   [7_Bastidores f5]
+  PLED = Plegable 4 Hojas   [7_Bastidores f7]
+  -- 9_Zócalos
+  RPLAST = Riel plástica en zócalo   [9_Zócalos f11]
+  -- 10_Cubik Living
+  LDE3 = Lateral derecho Engrosado   [10_Cubik Living f8]
+  LIE3 = Lateral izquierdo Engrosado   [10_Cubik Living f11]
+  TE-BA = Módulo con Tapa Superior + Base   [10_Cubik Living f13]
+  DA = Division Vertical tipo "A"   [10_Cubik Living f14]
+  DB = Division Vertical tipo "B"   [10_Cubik Living f15]
+  UT = Union de tarugo (Perforaciones + Tarugos)   [10_Cubik Living f17]
+  CB1X = Cubik Living Tipo 1   [10_Cubik Living f19]
+  CB2X = Cubik Living Tipo 2   [10_Cubik Living f20]
+  CB3X = Cubik Living Tipo 3   [10_Cubik Living f21]
+  CB4X = Cubik Living Tipo 4 (Escritorio)   [10_Cubik Living f22]
+  CB5X = Cubik Living Tipo 5 (Escritorio)   [10_Cubik Living f23]
+  MS = 1 Módulo Incrustado   [10_Cubik Living f24]
+  M2 = 2 Módulos Incrustados   [10_Cubik Living f25]
+  LINT = Lateral Interno   [10_Cubik Living f26]
+  CBA = Módulo Alto Cubik Living   [10_Cubik Living f28]
+  CBB = Módulo Bajo Cubik Living   [10_Cubik Living f29]
+
+4.2 AGREGAR SOLO SI CONFIRMAS (9)
+
+  INV = Invertida   [6_Nomenclatura_Módulos_Auxiliar f36]
+     -> El Excel dice "Puerta fraccionada Invertida", pero INV tambien aparece en orejas OTP10X-INV-HZ (oreja invertida). Propongo el texto generico "Invertida".
+  A60H4P3S/P-COP = Tapa + 1 Repisas con 2 filas de 5 Copas. Total 10 Copas   [17_Decorativo f192]
+     -> Dice "Total 10 Copas" con 2 filas de 5 copas + tapa y repisa; por la logica del resto deberia ser 20. Confirmar.
+  A90H3P16S/P-COP = Tapa + 1 Repisas con 1 fila de 8 Copas. Total 16 Copas   [17_Decorativo f210]
+     -> Dice "Tapa + 1 Repisas" pero en 45 y 60 la H3 es solo Tapa. Confirmar.
+  A90H3P3S/P-COP = Tapa + 1 Repisas con 2 filas de 8 Copas. Total 32 Copas   [17_Decorativo f211]
+     -> Dice "Tapa + 1 Repisas" pero en 45 y 60 la H3 es solo Tapa. Confirmar.
+  BTL B-CP = Modulo de Vinos Tipo B (Pines de vinos a la derecha) + Porta copas 4 copas   [17_Decorativo f251]
+     -> La clave tiene un espacio en vez de guion. Propongo registrarla como BTL-B-CP.
+  X45P1.6S/P-CP = Módulo Vinera Ancho 45cm Altura H11 y Profundidad 16cm con pines cortos para colgar, y con capacidad para 8 copas   [17_Decorativo f264]
+     -> Profundidad escrita como P1.6 (16cm). En el resto del Excel se usa P16. Confirmar formato.
+  X60P1.6S/P-CP = Módulo Vinera Ancho 60cm Altura H11 y Profundidad 16cm con pines cortos para colgar, y con capacidad para 10 copas   [17_Decorativo f266]
+     -> Profundidad escrita como P1.6 (16cm). En el resto del Excel se usa P16. Confirmar formato.
+  X60P3S/P-CP = Módulo Vinera Ancho 60cm Altura H11 y Profundidad 32cm con pines cortos para colgar, y con capacidad para 36 copas   [17_Decorativo f267]
+     -> Dice capacidad 36 copas; por proporcion (45cm=16) deberia ser 20. Confirmar.
+  PLE = Plegable 2 Hojas   [7_Bastidores f6]
+     -> Bastidores: "Plegable 2 Hojas". Si se agrega, en AB-PLE (abatible plegable) se leera "AB + Plegable 2 Hojas". Confirmar que es correcto.
+
+4.3 NO AGREGAR (6)
+
+  1PCO-1LR   [17_Decorativo f158, 17_Decorativo f163]
+     Excel: Conjunto de 2 módulos con 1 puerta corrediza. 1 Módulo vacío sin repisas para electrodoméstico + 1 módulo con repisa fija | Conjunto de 2 módulos con 1 puerta corrediza. 1 Módulo con repisa fija + 1 módulo ciego con frente fijo
+     -> El Excel la repite con 2 significados distintos (filas 158 y 163 de 17_Decorativo). Corregir primero el Excel.
+  2PCO-1LR   [17_Decorativo f160, 17_Decorativo f165]
+     Excel: Conjunto de 3 módulos con 1 puerta corrediza. 1 Módulo Vacío sin repisas para electrodoméstico + 2 Módulos con repisas | Conjunto de 3 módulos con 2 puertas corredizas. 1 Módulo vacío sin repisas para electrodoméstico + 2 Módulos con repisas fija
+     -> El Excel la repite con 2 significados distintos (filas 160 y 165 de 17_Decorativo). Corregir primero el Excel.
+  S/P-CP-T   [17_Decorativo f273]
+     Excel: Módulo Vinera tubo redondo a lo ancho para colgar, y con capacidad para
+     -> Descripcion incompleta en el Excel ("con capacidad para" sin numero).
+  RV   [17_Decorativo f285]
+     Excel: Módulo con puerta de madera y vidrio. Con repisas de vidrio
+     -> En Decorativo significa "Modulo con puerta de madera y vidrio", pero RV tambien es "Repisa de vidrio" en componentes (-RV-EC, -RV-BN, RV-ECT). Agregarla cambiaria esas lecturas.
+  PTCOP   [17_Decorativo f312, 17_Decorativo f330]
+     Excel: Puerta Sistema Coplanar Salice | Accesorio Porta Copas
+     -> El Excel le da 2 significados: "Puerta Sistema Coplanar Salice" (fila 312) y "Accesorio Porta Copas" (fila 330). Definir cual es.
+  BA   [10_Cubik Living f16]
+     Excel: Módulo sin tapa superior, para colocar módulo superior
+     -> En Cubik significa "Modulo sin tapa superior", pero en ACV-BA, AQUA-BA y B45BA significa Basurero. Si se agrega, esos codigos se leerian como "Modulo sin tapa superior" (incorrecto).
+
+4.4 PLANTILLAS, NO SON CODIGOS REALES (6) - no se agregan
+
+  T(ANCHO)-TR = Tablero Lacado
+  A-DR-220H115-MC"L" = Desayunador rústico de madera sólida color claro tipo "L"
+  A-DR-220H115-MO"L" = Desayunador rústico de madera sólida color oscuro tipo "L"
+  AC-BD(MEDIDA)R = Base desayunador rectangular color acero inoxidable
+  AC-BD(MEDIDA)RNE = Base desayunador rectangular color negro
+  AC-PATA-X-H(ALTURA) = Pata desayunador X
+
+5. CLAVES QUE YA EXISTEN PERO EL EXCEL DICE OTRA COSA
+------------------------------------------------------------------------------
+5.1 CORREGIR EL TEXTO EN LA BASE (38)  -  hoy -> propuesto
+
+  LB68HZ-U-S
+     hoy:       Lateral Bajo Izquierdo P68 Henzo Tipo "U" Simple
+     propuesto: Lateral Bajo P68 Henzo Tipo "U" Simple
+  LB82HZ-U-S
+     hoy:       Lateral Bajo Izquierdo P82 Henzo Tipo "U" Simple
+     propuesto: Lateral Bajo P82 Henzo Tipo "U" Simple
+  LB94HZ-U-S
+     hoy:       Lateral Bajo Izquierdo P94 Henzo Tipo "U" Simple
+     propuesto: Lateral Bajo P94 Henzo Tipo "U" Simple
+  LB104HZ-U-S
+     hoy:       Lateral Bajo Izquierdo P104 Henzo Tipo "U" Simple
+     propuesto: Lateral Bajo P104 Henzo Tipo "U" Simple
+  LB120HZ-U-S
+     hoy:       Lateral Bajo Izquierdo P120 Henzo Tipo "U" Simple
+     propuesto: Lateral Bajo P120 Henzo Tipo "U" Simple
+  LB68HZ-U-D
+     hoy:       Lateral Bajo Izquierdo P68 Henzo Tipo "U" Doble
+     propuesto: Lateral Bajo P68 Henzo Tipo "U" Doble
+  LB82HZ-U-D
+     hoy:       Lateral Bajo Izquierdo P82 Henzo Tipo "U" Doble
+     propuesto: Lateral Bajo P82 Henzo Tipo "U" Doble
+  LB94HZ-U-D
+     hoy:       Lateral Bajo Izquierdo P94 Henzo Tipo "U" Doble
+     propuesto: Lateral Bajo P94 Henzo Tipo "U" Doble
+  LB104HZ-U-D
+     hoy:       Lateral Bajo Izquierdo P104 Henzo Tipo "U" Doble
+     propuesto: Lateral Bajo P104 Henzo Tipo "U" Doble
+  LB120HZ-U-D
+     hoy:       Lateral Bajo Izquierdo P120 Henzo Tipo "U" Doble
+     propuesto: Lateral Bajo P120 Henzo Tipo "U" Doble
+  LB68H3HZ-U-S
+     hoy:       Lateral Bajo Izquierdo P68 H3 Henzo Tipo "U" Simple
+     propuesto: Lateral Bajo P68 H3 Henzo Tipo "U" Simple
+  LB82H3HZ-U-S
+     hoy:       Lateral Bajo Izquierdo P82 H3 Henzo Tipo "U" Simple
+     propuesto: Lateral Bajo P82 H3 Henzo Tipo "U" Simple
+  LB94H3HZ-U-S
+     hoy:       Lateral Bajo Izquierdo P94 H3 Henzo Tipo "U" Simple
+     propuesto: Lateral Bajo P94 H3 Henzo Tipo "U" Simple
+  LB104H3HZ-U-S
+     hoy:       Lateral Bajo Izquierdo P104 H3 Henzo Tipo "U" Simple
+     propuesto: Lateral Bajo P104 H3 Henzo Tipo "U" Simple
+  LB120H3HZ-U-S
+     hoy:       Lateral Bajo Izquierdo P120 H3 Henzo Tipo "U" Simple
+     propuesto: Lateral Bajo P120 H3 Henzo Tipo "U" Simple
+  PGVI
+     hoy:       DESTAJE PARA PERFIL GOLA VERTICA IZQUIERDO
+     propuesto: Destaje para perfil gola vertical en lado izquierdo
+  PGVD
+     hoy:       Perfil Gola Vertical Doble / DESTAJE PARA PERFIL GOLA VERTICA DERECHO
+     propuesto: Destaje para perfil gola vertical en lado derecho
+  1/2PGVI
+     hoy:       Perfil Gola Vertical Izquierdo / PERFIL GOLA VERTICA IZQUIERDO
+     propuesto: Perfil gola vertical en lado izquierdo
+  1/2PGVD
+     hoy:       Perfil Gola Vertical Derecho / PERFIL GOLA VERTICA DERECHO
+     propuesto: Perfil gola vertical en lado derecho
+  SOP-BX12
+     hoy:       Soporte con pines para botella x 12
+     propuesto: Soporte con pines para 12 botellas de vino
+  TXC6
+     hoy:       TEXTIL CLARO
+     propuesto: Textil Claro 60cm
+  TXO6
+     hoy:       TEXTIL OSUCURO
+     propuesto: Textil Oscuro 60cm
+  RMV
+     hoy:       Repisa de Madera con Vidrio e Iluminacion LED / REPISA DE MADERA CON VIDRIO INCLUYE LUZ LED
+     propuesto: Repisa de madera con vidrio bronce y luz LED indirecta
+  ALAB-COM
+     hoy:       Aluminio Abatible Compas
+     propuesto: Frente de Aluminio Abatible Compas
+  ZF
+     hoy:       Perfil Aluminio Natural
+     propuesto: Perfil con Acabado Aluminio Natural
+  T1
+     hoy:       Tipo 1
+     propuesto: Tipo 1 (2 repisas)
+  DEX55
+     hoy:       DISTANCIADOR 55
+     propuesto: Distanciador 55mm
+  DEX110
+     hoy:       DISTANCIADOR 110
+     propuesto: Distanciador 110mm
+  R1
+     hoy:       REPISA METALICA LATITUD CERO
+     propuesto: Repisa metalica N1 (Latitud Cero)
+  R2
+     hoy:       REPISA METALICA LATITUD CERO
+     propuesto: Repisa metalica N2 (Latitud Cero)
+  R3
+     hoy:       REPISA METALICA LATITUD CERO
+     propuesto: Repisa metalica N3 (Latitud Cero)
+  R4
+     hoy:       REPISA METALICA LATITUD CERO
+     propuesto: Repisa metalica N4 (Latitud Cero)
+  R5
+     hoy:       REPISA METALICA LATITUD CERO
+     propuesto: Repisa metalica N5 (Latitud Cero)
+  R6
+     hoy:       REPISA METALICA LATITUD CERO
+     propuesto: Repisa metalica N6 (Latitud Cero)
+  LI-I
+     hoy:       Lado Izquierdo I / LATERAL IZQUIERDO "I"
+     propuesto: Lateral izquierdo tipo "I"
+  LI-J
+     hoy:       Lado Izquierdo Jota / LATERAL IZQUIERDO "J"
+     propuesto: Lateral izquierdo tipo "J"
+  LD-I
+     hoy:       Lado Derecho I / LATERAL DERECHO "I"
+     propuesto: Lateral derecho tipo "I"
+  LD-J
+     hoy:       Lado Derecho Jota / LATERAL DERECHO "J"
+     propuesto: Lateral derecho tipo "J"
+
+5.2 DEJAR COMO ESTA (5)
+
+  MQ: La base ya lo dice mas corto y claro.
+  GOTI-150P240: El Excel tiene la errata "Izquiedo"; la base ya esta corregida.
+  GOTI-120P192: El Excel tiene la errata "Izquiedo"; la base ya esta corregida.
+  GOTI-105P167: El Excel tiene la errata "Izquiedo"; la base ya esta corregida.
+  GOTI-95P150: El Excel tiene la errata "Izquiedo"; la base ya esta corregida.
+
+5.3 SIGNIFICADO SEGUN CONTEXTO - NO CAMBIAR LA BASE (16)
+   Estas letras significan cosas distintas segun la hoja/coleccion. Si se suman
+   todos los significados la descripcion queda confusa (ej. H = "Altura / Cuchillero").
+   Se resuelve en el codigo del lector (seccion 8), no en la base.
+
+  F
+     base:  Fregadero / Escobero Fraccionado
+     Excel: Frente Fraccionado   [3_Nomenclatura_modulos_bajos, 6_Nomenclatura_Módulos_Auxiliar, 16_Henzo, 17_Duo]
+  P
+     base:  Profundidad
+     Excel: Planchador | PORTAPLATOS   [6_Nomenclatura_Módulos_Auxiliar, 4_Nomenclatura_componentes]
+  PFI
+     base:  Perforacion Izquierda / Perforación Izquierda para Estructura / PERFORACION IZQUIERDA PARA EST
+     Excel: Perforación Izquierda Cable   [12_Modulación_Loft, 17_Decorativo, 4_Nomenclatura_componentes]
+  PFD
+     base:  Perforacion Derecha / Perforación Derecha para Estructura / PERFORACION DERECHA PARA EST
+     Excel: Perforación Derecha Cable   [12_Modulación_Loft, 17_Decorativo, 4_Nomenclatura_componentes]
+  CU
+     base:  Cobre Texturizado / Acabado Laca Cobre Texturizada / Lateral Curcu
+     Excel: Laca Cobre TX | Laca Cobre Texturizado   [12_Modulación_Loft, 13_Colección_Curcu, 17_Decorativo, 7_Estructuras_mesones, 8_Accesorios_Herrajes_Unic]
+  GF
+     base:  Grafito Texturizado / Acabado Laca Grafito Texturizada
+     Excel: Perfil Grafito | Perfil con Acabado Grafito | Laca Grafito TX | Laca Grafito Texturizado   [12_Modulación_Loft, 17_Decorativo, 7_Estructuras_mesones, 8_Accesorios_Herrajes_Unic]
+  NE
+     base:  Negro Texturizado / Acabado Laca Negro Texturizada
+     Excel: Perfil Negro | Vidrio Negro | Perfil con Acabado Negro | Laca Negro TX | Laca Negro Texturizado   [12_Modulación_Loft, 17_Decorativo, 7_Estructuras_mesones, 8_Accesorios_Herrajes_Unic]
+  DO
+     base:  Dorado Texturizado / Acabado Laca Dorado Texturizada
+     Excel: Laca Dorado TX | Laca Dorado Texturizado   [12_Modulación_Loft, 17_Decorativo, 7_Estructuras_mesones, 8_Accesorios_Herrajes_Unic]
+  CG
+     base:  Cacao Gold Mate / Acabado Laca Cacao Gold MT
+     Excel: Perfil Cacao Gold MT | Laca Cacao Gold Mate   [12_Modulación_Loft, 17_Decorativo, 7_Estructuras_mesones, 8_Accesorios_Herrajes_Unic]
+  LU
+     base:  Luna Semi Brillante / Acabado Laca Luna SB
+     Excel: Perfil Luna SB | Laca Luna MT   [12_Modulación_Loft, 17_Decorativo, 7_Estructuras_mesones, 8_Accesorios_Herrajes_Unic]
+  TR
+     base:  Tipo Recto
+     Excel: Vidrio Transparente   [17_Decorativo, 5_Complementos]
+  TA
+     base:  REPISA TAPA (DINAMIK)
+     Excel: Vidrio Acanalado Claro   [17_Decorativo, 4_Nomenclatura_componentes]
+  PM
+     base:  Premeson Tablero Crudo
+     Excel: Base Pre Meson (Aglomerado crudo para colocar piedra de revestimiento)   [17_Decorativo, 6_Mesones]
+  H
+     base:  Altura
+     Excel: CUCHILLERO   [4_Nomenclatura_componentes]
+  BS
+     base:  Modulo Bajo Suspendido
+     Excel: Bastidor   [7_Bastidores]
+  TE
+     base:  Textil
+     Excel: Módulo con Tapa superior sin base (Escritorio)   [10_Cubik Living]
+
+6. ERRORES DEL EXCEL QUE YA ESTAN COPIADOS EN LA BASE (98 claves) - propongo corregir
+------------------------------------------------------------------------------
+  OTP
+     hoy:       Oreta Tipo Recto
+     propuesto: Oreja Tipo Puerta
+     motivo:    Errata del Excel ("Oreta Tipo Recto"); en el resto del sistema OTP = Oreja Tipo Puerta.
+  AB-GIR
+     hoy:       Abatible Giratorio / Abatible Simple
+     propuesto: Abatible Giratorio
+     motivo:    El Excel (4_altos f14) dice "Abatible Simple" (copiado de AB-SIM).
+  A90H132V
+     hoy:       Modulo Alto vitrina de vidrio ancho 60cm
+     propuesto: Modulo Alto vitrina de vidrio ancho 90cm
+     motivo:    El Excel dice ancho 60cm para el modulo de 90.
+  FU
+     hoy:       Frente Util / (FF)Parte superior Duo sin espacio interno utilizable.
+     propuesto: Frente Util
+     motivo:    La nota de FU esta copiada de FF ("sin espacio interno utilizable").
+  DM
+     hoy:       Despensa Multiple / Despensa Múltible
+     propuesto: Despensa Multiple
+     motivo:    Errata "Multible".
+  HC
+     hoy:       Horno Combinado (Microondas + Horno) / Horno combinado: mircoondas + horno
+     propuesto: Horno Combinado (Microondas + Horno)
+     motivo:    Errata "mircoondas".
+  PATAE6-AU
+     hoy:       Pata Decorativa Estilo Aurora / Pata decoratuva estilo Aurora
+     propuesto: Pata Decorativa Estilo Aurora
+     motivo:    Errata "decoratuva".
+  TXO6
+     hoy:       TEXTIL OSUCURO
+     propuesto: Textil Oscuro 60cm
+     motivo:    Errata "OSUCURO".
+  1/2PGVI
+     hoy:       Perfil Gola Vertical Izquierdo / PERFIL GOLA VERTICA IZQUIERDO
+     propuesto: Perfil gola vertical en lado izquierdo
+     motivo:    Errata "VERTICA".
+  1/2PGVD
+     hoy:       Perfil Gola Vertical Derecho / PERFIL GOLA VERTICA DERECHO
+     propuesto: Perfil gola vertical en lado derecho
+     motivo:    Errata "VERTICA".
+  PGVI
+     hoy:       DESTAJE PARA PERFIL GOLA VERTICA IZQUIERDO
+     propuesto: Destaje para perfil gola vertical en lado izquierdo
+     motivo:    Errata "VERTICA".
+  A-DR180P4-MO
+     hoy:       Desayunador rustico de madera clara color oscuro Tipo Recto
+     propuesto: Desayunador rustico de madera color oscuro Tipo Recto
+     motivo:    Dice "madera clara color oscuro" (contradictorio).
+  A-DR220P4-MO
+     hoy:       Desayunador rustico de madera clara color oscuro Tipo Recto
+     propuesto: Desayunador rustico de madera color oscuro Tipo Recto
+     motivo:    Dice "madera clara color oscuro" (contradictorio).
+  BARPG-SB-T1
+     hoy:       Bar Tipo 1 (con 2 repisas) con puerta Giratora Sin base. Para colocar sobre meson
+     propuesto: Bar Tipo 1 (con 2 repisas) con puerta Giratoria Sin base. Para colocar sobre meson
+     motivo:    Errata "Giratora".
+  BARPG-SB-T2
+     hoy:       Bar Tipo 2 (con 2 repisas + 1 repisa pequena) con puerta Giratora. Sin Base. Para colocar sobre meson
+     propuesto: Bar Tipo 2 (con 2 repisas + 1 repisa pequena) con puerta Giratoria. Sin Base. Para colocar sobre meson
+     motivo:    Errata "Giratora".
+  BARPG-SB-V
+     hoy:       Bar con interior vacio. Con puerta Giratora. Sin Base. Para colocar sobre meson
+     propuesto: Bar con interior vacio. Con puerta Giratoria. Sin Base. Para colocar sobre meson
+     motivo:    Errata "Giratora".
+  BARPG-T1
+     hoy:       Bar Tipo 1 (con 2 repisas) con puerta Giratora. Para colocar sobre meson
+     propuesto: Bar Tipo 1 (con 2 repisas) con puerta Giratoria. Para colocar sobre meson
+     motivo:    Errata "Giratora".
+  BARPG-T2
+     hoy:       Bar Tipo 2 (con 2 repisas + 1 repisa pequena) con puerta Giratora. Para colocar sobre meson
+     propuesto: Bar Tipo 2 (con 2 repisas + 1 repisa pequena) con puerta Giratoria. Para colocar sobre meson
+     motivo:    Errata "Giratora".
+  BARPG-V
+     hoy:       Bar con interior vacio. Con puerta Giratora. Para colocar sobre meson
+     propuesto: Bar con interior vacio. Con puerta Giratoria. Para colocar sobre meson
+     motivo:    Errata "Giratora".
+  FV92DUO-U-H14
+     hoy:       Estructura Superior Ancho 920 H14 Tipo "U" Para Desayunadores Duo
+     propuesto: Estructura Superior Ancho 92 H14 Tipo "U" Para Desayunadores Duo
+     motivo:    Dice 920 (mm) mientras las demas dicen 102, 112 (cm).
+  FV92DUO-U-H14-H2
+     hoy:       Estructura Inferior Ancho 920 H2 Tipo "U" Con perfil gola superior
+     propuesto: Estructura Inferior Ancho 92 H2 Tipo "U" Con perfil gola superior
+     motivo:    Dice 920 (mm) mientras las demas dicen 102, 112 (cm).
+  FV92DUO-U-H14-H3
+     hoy:       Estructura Inferior Ancho 920 H3 Tipo "U" Con perfil gola superior
+     propuesto: Estructura Inferior Ancho 92 H3 Tipo "U" Con perfil gola superior
+     motivo:    Dice 920 (mm) mientras las demas dicen 102, 112 (cm).
+  FB60P2DUO-I
+     hoy:       Forro Bajo 60 H4 Profundidad 220cm Henzo Tipo "I"
+     propuesto: Forro Bajo 60 H4 Profundidad 22cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB60P2H3DUO-I
+     hoy:       Forro Bajo 60 H3 Profundidad 220cm Henzo Tipo "I"
+     propuesto: Forro Bajo 60 H3 Profundidad 22cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB60P3DUO-I
+     hoy:       Forro Bajo 60 H4 Profundidad 340cm Henzo Tipo "I"
+     propuesto: Forro Bajo 60 H4 Profundidad 34cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB60P3H3DUO-I
+     hoy:       Forro Bajo 60 H3 Profundidad 340cm Henzo Tipo "I"
+     propuesto: Forro Bajo 60 H3 Profundidad 34cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB60P4DUO-I
+     hoy:       Forro Bajo 60 H4 Profundidad 440cm Henzo Tipo "I"
+     propuesto: Forro Bajo 60 H4 Profundidad 44cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB60P4H3DUO-I
+     hoy:       Forro Bajo 60 H3 Profundidad 440cm Henzo Tipo "I"
+     propuesto: Forro Bajo 60 H3 Profundidad 44cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB90P2DUO-I
+     hoy:       Forro Bajo 90 H4 Profundidad 220cm Henzo Tipo "I"
+     propuesto: Forro Bajo 90 H4 Profundidad 22cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB90P2H3DUO-I
+     hoy:       Forro Bajo 90 H3 Profundidad 220cm Henzo Tipo "I"
+     propuesto: Forro Bajo 90 H3 Profundidad 22cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB90P3DUO-I
+     hoy:       Forro Bajo 90 H4 Profundidad 340cm Henzo Tipo "I"
+     propuesto: Forro Bajo 90 H4 Profundidad 34cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB90P3H3DUO-I
+     hoy:       Forro Bajo 90 H3 Profundidad 340cm Henzo Tipo "I"
+     propuesto: Forro Bajo 90 H3 Profundidad 34cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB90P4DUO-I
+     hoy:       Forro Bajo 90 H4 Profundidad 440cm Henzo Tipo "I"
+     propuesto: Forro Bajo 90 H4 Profundidad 44cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB90P4H3DUO-I
+     hoy:       Forro Bajo 90 H3 Profundidad 440cm Henzo Tipo "I"
+     propuesto: Forro Bajo 90 H3 Profundidad 44cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB100P2DUO-I
+     hoy:       Forro Bajo 100 H4 Profundidad 220cm Henzo Tipo "I"
+     propuesto: Forro Bajo 100 H4 Profundidad 22cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB100P2H3DUO-I
+     hoy:       Forro Bajo 100 H3 Profundidad 220cm Henzo Tipo "I"
+     propuesto: Forro Bajo 100 H3 Profundidad 22cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB100P3DUO-I
+     hoy:       Forro Bajo 100 H4 Profundidad 340cm Henzo Tipo "I"
+     propuesto: Forro Bajo 100 H4 Profundidad 34cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB100P3H3DUO-I
+     hoy:       Forro Bajo 100 H3 Profundidad 340cm Henzo Tipo "I"
+     propuesto: Forro Bajo 100 H3 Profundidad 34cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB100P4DUO-I
+     hoy:       Forro Bajo 100 H4 Profundidad 440cm Henzo Tipo "I"
+     propuesto: Forro Bajo 100 H4 Profundidad 44cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB100P4H3DUO-I
+     hoy:       Forro Bajo 100 H3 Profundidad 440cm Henzo Tipo "I"
+     propuesto: Forro Bajo 100 H3 Profundidad 44cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB110P2DUO-I
+     hoy:       Forro Bajo 110 H4 Profundidad 220cm Henzo Tipo "I"
+     propuesto: Forro Bajo 110 H4 Profundidad 22cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB110P2H3DUO-I
+     hoy:       Forro Bajo 110 H3 Profundidad 220cm Henzo Tipo "I"
+     propuesto: Forro Bajo 110 H3 Profundidad 22cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB110P3DUO-I
+     hoy:       Forro Bajo 110 H4 Profundidad 340cm Henzo Tipo "I"
+     propuesto: Forro Bajo 110 H4 Profundidad 34cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB110P3H3DUO-I
+     hoy:       Forro Bajo 110 H3 Profundidad 340cm Henzo Tipo "I"
+     propuesto: Forro Bajo 110 H3 Profundidad 34cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB110P4DUO-I
+     hoy:       Forro Bajo 110 H4 Profundidad 440cm Henzo Tipo "I"
+     propuesto: Forro Bajo 110 H4 Profundidad 44cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB110P4H3DUO-I
+     hoy:       Forro Bajo 110 H3 Profundidad 440cm Henzo Tipo "I"
+     propuesto: Forro Bajo 110 H3 Profundidad 44cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB120P2DUO-I
+     hoy:       Forro Bajo 120 H4 Profundidad 220cm Henzo Tipo "I"
+     propuesto: Forro Bajo 120 H4 Profundidad 22cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB120P2H3DUO-I
+     hoy:       Forro Bajo 120 H3 Profundidad 220cm Henzo Tipo "I"
+     propuesto: Forro Bajo 120 H3 Profundidad 22cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB120P3DUO-I
+     hoy:       Forro Bajo 120 H4 Profundidad 340cm Henzo Tipo "I"
+     propuesto: Forro Bajo 120 H4 Profundidad 34cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB120P3H3DUO-I
+     hoy:       Forro Bajo 120 H3 Profundidad 340cm Henzo Tipo "I"
+     propuesto: Forro Bajo 120 H3 Profundidad 34cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB120P4DUO-I
+     hoy:       Forro Bajo 120 H4 Profundidad 440cm Henzo Tipo "I"
+     propuesto: Forro Bajo 120 H4 Profundidad 44cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB120P4H3DUO-I
+     hoy:       Forro Bajo 120 H3 Profundidad 440cm Henzo Tipo "I"
+     propuesto: Forro Bajo 120 H3 Profundidad 44cm Duo Tipo "I"
+     motivo:    Profundidad 220/340/440 cm es imposible (son 22/34/44 cm) y dice "Henzo" en un forro Duo.
+  FB60DUO-I
+     hoy:       Forro Bajo 60 H4 Profundidad 8cm Henzo Tipo "I"
+     propuesto: Forro Bajo 60 H4 Profundidad 8cm Duo Tipo "I"
+     motivo:    Dice "Henzo" en un forro de la coleccion Duo.
+  FB60H3DUO-I
+     hoy:       Forro Bajo 60 H3 Profundidad 8cm Henzo Tipo "I"
+     propuesto: Forro Bajo 60 H3 Profundidad 8cm Duo Tipo "I"
+     motivo:    Dice "Henzo" en un forro de la coleccion Duo.
+  FB90DUO-I
+     hoy:       Forro Bajo 90 H4 Profundidad 8cm Henzo Tipo "I"
+     propuesto: Forro Bajo 90 H4 Profundidad 8cm Duo Tipo "I"
+     motivo:    Dice "Henzo" en un forro de la coleccion Duo.
+  FB90H3DUO-I
+     hoy:       Forro Bajo 90 H3 Profundidad 8cm Henzo Tipo "I"
+     propuesto: Forro Bajo 90 H3 Profundidad 8cm Duo Tipo "I"
+     motivo:    Dice "Henzo" en un forro de la coleccion Duo.
+  FB100DUO-I
+     hoy:       Forro Bajo 100 H4 Profundidad 8cm Henzo Tipo "I"
+     propuesto: Forro Bajo 100 H4 Profundidad 8cm Duo Tipo "I"
+     motivo:    Dice "Henzo" en un forro de la coleccion Duo.
+  FB100H3DUO-I
+     hoy:       Forro Bajo 100 H3 Profundidad 8cm Henzo Tipo "I"
+     propuesto: Forro Bajo 100 H3 Profundidad 8cm Duo Tipo "I"
+     motivo:    Dice "Henzo" en un forro de la coleccion Duo.
+  FB110DUO-I
+     hoy:       Forro Bajo 110 H4 Profundidad 8cm Henzo Tipo "I"
+     propuesto: Forro Bajo 110 H4 Profundidad 8cm Duo Tipo "I"
+     motivo:    Dice "Henzo" en un forro de la coleccion Duo.
+  FB110H3DUO-I
+     hoy:       Forro Bajo 110 H3 Profundidad 8cm Henzo Tipo "I"
+     propuesto: Forro Bajo 110 H3 Profundidad 8cm Duo Tipo "I"
+     motivo:    Dice "Henzo" en un forro de la coleccion Duo.
+  FB120DUO-I
+     hoy:       Forro Bajo 120 H4 Profundidad 8cm Henzo Tipo "I"
+     propuesto: Forro Bajo 120 H4 Profundidad 8cm Duo Tipo "I"
+     motivo:    Dice "Henzo" en un forro de la coleccion Duo.
+  FB120H3DUO-I
+     hoy:       Forro Bajo 120 H3 Profundidad 8cm Henzo Tipo "I"
+     propuesto: Forro Bajo 120 H3 Profundidad 8cm Duo Tipo "I"
+     motivo:    Dice "Henzo" en un forro de la coleccion Duo.
+  LB68H3HZ-LIN-U-S
+     hoy:       Lateral Bajo Izquierdo P68 H3 Henzo Line Tipo "U" Simple / Ancho 8cm
+     propuesto: Lateral Bajo P68 H3 Henzo Line Tipo "U" Simple / Ancho 8cm
+     motivo:    Un lateral tipo "U" no es izquierdo ni derecho (la version sin LIN no lo dice).
+  LB68HZ-LIN-U-D
+     hoy:       Lateral Bajo Izquierdo P68 Henzo Line Tipo "U" Doble / Ancho 8cm
+     propuesto: Lateral Bajo P68 Henzo Line Tipo "U" Doble / Ancho 8cm
+     motivo:    Un lateral tipo "U" no es izquierdo ni derecho (la version sin LIN no lo dice).
+  LB68HZ-LIN-U-S
+     hoy:       Lateral Bajo Izquierdo P68 Henzo Line Tipo "U" Simple / Ancho 8cm
+     propuesto: Lateral Bajo P68 Henzo Line Tipo "U" Simple / Ancho 8cm
+     motivo:    Un lateral tipo "U" no es izquierdo ni derecho (la version sin LIN no lo dice).
+  LB82H3HZ-LIN-U-S
+     hoy:       Lateral Bajo Izquierdo P82 H3 Henzo Line Tipo "U" Simple / Ancho 8cm
+     propuesto: Lateral Bajo P82 H3 Henzo Line Tipo "U" Simple / Ancho 8cm
+     motivo:    Un lateral tipo "U" no es izquierdo ni derecho (la version sin LIN no lo dice).
+  LB82HZ-LIN-U-D
+     hoy:       Lateral Bajo Izquierdo P82 Henzo Line Tipo "U" Doble / Ancho 8cm
+     propuesto: Lateral Bajo P82 Henzo Line Tipo "U" Doble / Ancho 8cm
+     motivo:    Un lateral tipo "U" no es izquierdo ni derecho (la version sin LIN no lo dice).
+  LB82HZ-LIN-U-S
+     hoy:       Lateral Bajo Izquierdo P82 Henzo Line Tipo "U" Simple / Ancho 8cm
+     propuesto: Lateral Bajo P82 Henzo Line Tipo "U" Simple / Ancho 8cm
+     motivo:    Un lateral tipo "U" no es izquierdo ni derecho (la version sin LIN no lo dice).
+  LB94H3HZ-LIN-U-S
+     hoy:       Lateral Bajo Izquierdo P94 H3 Henzo Line Tipo "U" Simple / Ancho 8cm
+     propuesto: Lateral Bajo P94 H3 Henzo Line Tipo "U" Simple / Ancho 8cm
+     motivo:    Un lateral tipo "U" no es izquierdo ni derecho (la version sin LIN no lo dice).
+  LB94HZ-LIN-U-D
+     hoy:       Lateral Bajo Izquierdo P94 Henzo Line Tipo "U" Doble / Ancho 8cm
+     propuesto: Lateral Bajo P94 Henzo Line Tipo "U" Doble / Ancho 8cm
+     motivo:    Un lateral tipo "U" no es izquierdo ni derecho (la version sin LIN no lo dice).
+  LB94HZ-LIN-U-S
+     hoy:       Lateral Bajo Izquierdo P94 Henzo Line Tipo "U" Simple / Ancho 8cm
+     propuesto: Lateral Bajo P94 Henzo Line Tipo "U" Simple / Ancho 8cm
+     motivo:    Un lateral tipo "U" no es izquierdo ni derecho (la version sin LIN no lo dice).
+  LB104H3HZ-LIN-U-S
+     hoy:       Lateral Bajo Izquierdo P104 H3 Henzo Line Tipo "U" Simple / Ancho 8cm
+     propuesto: Lateral Bajo P104 H3 Henzo Line Tipo "U" Simple / Ancho 8cm
+     motivo:    Un lateral tipo "U" no es izquierdo ni derecho (la version sin LIN no lo dice).
+  LB104HZ-LIN-U-D
+     hoy:       Lateral Bajo Izquierdo P104 Henzo Line Tipo "U" Doble / Ancho 8cm
+     propuesto: Lateral Bajo P104 Henzo Line Tipo "U" Doble / Ancho 8cm
+     motivo:    Un lateral tipo "U" no es izquierdo ni derecho (la version sin LIN no lo dice).
+  LB104HZ-LIN-U-S
+     hoy:       Lateral Bajo Izquierdo P104 Henzo Line Tipo "U" Simple / Ancho 8cm
+     propuesto: Lateral Bajo P104 Henzo Line Tipo "U" Simple / Ancho 8cm
+     motivo:    Un lateral tipo "U" no es izquierdo ni derecho (la version sin LIN no lo dice).
+  LB120H3HZ-LIN-U-S
+     hoy:       Lateral Bajo Izquierdo P120 H3 Henzo Line Tipo "U" Simple / Ancho 8cm
+     propuesto: Lateral Bajo P120 H3 Henzo Line Tipo "U" Simple / Ancho 8cm
+     motivo:    Un lateral tipo "U" no es izquierdo ni derecho (la version sin LIN no lo dice).
+  LB120HZ-LIN-U-D
+     hoy:       Lateral Bajo Izquierdo P120 Henzo Line Tipo "U" Doble / Ancho 8cm
+     propuesto: Lateral Bajo P120 Henzo Line Tipo "U" Doble / Ancho 8cm
+     motivo:    Un lateral tipo "U" no es izquierdo ni derecho (la version sin LIN no lo dice).
+  LB120HZ-LIN-U-S
+     hoy:       Lateral Bajo Izquierdo P120 Henzo Line Tipo "U" Simple / Ancho 8cm
+     propuesto: Lateral Bajo P120 Henzo Line Tipo "U" Simple / Ancho 8cm
+     motivo:    Un lateral tipo "U" no es izquierdo ni derecho (la version sin LIN no lo dice).
+  LBD34HZ-LIN-L-S
+     hoy:       Lateral Bajo Derecho P34Henzo Line Tipo "L" Simple / Ancho 8cm
+     propuesto: Lateral Bajo Derecho P34 Henzo Line Tipo "L" Simple / Ancho 8cm
+     motivo:    Falta un espacio ("P34Henzo").
+  CU-DES12090EP
+     hoy:       Desayunador Curcu Recto Espina de Pez 120cm de largo y 90cm de radio / Desayunador Curcu Chaflanado Espina de Pez 120cm de largo y 90cm de radio
+     propuesto: Desayunador Curcu Recto Espina de Pez 120cm de largo y 90cm de radio
+     motivo:    El Excel usa el MISMO codigo para Recto y Chaflanado Espina de Pez, y la base junto ambos. Hace falta un codigo distinto para Chaflanado (ej. ...EPCH).
+  CU-DES14090EP
+     hoy:       Desayunador Curcu Recto Espina de Pez 140cm de largo y 90cm de radio / Desayunador Curcu Chaflanado Espina de Pez 140cm de largo y 90cm de radio
+     propuesto: Desayunador Curcu Recto Espina de Pez 140cm de largo y 90cm de radio
+     motivo:    El Excel usa el MISMO codigo para Recto y Chaflanado Espina de Pez, y la base junto ambos. Hace falta un codigo distinto para Chaflanado (ej. ...EPCH).
+  CU-DES15090EP
+     hoy:       Desayunador Curcu Recto Espina de Pez 150cm de largo y 90cm de radio / Desayunador Curcu Chaflanado Espina de Pez 150cm de largo y 90cm de radio
+     propuesto: Desayunador Curcu Recto Espina de Pez 150cm de largo y 90cm de radio
+     motivo:    El Excel usa el MISMO codigo para Recto y Chaflanado Espina de Pez, y la base junto ambos. Hace falta un codigo distinto para Chaflanado (ej. ...EPCH).
+  CU-DES18090EP
+     hoy:       Desayunador Curcu Recto Espina de Pez 180cm de largo y 90cm de radio / Desayunador Curcu Chaflanado Espina de Pez 180cm de largo y 90cm de radio
+     propuesto: Desayunador Curcu Recto Espina de Pez 180cm de largo y 90cm de radio
+     motivo:    El Excel usa el MISMO codigo para Recto y Chaflanado Espina de Pez, y la base junto ambos. Hace falta un codigo distinto para Chaflanado (ej. ...EPCH).
+  CU-DES21090EP
+     hoy:       Desayunador Curcu Recto Espina de Pez 210cm de largo y 90cm de radio / Desayunador Curcu Chaflanado Espina de Pez 210cm de largo y 90cm de radio
+     propuesto: Desayunador Curcu Recto Espina de Pez 210cm de largo y 90cm de radio
+     motivo:    El Excel usa el MISMO codigo para Recto y Chaflanado Espina de Pez, y la base junto ambos. Hace falta un codigo distinto para Chaflanado (ej. ...EPCH).
+  CU-DES90090EP
+     hoy:       Desayunador Curcu Recto Espina de Pez Redondo 90cm de radio / Desayunador Curcu Chaflanado Espina de Pez Redondo 90cm de radio
+     propuesto: Desayunador Curcu Recto Espina de Pez Redondo 90cm de radio
+     motivo:    El Excel usa el MISMO codigo para Recto y Chaflanado Espina de Pez, y la base junto ambos. Hace falta un codigo distinto para Chaflanado (ej. ...EPCH).
+  CU-DES100100EP
+     hoy:       Desayunador Curcu Recto Espina de Pez Redondo 100cm de radio / Desayunador Curcu Chaflanado Espina de Pez Redondo 100cm de radio
+     propuesto: Desayunador Curcu Recto Espina de Pez Redondo 100cm de radio
+     motivo:    El Excel usa el MISMO codigo para Recto y Chaflanado Espina de Pez, y la base junto ambos. Hace falta un codigo distinto para Chaflanado (ej. ...EPCH).
+  CU-DES110110EP
+     hoy:       Desayunador Curcu Recto Espina de Pez Redondo 110cm de radio / Desayunador Curcu Chaflanado Espina de Pez Redondo 110cm de radio
+     propuesto: Desayunador Curcu Recto Espina de Pez Redondo 110cm de radio
+     motivo:    El Excel usa el MISMO codigo para Recto y Chaflanado Espina de Pez, y la base junto ambos. Hace falta un codigo distinto para Chaflanado (ej. ...EPCH).
+  CU-DES120100EP
+     hoy:       Desayunador Curcu Recto Espina de Pez 120cm de largo y 100cm de radio / Desayunador Curcu Chaflanado Espina de Pez 120cm de largo y 100cm de radio
+     propuesto: Desayunador Curcu Recto Espina de Pez 120cm de largo y 100cm de radio
+     motivo:    El Excel usa el MISMO codigo para Recto y Chaflanado Espina de Pez, y la base junto ambos. Hace falta un codigo distinto para Chaflanado (ej. ...EPCH).
+  CU-DES120110EP
+     hoy:       Desayunador Curcu Recto Espina de Pez 120cm de largo y 110cm de radio / Desayunador Curcu Chaflanado Espina de Pez 120cm de largo y 110cm de radio
+     propuesto: Desayunador Curcu Recto Espina de Pez 120cm de largo y 110cm de radio
+     motivo:    El Excel usa el MISMO codigo para Recto y Chaflanado Espina de Pez, y la base junto ambos. Hace falta un codigo distinto para Chaflanado (ej. ...EPCH).
+  CU-DES140100EP
+     hoy:       Desayunador Curcu Recto Espina de Pez 140cm de largo y 100cm de radio / Desayunador Curcu Chaflanado Espina de Pez 140cm de largo y 100cm de radio
+     propuesto: Desayunador Curcu Recto Espina de Pez 140cm de largo y 100cm de radio
+     motivo:    El Excel usa el MISMO codigo para Recto y Chaflanado Espina de Pez, y la base junto ambos. Hace falta un codigo distinto para Chaflanado (ej. ...EPCH).
+  CU-DES140110EP
+     hoy:       Desayunador Curcu Recto Espina de Pez 140cm de largo y 110cm de radio / Desayunador Curcu Chaflanado Espina de Pez 140cm de largo y 110cm de radio
+     propuesto: Desayunador Curcu Recto Espina de Pez 140cm de largo y 110cm de radio
+     motivo:    El Excel usa el MISMO codigo para Recto y Chaflanado Espina de Pez, y la base junto ambos. Hace falta un codigo distinto para Chaflanado (ej. ...EPCH).
+  CU-DES150100EP
+     hoy:       Desayunador Curcu Recto Espina de Pez 150cm de largo y 100cm de radio / Desayunador Curcu Chaflanado Espina de Pez 150cm de largo y 100cm de radio
+     propuesto: Desayunador Curcu Recto Espina de Pez 150cm de largo y 100cm de radio
+     motivo:    El Excel usa el MISMO codigo para Recto y Chaflanado Espina de Pez, y la base junto ambos. Hace falta un codigo distinto para Chaflanado (ej. ...EPCH).
+  CU-DES150110EP
+     hoy:       Desayunador Curcu Recto Espina de Pez 150cm de largo y 110cm de radio / Desayunador Curcu Chaflanado Espina de Pez 150cm de largo y 110cm de radio
+     propuesto: Desayunador Curcu Recto Espina de Pez 150cm de largo y 110cm de radio
+     motivo:    El Excel usa el MISMO codigo para Recto y Chaflanado Espina de Pez, y la base junto ambos. Hace falta un codigo distinto para Chaflanado (ej. ...EPCH).
+  CU-DES180100EP
+     hoy:       Desayunador Curcu Recto Espina de Pez 180cm de largo y 100cm de radio / Desayunador Curcu Chaflanado Espina de Pez 180cm de largo y 100cm de radio
+     propuesto: Desayunador Curcu Recto Espina de Pez 180cm de largo y 100cm de radio
+     motivo:    El Excel usa el MISMO codigo para Recto y Chaflanado Espina de Pez, y la base junto ambos. Hace falta un codigo distinto para Chaflanado (ej. ...EPCH).
+  CU-DES180110EP
+     hoy:       Desayunador Curcu Recto Espina de Pez 180cm de largo y 110cm de radio / Desayunador Curcu Chaflanado Espina de Pez 180cm de largo y 110cm de radio
+     propuesto: Desayunador Curcu Recto Espina de Pez 180cm de largo y 110cm de radio
+     motivo:    El Excel usa el MISMO codigo para Recto y Chaflanado Espina de Pez, y la base junto ambos. Hace falta un codigo distinto para Chaflanado (ej. ...EPCH).
+  CU-DES210100EP
+     hoy:       Desayunador Curcu Recto Espina de Pez 210cm de largo y 100cm de radio / Desayunador Curcu Chaflanado Espina de Pez 210cm de largo y 100cm de radio
+     propuesto: Desayunador Curcu Recto Espina de Pez 210cm de largo y 100cm de radio
+     motivo:    El Excel usa el MISMO codigo para Recto y Chaflanado Espina de Pez, y la base junto ambos. Hace falta un codigo distinto para Chaflanado (ej. ...EPCH).
+  CU-DES210110EP
+     hoy:       Desayunador Curcu Recto Espina de Pez 210cm de largo y 110cm de radio / Desayunador Curcu Chaflanado Espina de Pez 210cm de largo y 110cm de radio
+     propuesto: Desayunador Curcu Recto Espina de Pez 210cm de largo y 110cm de radio
+     motivo:    El Excel usa el MISMO codigo para Recto y Chaflanado Espina de Pez, y la base junto ambos. Hace falta un codigo distinto para Chaflanado (ej. ...EPCH).
+  LBI34HZ-L-S
+     hoy:       Lateral (L) Bajo (B) 34. Henzo (HZ). Tipo "L" (L). Simple (S). / Lateral Bajo Izquierdo P34 Henzo Tipo "L" Simple
+     propuesto: Lateral Bajo Izquierdo P34 Henzo Tipo "L" Simple
+     motivo:    La base mezclo la fila de "criterio de lectura" (explicacion) con la descripcion real.
+  LBI34HZ-L-D
+     hoy:       Lateral (L) Bajo (B) 34. Henzo (HZ). Tipo "L" (L). Doble (D). / Lateral Bajo Izquierdo P34 Henzo Tipo "L" Doble
+     propuesto: Lateral Bajo Izquierdo P34 Henzo Tipo "L" Doble
+     motivo:    La base mezclo la fila de "criterio de lectura" (explicacion) con la descripcion real.
+
+6.1 EJEMPLOS DEL EXCEL GUARDADOS COMO SI FUERAN CODIGOS (11)
+   Son filas de "EJEMPLOS CODIGOS". No hacen dano (solo se usan si alguien consulta ese
+   codigo exacto). Propongo dejarlos, corrigiendo la errata "Gratito" -> "Grafito".
+  MET-B60H2P6E1-C/R-V-CU-PFC-LSP
+  MET-B104H3P3-E4S-S/R-GF-LSP
+  B60DH3P3-ON-MALLA
+  EST-D LOFTH73 120*70
+  EST-CAMP-LOFT-DU=100
+  EST-CAMP-E2S-S/R-CG-LSP-DU=500-CG
+  MET-AI90H2P44H100-E2S-NE-PFD-LSP
+  MET-BAS-LAGO107.5-H31.6-P6P4-NE
+  MET-BAS-LAGO137.5-H31.6-P6P4-GF
+  MET-BAS-LAGO60-H31.6-P6P4-NE
+  B45BA-SLIM-HZ
+
+7. EJEMPLOS DEL EXCEL vs COMO LOS LEE HOY EL VALIDADOR
+------------------------------------------------------------------------------
+  B60I
+     Excel: Módulo Bajo, 60 cm de ancho, apertura Izquierda, altura estándar (H4).
+     Hoy:   Modulo Bajo + Ancho 600mm + Apertura Izquierda + Altura Estandar H4 (760mm)
+  B60IH3
+     Excel: Módulo Bajo, 60 cm de ancho, apertura Izquierda, altura H3 (570 mm).
+     Hoy:   Modulo Bajo + Ancho 600mm + Apertura Izquierda + Altura H3 (570mm)
+  B45IG1-SM
+     Excel: Módulo Bajo, 45 cm de ancho, apertura Izquierda, 1 gaveta, sistema Metabox.
+     Hoy:   Modulo Bajo + Ancho 450mm + Apertura Izquierda + 1 Gaveta + Altura Estandar H4 (760mm) + SM
+  A90H3-ACK-ELEV
+     Excel: Módulo Alto, 90 cm de ancho, altura H3, accesorio Kesseböhmer elevable.
+     Hoy:   Modulo Alto + Ancho 900mm + Altura H3 (570mm) + Accesorio Kessebohmer + ELEV
+  X60IH9DE-SLIM
+     Excel: Módulo Auxiliar, 60 cm de ancho, apertura Izquierda, altura H9, despensa, sistema Slim.
+     Hoy:   Modulo Auxiliar + Ancho 600mm + Apertura Izquierda + Altura Auxiliar H9 (1740mm) + Apertura Derecha + Modulo Esquinero / Escobero / ESPECIERO + SLIM
+  B45BA-SLIM-HZ
+     Excel: Módulo bajo de 45cm de ancho para basurero, sistema Hafele Slim, colección Henzo
+     Hoy:   Módulo bajo de 45cm de ancho para basurero, sistema Hafele Slim, colección Henzo
+  MET-B60H2P6E1-C/R-V-CU-PFC-LSP
+     Excel: Estructura metálica loft. Módulo bajo de ancho 60cm . H2 (380mm) profundidad de 600mm. Con 1 compartimento. Con respaldo. Estructura Cobre Texturizado. Perforación Central para Estructura. Luz Spot
+     Hoy:   Estructura metálica loft. Módulo bajo de ancho 60cm . H2 (380mm) profundidad de 600mm. Con 1 compartimento. Con respaldo. Estructura Cobre Texturizado. Perforación Central para Estructura. Luz Spot
+  MET-B104H3P3-E4S-S/R-GF-LSP
+     Excel: Estructura metálica loft. Módulo bajo ancho 104 cm. H3 (570mm). P3 (340mm). Compartimentos. Sin Respaldo. Acabado Gratito Texturizado. Luz Spot
+     Hoy:   Estructura metálica loft. Módulo bajo ancho 104 cm. H3 (570mm). P3 (340mm). Compartimentos. Sin Respaldo. Acabado Gratito Texturizado. Luz Spot
+  B60DH3P3-ON-MALLA
+     Excel: Módulo Bajo. Puerta Apertura Derecha. Altura 570mm. Profundidad 340mm. Apertura Tip-On. Puerta de Malla
+     Hoy:   Módulo Bajo. Puerta Apertura Derecha. Altura 570mm. Profundidad 340mm. Apertura Tip-On. Puerta de Malla
+  EST-D LOFTH73 120*70
+     Excel: Estructura de desayunador loft. Altura 73cm. Ancho 120cm y profundidad 70cm
+     Hoy:   Estructura de desayunador loft. Altura 73cm. Ancho 120cm y profundidad 70cm
+  EST-CAMP-LOFT-DU=100
+     Excel: Estructura de campana loft. Ducto sobre campana = 100mm
+     Hoy:   Estructura de campana loft. Ducto sobre campana = 100mm
+  EST-CAMP-E2S-S/R-CG-LSP-DU=500-CG
+     Excel: Estructura de campana loft. 2 compartimentos. Sin Respaldo. Luz spot. Ducto sobre campana = 500mm. Acabado Laca Cacao Gold MT
+     Hoy:   Estructura de campana loft. 2 compartimentos. Sin Respaldo. Luz spot. Ducto sobre campana = 500mm. Acabado Laca Cacao Gold MT
+  MET-AI90H2P44H100-E2S-NE-PFD-LSP
+     Excel: Estructura Loft Alto sobre Isla. Ancho 90cm H2 (380mm) Profundidad 44cm. Altura 100cm. 2 Compartimentos. Acabado Laca Negro Texturizado. Perforación Derecha para Estructura. Luz Led Spot.
+     Hoy:   Estructura Loft Alto sobre Isla. Ancho 90cm H2 (380mm) Profundidad 44cm. Altura 100cm. 2 Compartimentos. Acabado Laca Negro Texturizado. Perforación Derecha para Estructura. Luz Led Spot.
+  MET-BAS-LAGO107.5-H31.6-P6P4-NE
+     Excel: Módulo Extremo con terminación redonda Base Lago. Ancho de 107.5 cm y profundidad para combinar modulos P6 y P4. Color Laca Negro MT.
+     Hoy:   Módulo Extremo con terminación redonda Base Lago. Ancho de 107.5 cm y profundidad para combinar modulos P6 y P4. Color Laca Negro MT.
+  MET-BAS-LAGO137.5-H31.6-P6P4-GF
+     Excel: Módulo Extremo con terminación redonda Base Lago. Ancho de 137.5 cm y profundidad para combinar modulos P6 y P4. Color Laca Grafito MT.
+     Hoy:   Módulo Extremo con terminación redonda Base Lago. Ancho de 137.5 cm y profundidad para combinar modulos P6 y P4. Color Laca Grafito MT.
+  MET-BAS-LAGO60-H31.6-P6P4-NE
+     Excel: Módulo intermedio para bases lago. Ancho 60cm y profundidad para combinar modulos P6 y P4. Color Laca Negro MT.
+     Hoy:   Módulo intermedio para bases lago. Ancho 60cm y profundidad para combinar modulos P6 y P4. Color Laca Negro MT.
+  LBI34HZ-L-S
+     Excel: Lateral (L) Bajo (B) 34. Henzo (HZ). Tipo "L" (L). Simple (S).
+     Hoy:   Lateral (L) Bajo (B) 34. Henzo (HZ). Tipo "L" (L). Simple (S). / Lateral Bajo Izquierdo P34 Henzo Tipo "L" Simple
+  LBI34HZ-L-D
+     Excel: Lateral (L) Bajo (B) 34. Henzo (HZ). Tipo "L" (L). Doble (D).
+     Hoy:   Lateral (L) Bajo (B) 34. Henzo (HZ). Tipo "L" (L). Doble (D). / Lateral Bajo Izquierdo P34 Henzo Tipo "L" Doble
+
+8. PROBLEMAS DEL LECTOR DE CODIGOS (cambios de programa, no de base) - para despues
+------------------------------------------------------------------------------
+  a) Componentes de una letra despues de guion: B60-H se lee "Altura" y B60-P "Profundidad"
+     cuando deberian ser Cuchillero y Portaplatos. Solucion: diccionario de componentes
+     que se use solo para las partes despues del guion.
+  b) X60IH9DE-SLIM: "DE" (Despensa) se lee como D (Derecha) + E (Esquinero).
+  c) A90H3-ACK-ELEV: se lee "Accesorio Kessebohmer + ELEV"; la clave ACK-ELEV existe pero
+     el lector no junta partes con guion. Igual para CU-LI, AL-APLM, S/P-COP, etc.
+     Solucion: antes de partir, probar si 2 o 3 partes juntas forman una clave conocida.
+  d) Colores y letras por coleccion (CU, NE, GF, TR, F, BS, TE...): se podria elegir el
+     significado segun la coleccion detectada en el codigo (HZ, DUO, MET, CU...).
+
+9. CLAVES DE LA BASE QUE NO ESTAN EN ESTE EXCEL (no se borran)
+------------------------------------------------------------------------------
+     85  Base original (nomenclaturas generales)
+      1  Guia_lectura_codigos.xlsx
+    372  LISTADO_CODIGOS_ZICOM.xlsx
+     24  COLECCIONES_MADEVAL.xlsx
+     18  ACABADOS.docx
+  Vienen de otras fuentes (listado ZICOM, colecciones, acabados). Este Excel no las
+  cubre, por eso no se recomienda borrar y reemplazar la base completa.
+
+ANEXO. TODAS LAS CLAVES DEL EXCEL Y SU ESTADO
+------------------------------------------------------------------------------
+  Estado: IGUAL = ya esta igual | NUEVA | DISTINTA = esta con otro texto | PATRON = plantilla
+
+  -- 1_Alturas
+  IGUAL    H1 = Altura H1 (190mm)
+  IGUAL    H2 = Altura H2 (380mm)
+  IGUAL    H3 = Altura H3 (570mm)
+  IGUAL    H4 = Altura H4 (760mm)
+  IGUAL    H886 = Altura H886 (886mm)
+  IGUAL    H5 = Altura H5 (950mm)
+  IGUAL    H6 = Altura H6 (1140mm)
+  IGUAL    H7 = Altura H7 (1330mm)
+  IGUAL    HE = Altura HE (1360mm)
+  IGUAL    H8 = Altura H8 (1550mm)
+  IGUAL    H9 = Altura H9 (1740mm)
+  IGUAL    H11 = Altura H11 (2120mm)
+  IGUAL    H2246 = Altura H2246 (2246mm)
+  IGUAL    H12 = Altura H12 (2310mm)
+  IGUAL    H2436 = Altura H2436 (2436mm)
+  -- 10_Complementos Linea Tradicion
+  IGUAL    CIL-CT = Cenefa de iluminación
+  IGUAL    PEL-CT = Perfil Superior tipo puerta
+  PATRON   T(ANCHO)-TR = Tablero Lacado
+  IGUAL    PEL = Perfil para tablero iluminación Aurora
+  IGUAL    CRAUH8.6 = Cornisa con detalle Aurora
+  IGUAL    E6 = Engrosado 6cm
+  IGUAL    1PA = 1 Pata engrosada a 6cm
+  IGUAL    2PA = 2 Patas engrosadas a 6cm
+  IGUAL    LA = Lateral Alto
+  IGUAL    OTPE6-AU = Oreja de ajuste con detalle decorativo aurora
+  IGUAL    CANTO = Oreja de canto Aurora
+  IGUAL    QU = Cuatro
+  -- 10_Cubik Living
+  NUEVA    LDE3 = Lateral derecho Engrosado
+  NUEVA    LIE3 = Lateral izquierdo Engrosado
+  DISTINTA TE = Módulo con Tapa superior sin base (Escritorio)
+  NUEVA    TE-BA = Módulo con Tapa Superior + Base
+  NUEVA    DA = Division Vertical tipo "A"
+  NUEVA    DB = Division Vertical tipo "B"
+  NUEVA    BA = Módulo sin tapa superior, para colocar módulo superior
+  NUEVA    UT = Union de tarugo (Perforaciones + Tarugos
+  NUEVA    CB1X = Cubik Living Tipo 1
+  NUEVA    CB2X = Cubik Living Tipo 2
+  NUEVA    CB3X = Cubik Living Tipo 3
+  NUEVA    CB4X = Cubik Living Tipo 4 (Escritorio)
+  NUEVA    CB5X = Cubik Living Tipo 5 (Escritorio)
+  NUEVA    MS = 1 Módulo Incrustado
+  NUEVA    M2 = 2 Módulos Incrustados
+  NUEVA    LINT = Lateral Interno
+  NUEVA    CBA = Módulo Alto Cubik Living
+  NUEVA    CBB = Módulo Bajo Cubik Living
+  -- 11_Complementos_Line
+  IGUAL    LIN = Line
+  NUEVA    LINE = Line
+  IGUAL    LIN-L-S = Tipo L Line
+  IGUAL    LIN-U-S = Tipo U Line
+  IGUAL    END = Enderezador
+  -- 12_Modulación_Loft
+  IGUAL    MET = Estructura Metálica
+  IGUAL    PFC = Perforación Central para Estructura / PERFORACION CENTRAL PARA EST
+  DISTINTA PFI = Perforación Izquierda para Estructura / Perforación Izquierda Cable / PERFORACION IZQUIERDA PARA EST
+  DISTINTA PFD = Perforación Derecha para Estructura / Perforación Derecha Cable / PERFORACION DERECHA PARA EST
+  IGUAL    E1 = 1 Compartimento
+  IGUAL    E2S = 2 Compartimentos
+  IGUAL    E3S = 3 Compartimentos
+  IGUAL    E4S = 4 Compartimentos
+  IGUAL    C/R-V = Con Respaldo
+  IGUAL    S/R = Sin Respaldo
+  IGUAL    MALLA = Puerta de Malla
+  IGUAL    MET-REP = Repisa Metálica "U"
+  IGUAL    EST-D LOFT = Estructura de Desayunador Loft
+  IGUAL    EST-CAMP = Estructura Campana Loft
+  IGUAL    DU=100 = Ducto sobre Campana = 100 mm / DUCTO SOBRE CAMPANA H=100
+  IGUAL    DU=200 = Ducto sobre Campana = 200 mm / DUCTO SOBRE CAMPANA H=200
+  IGUAL    DU=300 = Ducto sobre Campana = 300 mm / DUCTO SOBRE CAMPANA H=300
+  IGUAL    DU=400 = Ducto sobre Campana = 400 mm / DUCTO SOBRE CAMPANA H=400
+  IGUAL    DU=500 = Ducto sobre Campana = 500 mm / DUCTO SOBRE CAMPANA H=500
+  IGUAL    DU=600 = Ducto sobre Campana = 600 mm / DUCTO SOBRE CAMPANA H=600
+  IGUAL    DU=700 = Ducto sobre Campana = 700 mm / DUCTO SOBRE CAMPANA H=700
+  IGUAL    MET-AI = Estructura Loft Alto sobre Isla
+  IGUAL    LOF-CAM-M-I = Campana Revestida Madera Isla
+  IGUAL    LOF-CAM-P-I = Campana Revestida Piedra Isla
+  IGUAL    LOF-CAM-M-P = Campana Revestida Madera Pared
+  IGUAL    LOF-CAM-P-P = Campana Revestida Piedra Pared
+  IGUAL    MET-IS = Estructura Metálica Loft Sobre Isla
+  IGUAL    MET-TUBO-IN32X12 = Tubo de instalaciones
+  IGUAL    MET-I = Estructura metálica sobre mesón
+  IGUAL    MET-A = Módulos altos Metálicos
+  IGUAL    E8AS = 8 Compartimentos
+  IGUAL    10RV = 10 Repisas de vidrio
+  IGUAL    1RVG = 1 Repisa de vidrio grande
+  IGUAL    E6S = 6 Compartimentos
+  IGUAL    3RV = 3 Repisas de vidrio
+  IGUAL    8RV = 8 Repisas de vidrio
+  IGUAL    MET-REP180H0.5P0.8-RIEL-LB = Repisa metálica con sistema de riel para colocar accesorios
+  IGUAL    MET-REP150H0.5P0.8-RIEL-LB = Repisa metálica con sistema de riel para colocar accesorios
+  IGUAL    MET-REP120H0.5P0.8-RIEL-LB = Repisa metálica con sistema de riel para colocar accesorios
+  IGUAL    MET-RJ180H0.5 = Riel metálica fija a pared para colocar accesorios
+  IGUAL    MET-RJ150H0.5 = Riel metálica fija a pared para colocar accesorios
+  IGUAL    MET-RJ120H0.5 = Riel metálica fija a pared para colocar accesorios
+  IGUAL    CAJA1 = 1ra Caja Metálica
+  IGUAL    CAJA2 = 2da Caja Metálica
+  IGUAL    CAJA3 = 3ra Caja Metálica
+  IGUAL    GANCHOX3 = 3 ganchos metálicos
+  DISTINTA CU = Acabado Laca Cobre Texturizada / Lateral Curcu / Laca Cobre TX / Cobre Texturizado / Laca Cobre Texturizado
+  DISTINTA GF = Acabado Laca Grafito Texturizada / Perfil Grafito / Perfil con Acabado Grafito / Laca Grafito TX / Grafito Texturizado / Laca Grafito Texturizado
+  DISTINTA NE = Acabado Laca Negro Texturizada / Perfil Negro / Vidrio Negro / Perfil con Acabado Negro / Laca Negro TX / Negro Texturizado / Laca Negro Texturizado
+  DISTINTA DO = Acabado Laca Dorado Texturizada / Laca Dorado TX / Dorado Texturizado / Laca Dorado Texturizado
+  DISTINTA CG = Acabado Laca Cacao Gold MT / Perfil Cacao Gold MT / Laca Cacao Gold MT / Cacao Gold Mate / Laca Cacao Gold Mate
+  DISTINTA LU = Acabado Laca Luna SB / Perfil Luna SB / Laca Luna SB / Luna Semi Brillante / Laca Luna MT
+  -- 13_Colección_Curcu
+  IGUAL    CU-LI = Lateral curcu tipo "L" Izquierdo
+  IGUAL    CU-LD = Lateral curcu tipo "L" Derecho
+  IGUAL    CU-U = Lateral curcu tipo "U"
+  IGUAL    CU-SI = Lateral Curcu tipo "S" Izquierdo
+  IGUAL    CU-SD = Lateral Curcu tipo "S" Derecho
+  DISTINTA MQ = Maquila Solo esta nomenclatura no mencionarla en la descripción, el resto de nomenclaturas curcu si se mencionan
+  IGUAL    CU-TPI = Tapa Curcu Lado Izquierdo
+  IGUAL    CU-TPD = Tapa Curcu Lado Derecho
+  IGUAL    CU-TPI-D = Tapa Curcu Lado izquierdo y Derecho
+  IGUAL    CU-TP4L = Tapa Curcu en 4 lados
+  IGUAL    CU-DES90090R = Desayunador Curcu Recto Redondo 90cm de radio
+  IGUAL    CU-DES12090R = Desayunador Curcu Recto 120cm de largo y 90cm de radio
+  IGUAL    CU-DES14090R = Desayunador Curcu Recto 140cm de largo y 90cm de radio
+  IGUAL    CU-DES15090R = Desayunador Curcu Recto 150cm de largo y 90cm de radio
+  IGUAL    CU-DES18090R = Desayunador Curcu Recto 180cm de largo y 90cm de radio
+  IGUAL    CU-DES21090R = Desayunador Curcu Recto 210cm de largo y 90cm de radio
+  IGUAL    CU-DES100100R = Desayunador Curcu Recto Redondo 100cm de radio
+  IGUAL    CU-DES120100R = Desayunador Curcu Recto 120cm de largo y 100cm de radio
+  IGUAL    CU-DES140100R = Desayunador Curcu Recto 140cm de largo y 100cm de radio
+  IGUAL    CU-DES150100R = Desayunador Curcu Recto 150cm de largo y 100cm de radio
+  IGUAL    CU-DES180100R = Desayunador Curcu Recto 180cm de largo y 100cm de radio
+  IGUAL    CU-DES210100R = Desayunador Curcu Recto 210cm de largo y 100cm de radio
+  IGUAL    CU-DES110110R = Desayunador Curcu Recto Redondo 110cm de radio
+  IGUAL    CU-DES120110R = Desayunador Curcu Recto 120cm de largo y 110cm de radio
+  IGUAL    CU-DES140110R = Desayunador Curcu Recto 140cm de largo y 110cm de radio
+  IGUAL    CU-DES150110R = Desayunador Curcu Recto 150cm de largo y 110cm de radio
+  IGUAL    CU-DES180110R = Desayunador Curcu Recto 180cm de largo y 110cm de radio
+  IGUAL    CU-DES210110R = Desayunador Curcu Recto 210cm de largo y 110cm de radio
+  IGUAL    CU-DES90090CH = Desayunador Curcu Chaflanado Redondo 90cm de radio
+  IGUAL    CU-DES12090CH = Desayunador Curcu Chaflanado 120cm de largo y 90cm de radio
+  IGUAL    CU-DES14090CH = Desayunador Curcu Chaflanado 140cm de largo y 90cm de radio
+  IGUAL    CU-DES15090CH = Desayunador Curcu Chaflanado 150cm de largo y 90cm de radio
+  IGUAL    CU-DES18090CH = Desayunador Curcu Chaflanado 180cm de largo y 90cm de radio
+  IGUAL    CU-DES21090CH = Desayunador Curcu Chaflanado 210cm de largo y 90cm de radio
+  IGUAL    CU-DES100100CH = Desayunador Curcu Chaflanado Redondo 100cm de radio
+  IGUAL    CU-DES120100CH = Desayunador Curcu Chaflanado 120cm de largo y 100cm de radio
+  IGUAL    CU-DES140100CH = Desayunador Curcu Chaflanado 140cm de largo y 100cm de radio
+  IGUAL    CU-DES150100CH = Desayunador Curcu Chaflanado 150cm de largo y 100cm de radio
+  IGUAL    CU-DES180100CH = Desayunador Curcu Chaflanado 180cm de largo y 100cm de radio
+  IGUAL    CU-DES210100CH = Desayunador Curcu Chaflanado 210cm de largo y 100cm de radio
+  IGUAL    CU-DES110110CH = Desayunador Curcu Chaflanado Redondo 110cm de radio
+  IGUAL    CU-DES120110CH = Desayunador Curcu Chaflanado 120cm de largo y 110cm de radio
+  IGUAL    CU-DES140110CH = Desayunador Curcu Chaflanado 140cm de largo y 110cm de radio
+  IGUAL    CU-DES150110CH = Desayunador Curcu Chaflanado 150cm de largo y 110cm de radio
+  IGUAL    CU-DES180110CH = Desayunador Curcu Chaflanado 180cm de largo y 110cm de radio
+  IGUAL    CU-DES210110CH = Desayunador Curcu Chaflanado 210cm de largo y 110cm de radio
+  IGUAL    CU-DES90090EP = Desayunador Curcu Recto Espina de Pez Redondo 90cm de radio / Desayunador Curcu Chaflanado Espina de Pez Redondo 90cm de radio
+  IGUAL    CU-DES12090EP = Desayunador Curcu Recto Espina de Pez 120cm de largo y 90cm de radio / Desayunador Curcu Chaflanado Espina de Pez 120cm de largo y 90cm de radio
+  IGUAL    CU-DES14090EP = Desayunador Curcu Recto Espina de Pez 140cm de largo y 90cm de radio / Desayunador Curcu Chaflanado Espina de Pez 140cm de largo y 90cm de radio
+  IGUAL    CU-DES15090EP = Desayunador Curcu Recto Espina de Pez 150cm de largo y 90cm de radio / Desayunador Curcu Chaflanado Espina de Pez 150cm de largo y 90cm de radio
+  IGUAL    CU-DES18090EP = Desayunador Curcu Recto Espina de Pez 180cm de largo y 90cm de radio / Desayunador Curcu Chaflanado Espina de Pez 180cm de largo y 90cm de radio
+  IGUAL    CU-DES21090EP = Desayunador Curcu Recto Espina de Pez 210cm de largo y 90cm de radio / Desayunador Curcu Chaflanado Espina de Pez 210cm de largo y 90cm de radio
+  IGUAL    CU-DES100100EP = Desayunador Curcu Recto Espina de Pez Redondo 100cm de radio / Desayunador Curcu Chaflanado Espina de Pez Redondo 100cm de radio
+  IGUAL    CU-DES120100EP = Desayunador Curcu Recto Espina de Pez 120cm de largo y 100cm de radio / Desayunador Curcu Chaflanado Espina de Pez 120cm de largo y 100cm de radio
+  IGUAL    CU-DES140100EP = Desayunador Curcu Recto Espina de Pez 140cm de largo y 100cm de radio / Desayunador Curcu Chaflanado Espina de Pez 140cm de largo y 100cm de radio
+  IGUAL    CU-DES150100EP = Desayunador Curcu Recto Espina de Pez 150cm de largo y 100cm de radio / Desayunador Curcu Chaflanado Espina de Pez 150cm de largo y 100cm de radio
+  IGUAL    CU-DES180100EP = Desayunador Curcu Recto Espina de Pez 180cm de largo y 100cm de radio / Desayunador Curcu Chaflanado Espina de Pez 180cm de largo y 100cm de radio
+  IGUAL    CU-DES210100EP = Desayunador Curcu Recto Espina de Pez 210cm de largo y 100cm de radio / Desayunador Curcu Chaflanado Espina de Pez 210cm de largo y 100cm de radio
+  IGUAL    CU-DES110110EP = Desayunador Curcu Recto Espina de Pez Redondo 110cm de radio / Desayunador Curcu Chaflanado Espina de Pez Redondo 110cm de radio
+  IGUAL    CU-DES120110EP = Desayunador Curcu Recto Espina de Pez 120cm de largo y 110cm de radio / Desayunador Curcu Chaflanado Espina de Pez 120cm de largo y 110cm de radio
+  IGUAL    CU-DES140110EP = Desayunador Curcu Recto Espina de Pez 140cm de largo y 110cm de radio / Desayunador Curcu Chaflanado Espina de Pez 140cm de largo y 110cm de radio
+  IGUAL    CU-DES150110EP = Desayunador Curcu Recto Espina de Pez 150cm de largo y 110cm de radio / Desayunador Curcu Chaflanado Espina de Pez 150cm de largo y 110cm de radio
+  IGUAL    CU-DES180110EP = Desayunador Curcu Recto Espina de Pez 180cm de largo y 110cm de radio / Desayunador Curcu Chaflanado Espina de Pez 180cm de largo y 110cm de radio
+  IGUAL    CU-DES210110EP = Desayunador Curcu Recto Espina de Pez 210cm de largo y 110cm de radio / Desayunador Curcu Chaflanado Espina de Pez 210cm de largo y 110cm de radio
+  IGUAL    VOL = Volado
+  IGUAL    PATA-A-NE = Pata Tipo A Color Negro MT
+  IGUAL    PATA-A-GF = Pata Tipo A Color Grafito MT
+  -- 14_Bases_Lago
+  IGUAL    MET-BAS-LAGO107.5 = Módulo Extremo con terminación redonda Base Lago
+  IGUAL    MET-BAS-LAGO137.5 = Módulo Extremo con terminación redonda Base Lago
+  IGUAL    MET-BAS = Módulo intermedio para bases lago
+  -- 15_Materia
+  NUEVA    AL-APLM = Vidrio Acanalado Plata Mate + Perfil color Plata
+  NUEVA    AL-APLB = Vidrio Acanalado Plata Brillante + Perfil color Plata
+  NUEVA    BZ-ABNM = Vidrio Acanalado Bronce Mate + Perfil Color Bronce
+  NUEVA    BZ-ABNB = Vidrio Acanalado Bronce Brillante + Perfil Color Bronce
+  NUEVA    CH-ACHM = Vidrio Acanalado Champagne Mate + Perfil Color Champagne
+  NUEVA    CH-ACHB = Vidrio Acanalado Champagne Brillante + Perfil Color Champagne
+  NUEVA    TI-ATIM = Vidrio Acanalado Titanio Mate + Perfil Color Titanio
+  NUEVA    TI-ATIB = Vidrio Acanalado Titanio Brillante + Perfil Color Titanio
+  NUEVA    CG-ACGM = Vidrio Acanalado Cacao Gold Mate + Perfil Color Cacao Gold
+  NUEVA    CG-ACGB = Vidrio Acanalado Cacao Gold Brillante + Perfil Color Cacao Gold
+  NUEVA    CG-PGRI = Piedra Color Grigio + Perfil Color Cacao Gold
+  NUEVA    TI-PTAU = Piedra Color Taupe + Perfil Color Titanio
+  -- 16_Henzo
+  IGUAL    LXI = Lateral Auxiliar Izquierdo
+  IGUAL    LXD = Lateral Auxiliar Derecho
+  IGUAL    LBI = Lateral Bajo Izquierdo
+  IGUAL    LBD = Lateral Bajo Derecho
+  IGUAL    LAD = Lateral Alto Derecho
+  IGUAL    LAI = Lateral Alto Izquierdo
+  IGUAL    OTP = Oreta Tipo Recto
+  IGUAL    FB = Forro Bajo
+  IGUAL    HZ = Henzo
+  IGUAL    I = Tipo "I"
+  IGUAL    S = Simple / SUBDIVISION
+  IGUAL    D = Doble / DESPENSA
+  IGUAL    LBI34HZ-L-S = Lateral Bajo Izquierdo P34 Henzo Tipo "L" Simple
+  IGUAL    LBI44HZ-L-S = Lateral Bajo Izquierdo P44 Henzo Tipo "L" Simple
+  IGUAL    LBI60HZ-L-S = Lateral Bajo Izquierdo P60 Henzo Tipo "L" Simple
+  IGUAL    LBI67HZ-L-S = Lateral Bajo Izquierdo P67 Henzo Tipo "L" Simple
+  IGUAL    LBD34HZ-L-S = Lateral Bajo Derecho P34 Henzo Tipo "L" Simple
+  IGUAL    LBD44HZ-L-S = Lateral Bajo Derecho P44 Henzo Tipo "L" Simple
+  IGUAL    LBD60HZ-L-S = Lateral Bajo Derecho P60 Henzo Tipo "L" Simple
+  IGUAL    LBD67HZ-L-S = Lateral Bajo Derecho P67 Henzo Tipo "L" Simple
+  IGUAL    LBI34HZ-L-D = Lateral Bajo Izquierdo P34 Henzo Tipo "L" Doble
+  IGUAL    LBI44HZ-L-D = Lateral Bajo Izquierdo P44 Henzo Tipo "L" Doble
+  IGUAL    LBI60HZ-L-D = Lateral Bajo Izquierdo P60 Henzo Tipo "L" Doble
+  IGUAL    LBI67HZ-L-D = Lateral Bajo Izquierdo P67 Henzo Tipo "L" Doble
+  IGUAL    LBD34HZ-L-D = Lateral Bajo Derecho P34 Henzo Tipo "L" Doble
+  IGUAL    LBD44HZ-L-D = Lateral Bajo Derecho P44 Henzo Tipo "L" Doble
+  IGUAL    LBD60HZ-L-D = Lateral Bajo Derecho P60 Henzo Tipo "L" Doble
+  IGUAL    LBD67HZ-L-D = Lateral Bajo Derecho P67 Henzo Tipo "L" Doble
+  IGUAL    LBI34H2HZ-L-S = Lateral Bajo Izquierdo P34 H2 Henzo Tipo "L" Simple
+  IGUAL    LBI44H2HZ-L-S = Lateral Bajo Izquierdo P44 H2 Henzo Tipo "L" Simple
+  IGUAL    LBI60H2HZ-L-S = Lateral Bajo Izquierdo P60 H2 Henzo Tipo "L" Simple
+  IGUAL    LBI67H2HZ-L-S = Lateral Bajo Izquierdo P67 H2 Henzo Tipo "L" Simple
+  IGUAL    LBD34H2HZ-L-S = Lateral Bajo Derecho P34 H2 Henzo Tipo "L" Simple
+  IGUAL    LBD44H2HZ-L-S = Lateral Bajo Derecho P44 H2 Henzo Tipo "L" Simple
+  IGUAL    LBD60H2HZ-L-S = Lateral Bajo Derecho P60 H2 Henzo Tipo "L" Simple
+  IGUAL    LBD67H2HZ-L-S = Lateral Bajo Derecho P67 H2 Henzo Tipo "L" Simple
+  IGUAL    LBI34H2HZ-L-D = Lateral Bajo Izquierdo P34 H2 Henzo Tipo "L" Doble
+  IGUAL    LBI44H2HZ-L-D = Lateral Bajo Izquierdo P44 H2 Henzo Tipo "L" Doble
+  IGUAL    LBI60H2HZ-L-D = Lateral Bajo Izquierdo P60 H2 Henzo Tipo "L" Doble
+  IGUAL    LBI67H2HZ-L-D = Lateral Bajo Izquierdo P67 H2 Henzo Tipo "L" Doble
+  IGUAL    LBD34H2HZ-L-D = Lateral Bajo Derecho P34 H2 Henzo Tipo "L" Doble
+  IGUAL    LBD44H2HZ-L-D = Lateral Bajo Derecho P44 H2 Henzo Tipo "L" Doble
+  IGUAL    LBD60H2HZ-L-D = Lateral Bajo Derecho P60 H2 Henzo Tipo "L" Doble
+  IGUAL    LBD67H2HZ-L-D = Lateral Bajo Derecho P67 H2 Henzo Tipo "L" Doble
+  IGUAL    LBI34H3HZ-L-S = Lateral Bajo Izquierdo P34 H3 Henzo Tipo "L" Simple
+  IGUAL    LBI44H3HZ-L-S = Lateral Bajo Izquierdo P44 H3 Henzo Tipo "L" Simple
+  IGUAL    LBI60H3HZ-L-S = Lateral Bajo Izquierdo P60 H3 Henzo Tipo "L" Simple
+  IGUAL    LBI67H3HZ-L-S = Lateral Bajo Izquierdo P67 H3 Henzo Tipo "L" Simple
+  IGUAL    LBD34H3HZ-L-S = Lateral Bajo Derecho P34 H3 Henzo Tipo "L" Simple
+  IGUAL    LBD44H3HZ-L-S = Lateral Bajo Derecho P44 H3 Henzo Tipo "L" Simple
+  IGUAL    LBD60H3HZ-L-S = Lateral Bajo Derecho P60 H3 Henzo Tipo "L" Simple
+  IGUAL    LBD67H3HZ-L-S = Lateral Bajo Derecho P67 H3 Henzo Tipo "L" Simple
+  IGUAL    LBI34H3HZ-L-D = Lateral Bajo Izquierdo P34 H3 Henzo Tipo "L" Doble
+  IGUAL    LBI44H3HZ-L-D = Lateral Bajo Izquierdo P44 H3 Henzo Tipo "L" Doble
+  IGUAL    LBI60H3HZ-L-D = Lateral Bajo Izquierdo P60 H3 Henzo Tipo "L" Doble
+  IGUAL    LBI67H3HZ-L-D = Lateral Bajo Izquierdo P67 H3 Henzo Tipo "L" Doble
+  IGUAL    LBD34H3HZ-L-D = Lateral Bajo Derecho P34 H3 Henzo Tipo "L" Doble
+  IGUAL    LBD44H3HZ-L-D = Lateral Bajo Derecho P44 H3 Henzo Tipo "L" Doble
+  IGUAL    LBD60H3HZ-L-D = Lateral Bajo Derecho P60 H3 Henzo Tipo "L" Doble
+  IGUAL    LBD67H3HZ-L-D = Lateral Bajo Derecho P67 H3 Henzo Tipo "L" Doble
+  IGUAL    LXI34HEHZ-L-S = Lateral Auxiliar Izquierdo P34 HE Henzo Tipo "L" Simple
+  IGUAL    LXI44HEHZ-L-S = Lateral Auxiliar Izquierdo P44 HE Henzo Tipo "L" Simple
+  IGUAL    LXI60HEHZ-L-S = Lateral Auxiliar Izquierdo P60 HE Henzo Tipo "L" Simple
+  IGUAL    LXI67HEHZ-L-S = Lateral Auxiliar Izquierdo P67 HE Henzo Tipo "L" Simple
+  IGUAL    LXD34HEHZ-L-S = Lateral Auxiliar Derecho P34 HE Henzo Tipo "L" Simple
+  IGUAL    LXD44HEHZ-L-S = Lateral Auxiliar Derecho P44 HE Henzo Tipo "L" Simple
+  IGUAL    LXD60HEHZ-L-S = Lateral Auxiliar Derecho P60 HE Henzo Tipo "L" Simple
+  IGUAL    LXD67HEHZ-L-S = Lateral Auxiliar Derecho P67 HE Henzo Tipo "L" Simple
+  IGUAL    LXI34HEHZ-L-D = Lateral Auxiliar Izquierdo P34 HE Henzo Tipo "L" Doble
+  IGUAL    LXI44HEHZ-L-D = Lateral Auxiliar Izquierdo P44 HE Henzo Tipo "L" Doble
+  IGUAL    LXI60HEHZ-L-D = Lateral Auxiliar Izquierdo P60 HE Henzo Tipo "L" Doble
+  IGUAL    LXI67HEHZ-L-D = Lateral Auxiliar Izquierdo P67 HE Henzo Tipo "L" Doble
+  IGUAL    LXD34HEHZ-L-D = Lateral Auxiliar Derecho P34 HE Henzo Tipo "L" Doble
+  IGUAL    LXD44HEHZ-L-D = Lateral Auxiliar Derecho P44 HE Henzo Tipo "L" Doble
+  IGUAL    LXD60HEHZ-L-D = Lateral Auxiliar Derecho P60 HE Henzo Tipo "L" Doble
+  IGUAL    LXD67HEHZ-L-D = Lateral Auxiliar Derecho P67 HE Henzo Tipo "L" Doble
+  IGUAL    LXI34HZ-L-S = Lateral Auxiliar Izquierdo P34 H11 Henzo Tipo "L" Simple
+  IGUAL    LXI44HZ-L-S = Lateral Auxiliar Izquierdo P44 H11 Henzo Tipo "L" Simple
+  IGUAL    LXI60HZ-L-S = Lateral Auxiliar Izquierdo P60 H11 Henzo Tipo "L" Simple
+  IGUAL    LXI67HZ-L-S = Lateral Auxiliar Izquierdo P67 H11 Henzo Tipo "L" Simple
+  IGUAL    LXD34HZ-L-S = Lateral Auxiliar Derecho P34 H11 Henzo Tipo "L" Simple
+  IGUAL    LXD44HZ-L-S = Lateral Auxiliar Derecho P44 H11 Henzo Tipo "L" Simple
+  IGUAL    LXD60HZ-L-S = Lateral Auxiliar Derecho P60 H11 Henzo Tipo "L" Simple
+  IGUAL    LXD67HZ-L-S = Lateral Auxiliar Derecho P67 H11 Henzo Tipo "L" Simple
+  IGUAL    LXI34HZ-L-D = Lateral Auxiliar Izquierdo P34 H11 Henzo Tipo "L" Doble
+  IGUAL    LXI44HZ-L-D = Lateral Auxiliar Izquierdo P44 H11 Henzo Tipo "L" Doble
+  IGUAL    LXI60HZ-L-D = Lateral Auxiliar Izquierdo P60 H11 Henzo Tipo "L" Doble
+  IGUAL    LXI67HZ-L-D = Lateral Auxiliar Izquierdo P67 H11 Henzo Tipo "L" Doble
+  IGUAL    LXD34HZ-L-D = Lateral Auxiliar Derecho P34 H11 Henzo Tipo "L" Doble
+  IGUAL    LXD44HZ-L-D = Lateral Auxiliar Derecho P44 H11 Henzo Tipo "L" Doble
+  IGUAL    LXD60HZ-L-D = Lateral Auxiliar Derecho P60 H11 Henzo Tipo "L" Doble
+  IGUAL    LXD67HZ-L-D = Lateral Auxiliar Derecho P67 H11 Henzo Tipo "L" Doble
+  IGUAL    LXI34H12HZ-L-S = Lateral Auxiliar Izquierdo P34 H12 Henzo Tipo "L" Simple
+  IGUAL    LXI44H12HZ-L-S = Lateral Auxiliar Izquierdo P44 H12 Henzo Tipo "L" Simple
+  IGUAL    LXI60H12HZ-L-S = Lateral Auxiliar Izquierdo P60 H12 Henzo Tipo "L" Simple
+  IGUAL    LXI67H12HZ-L-S = Lateral Auxiliar Izquierdo P67 H12 Henzo Tipo "L" Simple
+  IGUAL    LXD34H12HZ-L-S = Lateral Auxiliar Derecho P34 H12 Henzo Tipo "L" Simple
+  IGUAL    LXD44H12HZ-L-S = Lateral Auxiliar Derecho P44 H12 Henzo Tipo "L" Simple
+  IGUAL    LXD60H12HZ-L-S = Lateral Auxiliar Derecho P60 H12 Henzo Tipo "L" Simple
+  IGUAL    LXD67H12HZ-L-S = Lateral Auxiliar Derecho P67 H12 Henzo Tipo "L" Simple
+  IGUAL    LXI34H12HZ-L-D = Lateral Auxiliar Izquierdo P34 H12 Henzo Tipo "L" Doble
+  IGUAL    LXI44H12HZ-L-D = Lateral Auxiliar Izquierdo P44 H12 Henzo Tipo "L" Doble
+  IGUAL    LXI60H12HZ-L-D = Lateral Auxiliar Izquierdo P60 H12 Henzo Tipo "L" Doble
+  IGUAL    LXI67H12HZ-L-D = Lateral Auxiliar Izquierdo P67 H12 Henzo Tipo "L" Doble
+  IGUAL    LXD34H12HZ-L-D = Lateral Auxiliar Derecho P34 H12 Henzo Tipo "L" Doble
+  IGUAL    LXD44H12HZ-L-D = Lateral Auxiliar Derecho P44 H12 Henzo Tipo "L" Doble
+  IGUAL    LXD60H12HZ-L-D = Lateral Auxiliar Derecho P60 H12 Henzo Tipo "L" Doble
+  IGUAL    LXD67H12HZ-L-D = Lateral Auxiliar Derecho P67 H12 Henzo Tipo "L" Doble
+  DISTINTA LB68HZ-U-S = Lateral Bajo P68 Henzo Tipo "U" Simple
+  DISTINTA LB82HZ-U-S = Lateral Bajo P82 Henzo Tipo "U" Simple
+  DISTINTA LB94HZ-U-S = Lateral Bajo P94 Henzo Tipo "U" Simple
+  DISTINTA LB104HZ-U-S = Lateral Bajo P104 Henzo Tipo "U" Simple
+  DISTINTA LB120HZ-U-S = Lateral Bajo P120 Henzo Tipo "U" Simple
+  DISTINTA LB68HZ-U-D = Lateral Bajo P68 Henzo Tipo "U" Doble
+  DISTINTA LB82HZ-U-D = Lateral Bajo P82 Henzo Tipo "U" Doble
+  DISTINTA LB94HZ-U-D = Lateral Bajo P94 Henzo Tipo "U" Doble
+  DISTINTA LB104HZ-U-D = Lateral Bajo P104 Henzo Tipo "U" Doble
+  DISTINTA LB120HZ-U-D = Lateral Bajo P120 Henzo Tipo "U" Doble
+  DISTINTA LB68H3HZ-U-S = Lateral Bajo P68 H3 Henzo Tipo "U" Simple
+  DISTINTA LB82H3HZ-U-S = Lateral Bajo P82 H3 Henzo Tipo "U" Simple
+  DISTINTA LB94H3HZ-U-S = Lateral Bajo P94 H3 Henzo Tipo "U" Simple
+  DISTINTA LB104H3HZ-U-S = Lateral Bajo P104 H3 Henzo Tipo "U" Simple
+  DISTINTA LB120H3HZ-U-S = Lateral Bajo P120 H3 Henzo Tipo "U" Simple
+  IGUAL    FB60HZ-I-S = Forro Bajo 60 Profundidad 8cm Henzo Tipo "I" Simple
+  IGUAL    FB90HZ-I-S = Forro Bajo 90 Profundidad 8cm Henzo Tipo "I" Simple
+  IGUAL    FB100HZ-I-S = Forro Bajo 100 Profundidad 8cm Henzo Tipo "I" Simple
+  IGUAL    FB1100HZ-I-S = Forro Bajo 110 Profundidad 8cm Henzo Tipo "I" Simple
+  IGUAL    FB120HZ-I-S = Forro Bajo 120 Profundidad 8cm Henzo Tipo "I" Simple
+  IGUAL    FB60HZ-I-D = Forro Bajo 60 Profundidad 8cm Henzo Tipo "I" Doble
+  IGUAL    FB90HZ-I-D = Forro Bajo 90 Profundidad 8cm Henzo Tipo "I" Doble
+  IGUAL    FB100HZ-I-D = Forro Bajo 100 Profundidad 8cm Henzo Tipo "I" Doble
+  IGUAL    FB1100HZ-I-D = Forro Bajo 110 Profundidad 8cm Henzo Tipo "I" Doble
+  IGUAL    FB120HZ-I-D = Forro Bajo 120 Profundidad 8cm Henzo Tipo "I" Doble
+  IGUAL    FB60P2HZ-I-S = Forro Bajo 60 Profundidad 20cm Henzo Tipo "I" Simple
+  IGUAL    FB90P2HZ-I-S = Forro Bajo 90 Profundidad 20cm Henzo Tipo "I" Simple
+  IGUAL    FB100P2HZ-I-S = Forro Bajo 100 Profundidad 20cm Henzo Tipo "I" Simple
+  IGUAL    FB1100P2HZ-I-S = Forro Bajo 110 Profundidad 20cm Henzo Tipo "I" Simple
+  IGUAL    FB120P2HZ-I-S = Forro Bajo 120 Profundidad 20cm Henzo Tipo "I" Simple
+  IGUAL    FB60P2HZ-I-D = Forro Bajo 60 Profundidad 20cm Henzo Tipo "I" Doble
+  IGUAL    FB90P2HZ-I-D = Forro Bajo 90 Profundidad 20cm Henzo Tipo "I" Doble
+  IGUAL    FB100P2HZ-I-D = Forro Bajo 100 Profundidad 20cm Henzo Tipo "I" Doble
+  IGUAL    FB1100P2HZ-I-D = Forro Bajo 110 Profundidad 20cm Henzo Tipo "I" Doble
+  IGUAL    FB120P2HZ-I-D = Forro Bajo 120 Profundidad 20cm Henzo Tipo "I" Doble
+  IGUAL    FB60P3HZ-I-S = Forro Bajo 60 Profundidad 34cm Henzo Tipo "I" Simple
+  IGUAL    FB90P3HZ-I-S = Forro Bajo 90 Profundidad 34cm Henzo Tipo "I" Simple
+  IGUAL    FB100P3HZ-I-S = Forro Bajo 100 Profundidad 34cm Henzo Tipo "I" Simple
+  IGUAL    FB1100P3HZ-I-S = Forro Bajo 110 Profundidad 34cm Henzo Tipo "I" Simple
+  IGUAL    FB120P3HZ-I-S = Forro Bajo 120 Profundidad 34cm Henzo Tipo "I" Simple
+  IGUAL    FB60P3HZ-I-D = Forro Bajo 60 Profundidad 34cm Henzo Tipo "I" Doble
+  IGUAL    FB90P3HZ-I-D = Forro Bajo 90 Profundidad 34cm Henzo Tipo "I" Doble
+  IGUAL    FB100P3HZ-I-D = Forro Bajo 100 Profundidad 34cm Henzo Tipo "I" Doble
+  IGUAL    FB1100P3HZ-I-D = Forro Bajo 110 Profundidad 34cm Henzo Tipo "I" Doble
+  IGUAL    FB120P3HZ-I-D = Forro Bajo 120 Profundidad 34cm Henzo Tipo "I" Doble
+  IGUAL    FB60P4HZ-I-S = Forro Bajo 60 Profundidad 44cm Henzo Tipo "I" Simple
+  IGUAL    FB90P4HZ-I-S = Forro Bajo 90 Profundidad 44cm Henzo Tipo "I" Simple
+  IGUAL    FB100P4HZ-I-S = Forro Bajo 100 Profundidad 44cm Henzo Tipo "I" Simple
+  IGUAL    FB1100P4HZ-I-S = Forro Bajo 110 Profundidad 44cm Henzo Tipo "I" Simple
+  IGUAL    FB120P4HZ-I-S = Forro Bajo 120 Profundidad 44cm Henzo Tipo "I" Simple
+  IGUAL    FB60P4HZ-I-D = Forro Bajo 60 Profundidad 44cm Henzo Tipo "I" Doble
+  IGUAL    FB90P4HZ-I-D = Forro Bajo 90 Profundidad 44cm Henzo Tipo "I" Doble
+  IGUAL    FB100P4HZ-I-D = Forro Bajo 100 Profundidad 44cm Henzo Tipo "I" Doble
+  IGUAL    FB1100P4HZ-I-D = Forro Bajo 110 Profundidad 44cm Henzo Tipo "I" Doble
+  IGUAL    FB120P4HZ-I-D = Forro Bajo 120 Profundidad 44cm Henzo Tipo "I" Doble
+  IGUAL    OTP10B-HZ-S = Oreja Baja Henzo Simple
+  IGUAL    OTP15B-HZ-S = Oreja Baja Henzo Simple
+  IGUAL    OTP20B-HZ-S = Oreja Baja Henzo Simple
+  IGUAL    OTP10B-HZ-D = Oreja Baja Henzo Doble
+  IGUAL    OTP15B-HZ-D = Oreja Baja Henzo Doble
+  IGUAL    OTP20B-HZ-D = Oreja Baja Henzo Doble
+  IGUAL    OTP10X-HZ = Oreja Auxiliar Henzo H11
+  IGUAL    OTP15X-HZ = Oreja Auxiliar Henzo H11
+  IGUAL    OTP20X-HZ = Oreja Auxiliar Henzo H11
+  IGUAL    OTP10X-INV-HZ = Oreja Auxiliar Invertida Henzo
+  IGUAL    OTP15X-INV-HZ = Oreja Auxiliar Invertida Henzo
+  IGUAL    OTP20X-INV-HZ = Oreja Auxiliar Invertida Henzo
+  IGUAL    OTP10XH12-HZ = Oreja Auxiliar Henzo H12
+  IGUAL    OTP15XH12-HZ = Oreja Auxiliar Henzo H12
+  IGUAL    OTP20XH12-HZ = Oreja Auxiliar Henzo H12
+  IGUAL    LAI34H2-L-STC = Lateral alto Izquierdo P34 H2. Tipo Estructura Corta
+  IGUAL    LAI44H2-L-STC = Lateral alto Izquierdo P44 H2. Tipo Estructura Corta
+  IGUAL    LAI60H2-L-STC = Lateral alto Izquierdo P60 H2. Tipo Estructura Corta
+  IGUAL    LAI67H2-L-STC = Lateral alto Izquierdo P67 H2. Tipo Estructura Corta
+  IGUAL    LAD34H2-L-STC = Lateral alto Derecho P34 H2. Tipo Estructura Corta
+  IGUAL    LAD44H2-L-STC = Lateral alto Derecho P44 H2. Tipo Estructura Corta
+  IGUAL    LAD60H2-L-STC = Lateral alto Derecho P60 H2. Tipo Estructura Corta
+  IGUAL    LAD67H2-L-STC = Lateral alto Derecho P67 H2. Tipo Estructura Corta
+  IGUAL    LAI34H3-L-STC = Lateral alto Izquierdo P34 H3. Tipo Estructura Corta
+  IGUAL    LAI44H3-L-STC = Lateral alto Izquierdo P44 H3. Tipo Estructura Corta
+  IGUAL    LAI60H3-L-STC = Lateral alto Izquierdo P60 H3. Tipo Estructura Corta
+  IGUAL    LAI67H3-L-STC = Lateral alto Izquierdo P67 H3. Tipo Estructura Corta
+  IGUAL    LAD34H3-L-STC = Lateral alto Derecho P34 H3. Tipo Estructura Corta
+  IGUAL    LAD44H3-L-STC = Lateral alto Derecho P44 H3. Tipo Estructura Corta
+  IGUAL    LAD60H3-L-STC = Lateral alto Derecho P60 H3. Tipo Estructura Corta
+  IGUAL    LAD67H3-L-STC = Lateral alto Derecho P67 H3. Tipo Estructura Corta
+  IGUAL    LAI34-L-STC = Lateral alto Izquierdo P34 H4. Tipo Estructura Corta
+  IGUAL    LAI44-L-STC = Lateral alto Izquierdo P44 H4. Tipo Estructura Corta
+  IGUAL    LAI60-L-STC = Lateral alto Izquierdo P60 H4. Tipo Estructura Corta
+  IGUAL    LAI67-L-STC = Lateral alto Izquierdo P67 H4. Tipo Estructura Corta
+  IGUAL    LAD34-L-STC = Lateral alto Derecho P34 H4. Tipo Estructura Corta
+  IGUAL    LAD44-L-STC = Lateral alto Derecho P44 H4. Tipo Estructura Corta
+  IGUAL    LAD60-L-STC = Lateral alto Derecho P60 H4. Tipo Estructura Corta
+  IGUAL    LAD67-L-STC = Lateral alto Derecho P67 H4. Tipo Estructura Corta
+  IGUAL    LAI34H5-L-STC = Lateral alto Izquierdo P34 H5. Tipo Estructura Corta
+  IGUAL    LAI44H5-L-STC = Lateral alto Izquierdo P44 H5. Tipo Estructura Corta
+  IGUAL    LAI60H5-L-STC = Lateral alto Izquierdo P60 H5. Tipo Estructura Corta
+  IGUAL    LAI67H5-L-STC = Lateral alto Izquierdo P67 H5. Tipo Estructura Corta
+  IGUAL    LAD34H5-L-STC = Lateral alto Derecho P34 H5. Tipo Estructura Corta
+  IGUAL    LAD44H5-L-STC = Lateral alto Derecho P44 H5. Tipo Estructura Corta
+  IGUAL    LAD60H5-L-STC = Lateral alto Derecho P60 H5. Tipo Estructura Corta
+  IGUAL    LAD67H5-L-STC = Lateral alto Derecho P67 H5. Tipo Estructura Corta
+  IGUAL    LAI34H6-L-STC = Lateral alto Izquierdo P34 H6. Tipo Estructura Corta
+  IGUAL    LAI44H6-L-STC = Lateral alto Izquierdo P44 H6. Tipo Estructura Corta
+  IGUAL    LAI60H6-L-STC = Lateral alto Izquierdo P60 H6. Tipo Estructura Corta
+  IGUAL    LAI67H6-L-STC = Lateral alto Izquierdo P67 H6. Tipo Estructura Corta
+  IGUAL    LAD34H6-L-STC = Lateral alto Derecho P34 H6. Tipo Estructura Corta
+  IGUAL    LAD44H6-L-STC = Lateral alto Derecho P44 H6. Tipo Estructura Corta
+  IGUAL    LAD60H6-L-STC = Lateral alto Derecho P60 H6. Tipo Estructura Corta
+  IGUAL    LAD67H6-L-STC = Lateral alto Derecho P67 H6. Tipo Estructura Corta
+  IGUAL    LAI34H7-L-STC = Lateral alto Izquierdo P34 H7. Tipo Estructura Corta
+  IGUAL    LAI44H7-L-STC = Lateral alto Izquierdo P44 H7. Tipo Estructura Corta
+  IGUAL    LAI60H7-L-STC = Lateral alto Izquierdo P60 H7. Tipo Estructura Corta
+  IGUAL    LAI67H7-L-STC = Lateral alto Izquierdo P67 H7. Tipo Estructura Corta
+  IGUAL    LAD34H7-L-STC = Lateral alto Derecho P34 H7. Tipo Estructura Corta
+  IGUAL    LAD44H7-L-STC = Lateral alto Derecho P44 H7. Tipo Estructura Corta
+  IGUAL    LAD60H7-L-STC = Lateral alto Derecho P60 H7. Tipo Estructura Corta
+  IGUAL    LAD67H7-L-STC = Lateral alto Derecho P67 H7. Tipo Estructura Corta
+  IGUAL    LBI34HZ-LIN-L-S = Lateral Bajo Izquierdo P34 Henzo Line Tipo "L" Simple
+  IGUAL    LBI44HZ-LIN-L-S = Lateral Bajo Izquierdo P44 Henzo Line Tipo "L" Simple
+  IGUAL    LBI60HZ-LIN-L-S = Lateral Bajo Izquierdo P60 Henzo Line Tipo "L" Simple
+  IGUAL    LBI67HZ-LIN-L-S = Lateral Bajo Izquierdo P67 Henzo Line Tipo "L" Simple
+  IGUAL    LBD34HZ-LIN-L-S = Lateral Bajo Derecho P34Henzo Line Tipo "L" Simple
+  IGUAL    LBD44HZ-LIN-L-S = Lateral Bajo Derecho P44 Henzo Line Tipo "L" Simple
+  IGUAL    LBD60HZ-LIN-L-S = Lateral Bajo Derecho P60 Henzo Line Tipo "L" Simple
+  IGUAL    LBD67HZ-LIN-L-S = Lateral Bajo Derecho P67 Henzo Line Tipo "L" Simple
+  IGUAL    LBI34HZ-LIN-L-D = Lateral Bajo Izquierdo P34 Henzo Line Tipo "L" Doble
+  IGUAL    LBI44HZ-LIN-L-D = Lateral Bajo Izquierdo P44 Henzo Line Tipo "L" Doble
+  IGUAL    LBI60HZ-LIN-L-D = Lateral Bajo Izquierdo P60 Henzo Line Tipo "L" Doble
+  IGUAL    LBI67HZ-LIN-L-D = Lateral Bajo Izquierdo P67 Henzo Line Tipo "L" Doble
+  IGUAL    LBD34HZ-LIN-L-D = Lateral Bajo Derecho P34 Henzo Line Tipo "L" Doble
+  IGUAL    LBD44HZ-LIN-L-D = Lateral Bajo Derecho P44 Henzo Line Tipo "L" Doble
+  IGUAL    LBD60HZ-LIN-L-D = Lateral Bajo Derecho P60 Henzo Line Tipo "L" Doble
+  IGUAL    LBD67HZ-LIN-L-D = Lateral Bajo Derecho P67 Henzo Line Tipo "L" Doble
+  IGUAL    LBI34H2HZ-LIN-L-S = Lateral Bajo Izquierdo P34 H2 Henzo Line Tipo "L" Simple
+  IGUAL    LBI44H2HZ-LIN-L-S = Lateral Bajo Izquierdo P44 H2 Henzo Line Tipo "L" Simple
+  IGUAL    LBI60H2HZ-LIN-L-S = Lateral Bajo Izquierdo P60 H2 Henzo Line Tipo "L" Simple
+  IGUAL    LBI67H2HZ-LIN-L-S = Lateral Bajo Izquierdo P67 H2 Henzo Line Tipo "L" Simple
+  IGUAL    LBD34H2HZ-LIN-L-S = Lateral Bajo Derecho P34 H2 Henzo Line Tipo "L" Simple
+  IGUAL    LBD44H2HZ-LIN-L-S = Lateral Bajo Derecho P44 H2 Henzo Line Tipo "L" Simple
+  IGUAL    LBD60H2HZ-LIN-L-S = Lateral Bajo Derecho P60 H2 Henzo Line Tipo "L" Simple
+  IGUAL    LBD67H2HZ-LIN-L-S = Lateral Bajo Derecho P67 H2 Henzo Line Tipo "L" Simple
+  IGUAL    LBI34H2HZ-LIN-L-D = Lateral Bajo Izquierdo P34 H2 Henzo Line Tipo "L" Doble
+  IGUAL    LBI44H2HZ-LIN-L-D = Lateral Bajo Izquierdo P44 H2 Henzo Line Tipo "L" Doble
+  IGUAL    LBI60H2HZ-LIN-L-D = Lateral Bajo Izquierdo P60 H2 Henzo Line Tipo "L" Doble
+  IGUAL    LBI67H2HZ-LIN-L-D = Lateral Bajo Izquierdo P67 H2 Henzo Line Tipo "L" Doble
+  IGUAL    LBD34H2HZ-LIN-L-D = Lateral Bajo Derecho P34 H2 Henzo Line Tipo "L" Doble
+  IGUAL    LBD44H2HZ-LIN-L-D = Lateral Bajo Derecho P44 H2 Henzo Line Tipo "L" Doble
+  IGUAL    LBD60H2HZ-LIN-L-D = Lateral Bajo Derecho P60 H2 Henzo Line Tipo "L" Doble
+  IGUAL    LBD67H2HZ-LIN-L-D = Lateral Bajo Derecho P67 H2 Henzo Line Tipo "L" Doble
+  IGUAL    LBI34H3HZ-LIN-L-S = Lateral Bajo Izquierdo P34 H3 Henzo Line Tipo "L" Simple
+  IGUAL    LBI44H3HZ-LIN-L-S = Lateral Bajo Izquierdo P44 H3 Henzo Line Tipo "L" Simple
+  IGUAL    LBI60H3HZ-LIN-L-S = Lateral Bajo Izquierdo P60 H3 Henzo Line Tipo "L" Simple
+  IGUAL    LBI67H3HZ-LIN-L-S = Lateral Bajo Izquierdo P67 H3 Henzo Line Tipo "L" Simple
+  IGUAL    LBD34H3HZ-LIN-L-S = Lateral Bajo Derecho P34 H3 Henzo Line Tipo "L" Simple
+  IGUAL    LBD44H3HZ-LIN-L-S = Lateral Bajo Derecho P44 H3 Henzo Line Tipo "L" Simple
+  IGUAL    LBD60H3HZ-LIN-L-S = Lateral Bajo Derecho P60 H3 Henzo Line Tipo "L" Simple
+  IGUAL    LBD67H3HZ-LIN-L-S = Lateral Bajo Derecho P67 H3 Henzo Line Tipo "L" Simple
+  IGUAL    LBI34H3HZ-LIN-L-D = Lateral Bajo Izquierdo P34 H3 Henzo Line Tipo "L" Doble
+  IGUAL    LBI44H3HZ-LIN-L-D = Lateral Bajo Izquierdo P44 H3 Henzo Line Tipo "L" Doble
+  IGUAL    LBI60H3HZ-LIN-L-D = Lateral Bajo Izquierdo P60 H3 Henzo Line Tipo "L" Doble
+  IGUAL    LBI67H3HZ-LIN-L-D = Lateral Bajo Izquierdo P67 H3 Henzo Line Tipo "L" Doble
+  IGUAL    LBD34H3HZ-LIN-L-D = Lateral Bajo Derecho P34 H3 Henzo Line Tipo "L" Doble
+  IGUAL    LBD44H3HZ-LIN-L-D = Lateral Bajo Derecho P44 H3 Henzo Line Tipo "L" Doble
+  IGUAL    LBD60H3HZ-LIN-L-D = Lateral Bajo Derecho P60 H3 Henzo Line Tipo "L" Doble
+  IGUAL    LBD67H3HZ-LIN-L-D = Lateral Bajo Derecho P67 H3 Henzo Line Tipo "L" Doble
+  IGUAL    LXI34HEHZ-LIN-L-S = Lateral Auxiliar Izquierdo P34 HE Henzo Line Tipo "L" Simple
+  IGUAL    LXI44HEHZ-LIN-L-S = Lateral Auxiliar Izquierdo P44 HE Henzo Line Tipo "L" Simple
+  IGUAL    LXI60HEHZ-LIN-L-S = Lateral Auxiliar Izquierdo P60 HE Henzo Line Tipo "L" Simple
+  IGUAL    LXI67HEHZ-LIN-L-S = Lateral Auxiliar Izquierdo P67 HE Henzo Line Tipo "L" Simple
+  IGUAL    LXD34HEHZ-LIN-L-S = Lateral Auxiliar Derecho P34 HE Henzo Line Tipo "L" Simple
+  IGUAL    LXD44HEHZ-LIN-L-S = Lateral Auxiliar Derecho P44 HE Henzo Line Tipo "L" Simple
+  IGUAL    LXD60HEHZ-LIN-L-S = Lateral Auxiliar Derecho P60 HE Henzo Line Tipo "L" Simple
+  IGUAL    LXD67HEHZ-LIN-L-S = Lateral Auxiliar Derecho P67 HE Henzo Line Tipo "L" Simple
+  IGUAL    LXI34HEHZ-LIN-L-D = Lateral Auxiliar Izquierdo P34 HE Henzo Line Tipo "L" Doble
+  IGUAL    LXI44HEHZ-LIN-L-D = Lateral Auxiliar Izquierdo P44 HE Henzo Line Tipo "L" Doble
+  IGUAL    LXI60HEHZ-LIN-L-D = Lateral Auxiliar Izquierdo P60 HE Henzo Line Tipo "L" Doble
+  IGUAL    LXI67HEHZ-LIN-L-D = Lateral Auxiliar Izquierdo P67 HE Henzo Line Tipo "L" Doble
+  IGUAL    LXD34HEHZ-LIN-L-D = Lateral Auxiliar Derecho P34 HE Henzo Line Tipo "L" Doble
+  IGUAL    LXD44HEHZ-LIN-L-D = Lateral Auxiliar Derecho P44 HE Henzo Line Tipo "L" Doble
+  IGUAL    LXD60HEHZ-LIN-L-D = Lateral Auxiliar Derecho P60 HE Henzo Line Tipo "L" Doble
+  IGUAL    LXD67HEHZ-LIN-L-D = Lateral Auxiliar Derecho P67 HE Henzo Line Tipo "L" Doble
+  IGUAL    LXI34HZ-LIN-L-S = Lateral Auxiliar Izquierdo P34 H11 Henzo Line Tipo "L" Simple
+  IGUAL    LXI44HZ-LIN-L-S = Lateral Auxiliar Izquierdo P44 H11 Henzo Line Tipo "L" Simple
+  IGUAL    LXI60HZ-LIN-L-S = Lateral Auxiliar Izquierdo P60 H11 Henzo Line Tipo "L" Simple
+  IGUAL    LXI67HZ-LIN-L-S = Lateral Auxiliar Izquierdo P67 H11 Henzo Line Tipo "L" Simple
+  IGUAL    LXD34HZ-LIN-L-S = Lateral Auxiliar Derecho P34 H11 Henzo Line Tipo "L" Simple
+  IGUAL    LXD44HZ-LIN-L-S = Lateral Auxiliar Derecho P44 H11 Henzo Line Tipo "L" Simple
+  IGUAL    LXD60HZ-LIN-L-S = Lateral Auxiliar Derecho P60 H11 Henzo Line Tipo "L" Simple
+  IGUAL    LXD67HZ-LIN-L-S = Lateral Auxiliar Derecho P67 H11 Henzo Line Tipo "L" Simple
+  IGUAL    LXI34HZ-LIN-L-D = Lateral Auxiliar Izquierdo P34 H11 Henzo Line Tipo "L" Doble
+  IGUAL    LXI44HZ-LIN-L-D = Lateral Auxiliar Izquierdo P44 H11 Henzo Line Tipo "L" Doble
+  IGUAL    LXI60HZ-LIN-L-D = Lateral Auxiliar Izquierdo P60 H11 Henzo Line Tipo "L" Doble
+  IGUAL    LXI67HZ-LIN-L-D = Lateral Auxiliar Izquierdo P67 H11 Henzo Line Tipo "L" Doble
+  IGUAL    LXD34HZ-LIN-L-D = Lateral Auxiliar Derecho P34 H11 Henzo Line Tipo "L" Doble
+  IGUAL    LXD44HZ-LIN-L-D = Lateral Auxiliar Derecho P44 H11 Henzo Line Tipo "L" Doble
+  IGUAL    LXD60HZ-LIN-L-D = Lateral Auxiliar Derecho P60 H11 Henzo Line Tipo "L" Doble
+  IGUAL    LXD67HZ-LIN-L-D = Lateral Auxiliar Derecho P67 H11 Henzo Line Tipo "L" Doble
+  IGUAL    LXI34H12HZ-LIN-L-S = Lateral Auxiliar Izquierdo P34 H12 Henzo Line Tipo "L" Simple
+  IGUAL    LXI44H12HZ-LIN-L-S = Lateral Auxiliar Izquierdo P44 H12 Henzo Line Tipo "L" Simple
+  IGUAL    LXI60H12HZ-LIN-L-S = Lateral Auxiliar Izquierdo P60 H12 Henzo Line Tipo "L" Simple
+  IGUAL    LXI67H12HZ-LIN-L-S = Lateral Auxiliar Izquierdo P67 H12 Henzo Line Tipo "L" Simple
+  IGUAL    LXD34H12HZ-LIN-L-S = Lateral Auxiliar Derecho P34 H12 Henzo Line Tipo "L" Simple
+  IGUAL    LXD44H12HZ-LIN-L-S = Lateral Auxiliar Derecho P44 H12 Henzo Line Tipo "L" Simple
+  IGUAL    LXD60H12HZ-LIN-L-S = Lateral Auxiliar Derecho P60 H12 Henzo Line Tipo "L" Simple
+  IGUAL    LXD67H12HZ-LIN-L-S = Lateral Auxiliar Derecho P67 H12 Henzo Line Tipo "L" Simple
+  IGUAL    LXI34H12HZ-LIN-L-D = Lateral Auxiliar Izquierdo P34 H12 Henzo Line Tipo "L" Doble
+  IGUAL    LXI44H12HZ-LIN-L-D = Lateral Auxiliar Izquierdo P44 H12 Henzo Line Tipo "L" Doble
+  IGUAL    LXI60H12HZ-LIN-L-D = Lateral Auxiliar Izquierdo P60 H12 Henzo Line Tipo "L" Doble
+  IGUAL    LXI67H12HZ-LIN-L-D = Lateral Auxiliar Izquierdo P67 H12 Henzo Line Tipo "L" Doble
+  IGUAL    LXD34H12HZ-LIN-L-D = Lateral Auxiliar Derecho P34 H12 Henzo Line Tipo "L" Doble
+  IGUAL    LXD44H12HZ-LIN-L-D = Lateral Auxiliar Derecho P44 H12 Henzo Line Tipo "L" Doble
+  IGUAL    LXD60H12HZ-LIN-L-D = Lateral Auxiliar Derecho P60 H12 Henzo Line Tipo "L" Doble
+  IGUAL    LXD67H12HZ-LIN-L-D = Lateral Auxiliar Derecho P67 H12 Henzo Line Tipo "L" Doble
+  IGUAL    LB68HZ-LIN-U-S = Lateral Bajo Izquierdo P68 Henzo Line Tipo "U" Simple
+  IGUAL    LB82HZ-LIN-U-S = Lateral Bajo Izquierdo P82 Henzo Line Tipo "U" Simple
+  IGUAL    LB94HZ-LIN-U-S = Lateral Bajo Izquierdo P94 Henzo Line Tipo "U" Simple
+  IGUAL    LB104HZ-LIN-U-S = Lateral Bajo Izquierdo P104 Henzo Line Tipo "U" Simple
+  IGUAL    LB120HZ-LIN-U-S = Lateral Bajo Izquierdo P120 Henzo Line Tipo "U" Simple
+  IGUAL    LB68HZ-LIN-U-D = Lateral Bajo Izquierdo P68 Henzo Line Tipo "U" Doble
+  IGUAL    LB82HZ-LIN-U-D = Lateral Bajo Izquierdo P82 Henzo Line Tipo "U" Doble
+  IGUAL    LB94HZ-LIN-U-D = Lateral Bajo Izquierdo P94 Henzo Line Tipo "U" Doble
+  IGUAL    LB104HZ-LIN-U-D = Lateral Bajo Izquierdo P104 Henzo Line Tipo "U" Doble
+  IGUAL    LB120HZ-LIN-U-D = Lateral Bajo Izquierdo P120 Henzo Line Tipo "U" Doble
+  IGUAL    LB68H3HZ-LIN-U-S = Lateral Bajo Izquierdo P68 H3 Henzo Line Tipo "U" Simple
+  IGUAL    LB82H3HZ-LIN-U-S = Lateral Bajo Izquierdo P82 H3 Henzo Line Tipo "U" Simple
+  IGUAL    LB94H3HZ-LIN-U-S = Lateral Bajo Izquierdo P94 H3 Henzo Line Tipo "U" Simple
+  IGUAL    LB104H3HZ-LIN-U-S = Lateral Bajo Izquierdo P104 H3 Henzo Line Tipo "U" Simple
+  IGUAL    LB120H3HZ-LIN-U-S = Lateral Bajo Izquierdo P120 H3 Henzo Line Tipo "U" Simple
+  IGUAL    FB60HZ-LIN-I-S = Forro Bajo 60 Profundidad 8cm Henzo Line Tipo "I" Simple
+  IGUAL    FB90HZ-LIN-I-S = Forro Bajo 90 Profundidad 8cm Henzo Line Tipo "I" Simple
+  IGUAL    FB100HZ-LIN-I-S = Forro Bajo 100 Profundidad 8cm Henzo Line Tipo "I" Simple
+  IGUAL    FB1100HZ-LIN-I-S = Forro Bajo 110 Profundidad 8cm Henzo Line Tipo "I" Simple
+  IGUAL    FB120HZ-LIN-I-S = Forro Bajo 120 Profundidad 8cm Henzo Line Tipo "I" Simple
+  IGUAL    FB60HZ-LIN-I-D = Forro Bajo 60 Profundidad 8cm Henzo Line Tipo "I" Doble
+  IGUAL    FB90HZ-LIN-I-D = Forro Bajo 90 Profundidad 8cm Henzo Line Tipo "I" Doble
+  IGUAL    FB100HZ-LIN-I-D = Forro Bajo 100 Profundidad 8cm Henzo Line Tipo "I" Doble
+  IGUAL    FB1100HZ-LIN-I-D = Forro Bajo 110 Profundidad 8cm Henzo Line Tipo "I" Doble
+  IGUAL    FB120HZ-LIN-I-D = Forro Bajo 120 Profundidad 8cm Henzo Line Tipo "I" Doble
+  IGUAL    FB60P2HZ-LIN-I-S = Forro Bajo 60 Profundidad 20cm Henzo Line Tipo "I" Simple
+  IGUAL    FB90P2HZ-LIN-I-S = Forro Bajo 90 Profundidad 20cm Henzo Line Tipo "I" Simple
+  IGUAL    FB100P2HZ-LIN-I-S = Forro Bajo 100 Profundidad 20cm Henzo Line Tipo "I" Simple
+  IGUAL    FB1100P2HZ-LIN-I-S = Forro Bajo 110 Profundidad 20cm Henzo Line Tipo "I" Simple
+  IGUAL    FB120P2HZ-LIN-I-S = Forro Bajo 120 Profundidad 20cm Henzo Line Tipo "I" Simple
+  IGUAL    FB60P2HZ-LIN-I-D = Forro Bajo 60 Profundidad 20cm Henzo Line Tipo "I" Doble
+  IGUAL    FB90P2HZ-LIN-I-D = Forro Bajo 90 Profundidad 20cm Henzo Line Tipo "I" Doble
+  IGUAL    FB100P2HZ-LIN-I-D = Forro Bajo 100 Profundidad 20cm Henzo Line Tipo "I" Doble
+  IGUAL    FB1100P2HZ-LIN-I-D = Forro Bajo 110 Profundidad 20cm Henzo Line Tipo "I" Doble
+  IGUAL    FB120P2HZ-LIN-I-D = Forro Bajo 120 Profundidad 20cm Henzo Line Tipo "I" Doble
+  IGUAL    FB60P3HZ-LIN-I-S = Forro Bajo 60 Profundidad 34cm Henzo Line Tipo "I" Simple
+  IGUAL    FB90P3HZ-LIN-I-S = Forro Bajo 90 Profundidad 34cm Henzo Line Tipo "I" Simple
+  IGUAL    FB100P3HZ-LIN-I-S = Forro Bajo 100 Profundidad 34cm Henzo Line Tipo "I" Simple
+  IGUAL    FB1100P3HZ-LIN-I-S = Forro Bajo 110 Profundidad 34cm Henzo Line Tipo "I" Simple
+  IGUAL    FB120P3HZ-LIN-I-S = Forro Bajo 120 Profundidad 34cm Henzo Line Tipo "I" Simple
+  IGUAL    FB60P3HZ-LIN-I-D = Forro Bajo 60 Profundidad 34cm Henzo Line Tipo "I" Doble
+  IGUAL    FB90P3HZ-LIN-I-D = Forro Bajo 90 Profundidad 34cm Henzo Line Tipo "I" Doble
+  IGUAL    FB100P3HZ-LIN-I-D = Forro Bajo 100 Profundidad 34cm Henzo Line Tipo "I" Doble
+  IGUAL    FB1100P3HZ-LIN-I-D = Forro Bajo 110 Profundidad 34cm Henzo Line Tipo "I" Doble
+  IGUAL    FB120P3HZ-LIN-I-D = Forro Bajo 120 Profundidad 34cm Henzo Line Tipo "I" Doble
+  IGUAL    FB60P4HZ-LIN-I-S = Forro Bajo 60 Profundidad 44cm Henzo Line Tipo "I" Simple
+  IGUAL    FB90P4HZ-LIN-I-S = Forro Bajo 90 Profundidad 44cm Henzo Line Tipo "I" Simple
+  IGUAL    FB100P4HZ-LIN-I-S = Forro Bajo 100 Profundidad 44cm Henzo Line Tipo "I" Simple
+  IGUAL    FB1100P4HZ-LIN-I-S = Forro Bajo 110 Profundidad 44cm Henzo Line Tipo "I" Simple
+  IGUAL    FB120P4HZ-LIN-I-S = Forro Bajo 120 Profundidad 44cm Henzo Line Tipo "I" Simple
+  IGUAL    FB60P4HZ-LIN-I-D = Forro Bajo 60 Profundidad 44cm Henzo Line Tipo "I" Doble
+  IGUAL    FB90P4HZ-LIN-I-D = Forro Bajo 90 Profundidad 44cm Henzo Line Tipo "I" Doble
+  IGUAL    FB100P4HZ-LIN-I-D = Forro Bajo 100 Profundidad 44cm Henzo Line Tipo "I" Doble
+  IGUAL    FB1100P4HZ-LIN-I-D = Forro Bajo 110 Profundidad 44cm Henzo Line Tipo "I" Doble
+  IGUAL    FB120P4HZ-LIN-I-D = Forro Bajo 120 Profundidad 44cm Henzo Line Tipo "I" Doble
+  IGUAL    OTP10B-HZ-LIN-S = Oreja Baja Henzo Line Simple
+  IGUAL    OTP15B-HZ-LIN-S = Oreja Baja Henzo Line Simple
+  IGUAL    OTP20B-HZ-LIN-S = Oreja Baja Henzo Line Simple
+  IGUAL    OTP10B-HZ-LIN-D = Oreja Baja Henzo Line Doble
+  IGUAL    OTP15B-HZ-LIN-D = Oreja Baja Henzo Line Doble
+  IGUAL    OTP20B-HZ-LIN-D = Oreja Baja Henzo Line Doble
+  IGUAL    OTP10X-HZ-LIN = Oreja Auxiliar Henzo Line H11
+  IGUAL    OTP15X-HZ-LIN = Oreja Auxiliar Henzo Line H11
+  IGUAL    OTP20X-HZ-LIN = Oreja Auxiliar Henzo Line H11
+  IGUAL    OTP10X-INV-HZ-LIN = Oreja Auxiliar Invertida Henzo Line
+  IGUAL    OTP15X-INV-HZ-LIN = Oreja Auxiliar Invertida Henzo Line
+  IGUAL    OTP20X-INV-HZ-LIN = Oreja Auxiliar Invertida Henzo Line
+  IGUAL    OTP10XH12-HZ-LIN = Oreja Auxiliar Henzo Line H12
+  IGUAL    OTP15XH12-HZ-LIN = Oreja Auxiliar Henzo Line H12
+  IGUAL    OTP20XH12-HZ-LIN = Oreja Auxiliar Henzo Line H12
+  IGUAL    LAI34H2-LIN-L-STC = Lateral alto Izquierdo P34 H2 Line. Tipo Estructura Corta
+  IGUAL    LAI44H2-LIN-L-STC = Lateral alto Izquierdo P44 H2 Line. Tipo Estructura Corta
+  IGUAL    LAI60H2-LIN-L-STC = Lateral alto Izquierdo P60 H2 Line. Tipo Estructura Corta
+  IGUAL    LAI67H2-LIN-L-STC = Lateral alto Izquierdo P67 H2 Line. Tipo Estructura Corta
+  IGUAL    LAD34H2-LIN-L-STC = Lateral alto Derecho P34 H2 Line. Tipo Estructura Corta
+  IGUAL    LAD44H2-LIN-L-STC = Lateral alto Derecho P44 H2 Line. Tipo Estructura Corta
+  IGUAL    LAD60H2-LIN-L-STC = Lateral alto Derecho P60 H2 Line. Tipo Estructura Corta
+  IGUAL    LAD67H2-LIN-L-STC = Lateral alto Derecho P67 H2 Line. Tipo Estructura Corta
+  IGUAL    LAI34H3-LIN-L-STC = Lateral alto Izquierdo P34 H3 Line. Tipo Estructura Corta
+  IGUAL    LAI44H3-LIN-L-STC = Lateral alto Izquierdo P44 H3 Line. Tipo Estructura Corta
+  IGUAL    LAI60H3-LIN-L-STC = Lateral alto Izquierdo P60 H3 Line. Tipo Estructura Corta
+  IGUAL    LAI67H3-LIN-L-STC = Lateral alto Izquierdo P67 H3 Line. Tipo Estructura Corta
+  IGUAL    LAD34H3-LIN-L-STC = Lateral alto Derecho P34 H3 Line. Tipo Estructura Corta
+  IGUAL    LAD44H3-LIN-L-STC = Lateral alto Derecho P44 H3 Line. Tipo Estructura Corta
+  IGUAL    LAD60H3-LIN-L-STC = Lateral alto Derecho P60 H3 Line. Tipo Estructura Corta
+  IGUAL    LAD67H3-LIN-L-STC = Lateral alto Derecho P67 H3 Line. Tipo Estructura Corta
+  IGUAL    LAI34-LIN-L-STC = Lateral alto Izquierdo P34 H4 Line. Tipo Estructura Corta
+  IGUAL    LAI44-LIN-L-STC = Lateral alto Izquierdo P44 H4 Line. Tipo Estructura Corta
+  IGUAL    LAI60-LIN-L-STC = Lateral alto Izquierdo P60 H4 Line. Tipo Estructura Corta
+  IGUAL    LAI67-LIN-L-STC = Lateral alto Izquierdo P67 H4 Line. Tipo Estructura Corta
+  IGUAL    LAD34-LIN-L-STC = Lateral alto Derecho P34 H4 Line. Tipo Estructura Corta
+  IGUAL    LAD44-LIN-L-STC = Lateral alto Derecho P44 H4 Line. Tipo Estructura Corta
+  IGUAL    LAD60-LIN-L-STC = Lateral alto Derecho P60 H4 Line. Tipo Estructura Corta
+  IGUAL    LAD67-LIN-L-STC = Lateral alto Derecho P67 H4 Line. Tipo Estructura Corta
+  IGUAL    LAI34H5-LIN-L-STC = Lateral alto Izquierdo P34 H5 Line. Tipo Estructura Corta
+  IGUAL    LAI44H5-LIN-L-STC = Lateral alto Izquierdo P44 H5 Line. Tipo Estructura Corta
+  IGUAL    LAI60H5-LIN-L-STC = Lateral alto Izquierdo P60 H5 Line. Tipo Estructura Corta
+  IGUAL    LAI67H5-LIN-L-STC = Lateral alto Izquierdo P67 H5 Line. Tipo Estructura Corta
+  IGUAL    LAD34H5-LIN-L-STC = Lateral alto Derecho P34 H5 Line. Tipo Estructura Corta
+  IGUAL    LAD44H5-LIN-L-STC = Lateral alto Derecho P44 H5 Line. Tipo Estructura Corta
+  IGUAL    LAD60H5-LIN-L-STC = Lateral alto Derecho P60 H5 Line. Tipo Estructura Corta
+  IGUAL    LAD67H5-LIN-L-STC = Lateral alto Derecho P67 H5 Line. Tipo Estructura Corta
+  IGUAL    LAI34H6-LIN-L-STC = Lateral alto Izquierdo P34 H6 Line. Tipo Estructura Corta
+  IGUAL    LAI44H6-LIN-L-STC = Lateral alto Izquierdo P44 H6 Line. Tipo Estructura Corta
+  IGUAL    LAI60H6-LIN-L-STC = Lateral alto Izquierdo P60 H6 Line. Tipo Estructura Corta
+  IGUAL    LAI67H6-LIN-L-STC = Lateral alto Izquierdo P67 H6 Line. Tipo Estructura Corta
+  IGUAL    LAD34H6-LIN-L-STC = Lateral alto Derecho P34 H6 Line. Tipo Estructura Corta
+  IGUAL    LAD44H6-LIN-L-STC = Lateral alto Derecho P44 H6 Line. Tipo Estructura Corta
+  IGUAL    LAD60H6-LIN-L-STC = Lateral alto Derecho P60 H6 Line. Tipo Estructura Corta
+  IGUAL    LAD67H6-LIN-L-STC = Lateral alto Derecho P67 H6 Line. Tipo Estructura Corta
+  IGUAL    LAI34H7-LIN-L-STC = Lateral alto Izquierdo P34 H7 Line. Tipo Estructura Corta
+  IGUAL    LAI44H7-LIN-L-STC = Lateral alto Izquierdo P44 H7 Line. Tipo Estructura Corta
+  IGUAL    LAI60H7-LIN-L-STC = Lateral alto Izquierdo P60 H7 Line. Tipo Estructura Corta
+  IGUAL    LAI67H7-LIN-L-STC = Lateral alto Izquierdo P67 H7 Line. Tipo Estructura Corta
+  IGUAL    LAD34H7-LIN-L-STC = Lateral alto Derecho P34 H7 Line. Tipo Estructura Corta
+  IGUAL    LAD44H7-LIN-L-STC = Lateral alto Derecho P44 H7 Line. Tipo Estructura Corta
+  IGUAL    LAD60H7-LIN-L-STC = Lateral alto Derecho P60 H7 Line. Tipo Estructura Corta
+  IGUAL    LAD67H7-LIN-L-STC = Lateral alto Derecho P67 H7 Line. Tipo Estructura Corta
+  -- 17_Decorativo
+  IGUAL    BOTL = Botellero
+  IGUAL    SOP-BX8 = Soporte con pines para botella x 8
+  DISTINTA SOP-BX12 = Soporte con pines para botella x 12 / Pines metálicos para 12 botellas de vino
+  IGUAL    SOP-BX14 = Soporte con pines para botella x 14
+  IGUAL    SOP-BX15 = Soporte con pines para botella x 15
+  IGUAL    SOP-BX18 = Soporte con pines para botella x 18
+  IGUAL    SOP-BX24 = Soporte con pines para botella x 24
+  IGUAL    R-INCL = Repisa inclinada
+  IGUAL    RESP-TP-ST = Respaldo tipo puerta
+  IGUAL    B140LDH2P62-DECE3-LED = Módulo bajo abierto en "L" derecho decorativo engrosado con luz led superior
+  IGUAL    B200LDH2P62-DECE3-LED = Módulo bajo abierto en "L" derecho decorativo engrosado con luz led superior
+  IGUAL    B140LIH2P62-DECE3-LED = Módulo bajo abierto en "L" izquierdo decorativo engrosado con luz led superior
+  IGUAL    B200LIH2P62-DECE3-LED = Módulo bajo abierto en "L" izquierdo decorativo engrosado con luz led superior
+  IGUAL    ESTH1-NC = Estructura New Concept
+  IGUAL    ESTH1ED-NC = Estructura New Concept Esquinera Derecha
+  IGUAL    ESTH1EI-NC = Estructura New Concept Esquinera Izquierda
+  IGUAL    TXC9 = Textil Claro 90cm
+  IGUAL    TXO9 = Textil Oscuro 90cm
+  DISTINTA TXC6 = Textil Claro 60cm / TEXTIL CLARO
+  DISTINTA TXO6 = Textil Oscuro 60cm / TEXTIL OSUCURO
+  IGUAL    TXC4 = Textil Claro 45cm
+  IGUAL    TXO4 = Textil Oscuro 45cm
+  IGUAL    TXC3 = Textil Claro 35cm
+  IGUAL    TXO3 = Textil Oscuro 35cm
+  IGUAL    TXC27 = Textil Claro 27cm
+  IGUAL    TXO27 = Textil Oscuro 27cm
+  IGUAL    ESTR-DES180P105H95-NC = Estructura para meson desayunador new concept
+  IGUAL    ESTR-DES160P105-NC = Estructura para meson desayunador new concept
+  IGUAL    S/EST-NC = Módulo New concept sin estructura metálica
+  IGUAL    BAR = Módulo de Bar
+  IGUAL    MET-14,6-H31-P3 = Base metálica para bar decorativo
+  IGUAL    AL = Perfil de Aluminio y vidrio normal
+  IGUAL    ALC = Perfil de Aluminio Cuatro
+  IGUAL    ALK = Perfil de Aluminio Crystal
+  IGUAL    ECT = Repisa Vidrio Extra Claro Templado / Vidrio Extra Claro Templado
+  IGUAL    BNT = Repisa Vidrio Bronce Natural Templado / Vidrio Bronce Natural Templado
+  IGUAL    RV-ECT = Repisa de vidrio
+  DISTINTA RMV = Repisa de Madera y vidrio bronce, con luz indirecta en repisa / REPISA DE MADERA CON VIDRIO INCLUYE LUZ LED
+  IGUAL    PTA-TINF = Tiradera inferior en puerta de aluminio
+  IGUAL    PTA-TLAT = Tiradera lateral en puerta de aluminio
+  IGUAL    VTDEC = Vidrio Transparente Decorativo
+  IGUAL    ECT-ECT = Repisa Extra Clara
+  NUEVA    S/P-T = Sin Puertas, con tubo / Sin puerta con Tubo redondo
+  NUEVA    LATD = Lateral de vidrio Derecho / Lateral de vidrio lado derecho / Lateral de vidrio lado izquierdo
+  NUEVA    LATI = Lateral de Vidrio Izquierdo
+  NUEVA    BT-SI = Botellero con gaveta Sistema Invisible
+  NUEVA    S/P-COP = Módulo Abierto sin puertas con porta copas
+  NUEVA    S/P-BLT = Módulo abierto Sin puertas para botellas de vino
+  NUEVA    S/Z = Sin zócalo (el módulo no tiene patas, va directo al piso)
+  IGUAL    ACMOV-S/B = Accesorio Mover Sin Base
+  IGUAL    ACMOV-S/B-R = Accesorio Mover Sin Base con repisa interna
+  IGUAL    ACMOV = Accesorio Mover
+  IGUAL    ACMOV-R = Accesorio Mover con repisa intermedia
+  IGUAL    BARPG-T1 = Bar Tipo 1 (con 2 repisas) con puerta Giratora. Para colocar sobre mesón
+  IGUAL    BARPG-T2 = Bar Tipo 2 (con 2 repisas + 1 repisa pequeña) con puerta Giratora. Para colocar sobre mesón
+  IGUAL    BARPG-V = Bar con interior vacío. Con puerta Giratora. Para colocar sobre mesón
+  IGUAL    BARPG-SB-T1 = Bar Tipo 1 (con 2 repisas) con puerta Giratora Sin base. Para colocar sobre mesón
+  IGUAL    BARPG-SB-T2 = Bar Tipo 2 (con 2 repisas + 1 repisa pequeña) con puerta Giratora. Sin Base. Para colocar sobre mesón
+  IGUAL    BARPG-SB-V = Bar con interior vacío. Con puerta Giratora. Sin Base. Para colocar sobre mesón
+  IGUAL    A60H132V = Módulo Alto vitrina de vidrio ancho 60cm
+  IGUAL    A90H132V = Módulo Alto vitrina de vidrio ancho 60cm
+  IGUAL    ALAB-SIM = Frente de Aluminio Abatible Simple
+  IGUAL    ALKAB-SIM = Frente de Aluminio Perfil Crystal Abatible Simple
+  DISTINTA ALAB-COM = Frente de Aluminio Abatible Compas
+  IGUAL    ALCAB-COM = Frente de Aluminio Perfil Cuatro Abatible Compas
+  IGUAL    ALKAB-COM = Frente de Aluminio Perfil Crystal Abatible Compas
+  IGUAL    ALAB-GIR = Frente de Aluminio Abatible Giratorio
+  IGUAL    ALCAB-GIR = Frente de Aluminio Perfil Cuatro Abatible Giratorio
+  IGUAL    ALKAB-GIR = Frente de Aluminio Perfil Crystal Abatible Giratorio
+  IGUAL    ALAB-PLE = Frente de Aluminio Abatible Plegable Aluminio-Aluminio
+  IGUAL    SOALAB-PLE = Frente de Aluminio Abatible Plegable Solido-Aluminio
+  IGUAL    ALSOAB-PLE = Frente de Aluminio Abatible Plegable Aluminio-Solido
+  IGUAL    ALALCB-PLE = Frente de Aluminio Perfil Cuatro Abatible Plegable Aluminio - Aluminio
+  IGUAL    SOALCAB-PLE = Frente de Aluminio Perfil Cuatro Abatible Plegable Solido - Aluminio
+  IGUAL    ALCSOAB-PLE = Frente de Aluminio Perfil Cuatro Abatible Plegable Aluminio - Solido
+  IGUAL    ALALKAB-PLE = Frente de Aluminio Perfil Crystal Abatible Plegable Aluminio - Aluminio
+  IGUAL    SOALKAB-PLE = Frente de Aluminio Perfil Crystal Abatible Plegable Solido - Aluminio
+  IGUAL    ALSOKAB-PLE = Frente de Aluminio Perfil Crystal Abatible Plegable Aluminio - Solido
+  NUEVA    PPB = Panel de pared bajo (con ajustes de 6mm fijación)
+  NUEVA    PPA = Panel de pared alto (con ajustes de 6mm fijación)
+  NUEVA    PPX = Panel de pared auxiliar (con ajustes de 6mm fijación)
+  IGUAL    DGT = Vidrio Dark Grey Templado
+  DISTINTA ZF = Perfil Aluminio Natural / Perfil con Acabado Aluminio Natural
+  DISTINTA TR = Vidrio Transparente / Tipo recto
+  IGUAL    AR = Vidrio Arenado
+  DISTINTA TA = Vidrio Acanalado Claro / REPISA TAPA (DINAMIK)
+  IGUAL    BN = Vidrio Bronce
+  IGUAL    BR = Vidrio Reflectivo Bronce
+  IGUAL    OX = Vidrio Onix
+  IGUAL    BL = Vidrio Blanco
+  IGUAL    MR = Vidrio Marron
+  IGUAL    HU = Vidrio Humo
+  IGUAL    CA = Vidrio Carbon
+  IGUAL    CZF = Perfil Cuatro Aluminio
+  IGUAL    CGF = Perfil Cuatro Grafito
+  IGUAL    CNE = Perfil Cuatro Negro
+  IGUAL    AE = Vidrio Acanalado Espejo
+  IGUAL    AG = Vidrio Acanalado Gris
+  IGUAL    AD = Vidrio Acanalado Dorado
+  IGUAL    AO = Vidrio Acanalado Opaco
+  NUEVA    AT = Vidrio Acanalado Claro
+  NUEVA    KZF = Perfil Crystal Aluminio
+  NUEVA    KGF = Perfil Crystal Grafito
+  NUEVA    KNE = Perfil Crystal Negro
+  NUEVA    1PCO-1LR = Conjunto de 2 módulos con 1 puerta corrediza. 1 Módulo vacío sin repisas para electrodoméstico + 1 módulo con repisa fija / Conjunto de 2 módulos con 1 puerta corrediza. 1 Módulo con repisa fija + 1 módulo ciego con frente fijo
+  NUEVA    1PCO-2LR = Conjunto de 2 módulos con 1 puerta corrediza. 2 módulos con repisas
+  NUEVA    2PCO-1LR = Conjunto de 3 módulos con 1 puerta corrediza. 1 Módulo Vacío sin repisas para electrodoméstico + 2 Módulos con repisas / Conjunto de 3 módulos con 2 puertas corredizas. 1 Módulo vacío sin repisas para electrodoméstico + 2 Módulos con repisas fija
+  NUEVA    2PCO-2LR = Conjunto de 3 módulos con 1 puerta corrediza. 3 Módulos con repisas
+  NUEVA    1PCO-1LV = Conjunto de 2 módulos con 1 puerta corrediza. 1 Módulo vacío sin repisas para electrodoméstico + 1 módulo ciego con frente fijo
+  NUEVA    2PCO-1LV = Conjunto de 3 módulos con 2 puertas corredizas. 1 Módulo vacío sin repisas para electrodoméstico + 1 módulo ciego con frente fijo + 1 Módulo con repisa fija
+  NUEVA    RAS = Repisas al Ras
+  NUEVA    A45H4P16S/P-COP = Tapa + 1 Repisa con con 1 fila de 4 Copas. Total 8 Copas
+  NUEVA    A45H4P3S/P-COP = Tapa + 1 Repisa con con 2 filas de 4 Copas. Total 16 Copas
+  NUEVA    A45H2P16S/P-COP = Tapa con 1 fila de 4 Copas
+  NUEVA    A45H2P3S/P-COP = Tapa con 2 filas de 4 Copas. Total 8 Copas
+  NUEVA    A45H3P16S/P-COP = Tapa con 1 fila de 8 Copas
+  NUEVA    A45H3P3S/P-COP = Tapa con 2 filas de 8 Copas. Total 16 Copas
+  NUEVA    A45H5P16S/P-COP = Tapa + 2 Repisas con 1 fila de 4 Copas. Total 12 Copas
+  NUEVA    A45H5P3S/P-COP = Tapa + 2 Repisas con 2 filas de 4 Copas. 24 Copas
+  NUEVA    A45H6P16S/P-COP = Tapa + 2 Repisas con 1 fila de 4 Copas. Total 12 Copas
+  NUEVA    A45H6P3S/P-COP = Tapa + 2 Repisas con 2 filas de 4 Copas. Total 24 Copas
+  NUEVA    A45H7P16S/P-COP = Tapa + 3 Repisas con 1 fila de 4 Copas. Total 16 Copas
+  NUEVA    A45H7P3S/P-COP = Tapa + 3 Repisas con 2 filas de 4 Copas. Total 32 Copas
+  NUEVA    A45HEP16S/P-COP = Tapa + 3 Repisas con 1 fila de 4 Copas. Total 16 Copas
+  NUEVA    A45HEP3S/P-COP = Tapa + 3 Repisas con 2 filas de 4 Copas. Total 32 Copas
+  NUEVA    A60H4P16S/P-COP = Tapa + 1 Repisas con 1 fila de 5 Copas. Total 10 Copas
+  NUEVA    A60H4P3S/P-COP = Tapa + 1 Repisas con 2 filas de 5 Copas. Total 10 Copas
+  NUEVA    A60H2P16S/P-COP = Tapa con 1 fila de 5 Copas
+  NUEVA    A60H2P3S/P-COP = Tapa con 2 filas de 5 copas. Total 10 Copas
+  NUEVA    A60H3P16S/P-COP = Tapa con 1 fila de 10 Copas
+  NUEVA    A60H3P3S/P-COP = Tapa con 2 filas de 10 copas. Total 20 Copas
+  NUEVA    A60H5P16S/P-COP = Tapa + 2 Repisas con 1 fila de 5 Copas. Total 15 Copas
+  NUEVA    A60H5P3S/P-COP = Tapa + 2 Repisas con 2 filas de 5 Copas. Total 30 Copas
+  NUEVA    A60H6P16S/P-COP = Tapa + 2 Repisas con 1 fila de 5 Copas. Total 15 Copas
+  NUEVA    A60H6P3S/P-COP = Tapa + 2 Repisas con 2 filas de 5 Copas. Total 30 Copas
+  NUEVA    A60H7P16S/P-COP = Tapa + 3 Repisas con 1 fila de 5 Copas. Total 20 Copas
+  NUEVA    A60H7P3S/P-COP = Tapa + 3 Repisas con 2 filas de 5 Copas. Total 40 Copas
+  NUEVA    A60HEP16S/P-COP = Tapa + 3 Repisas con 1 fila de 5 Copas. Total 20 Copas
+  NUEVA    A60HEP3S/P-COP = Tapa + 3 Repisas con 2 filas de 5 Copas. Total 40 Copas
+  NUEVA    A90H4P16S/P-COP = Tapa + 1 Repisas con 1 fila de 8 Copas. Total 16 Copas
+  NUEVA    A90H4P3S/P-COP = Tapa + 1 Repisas con 2 fila de 8 Copas. Total 32 Copas
+  NUEVA    A90H2P16S/P-COP = Tapa con 1 fila de 8 Copas
+  NUEVA    A90H2P3S/P-COP = Tapa con 2 filas de 8 Copas. Total 16 Copas
+  NUEVA    A90H3P16S/P-COP = Tapa + 1 Repisas con 1 fila de 8 Copas. Total 16 Copas
+  NUEVA    A90H3P3S/P-COP = Tapa + 1 Repisas con 2 filas de 8 Copas. Total 32 Copas
+  NUEVA    A90H5P16S/P-COP = Tapa + 2 Repisas con 1 fila de 8 Copas. Total 24 Copas
+  NUEVA    A90H5P3S/P-COP = Tapa + 2 Repisas con 2 filas de 8 Copas. Total 48 Copas
+  NUEVA    A90H6P16S/P-COP = Tapa + 2 Repisas con 1 fila de 8 Copas. Total 24 Copas
+  NUEVA    A90H6P3S/P-COP = Tapa + 2 Repisas con 2 filas de 8 Copas. Total 48 Copas
+  NUEVA    A90H7P16S/P-COP = Tapa + 3 Repisas con 1 fila de 8 Copas. Total 32 Copas
+  NUEVA    A90H7P3S/P-COP = Tapa + 3 Repisas con 2 filas de 8 Copas. Total 64 Copas
+  NUEVA    A90HEP16S/P-COP = Tapa + 3 Repisas con 1 fila de 8 Copas. Total 32 Copas
+  NUEVA    A90HEP3S/P-COP = Tapa + 3 Repisas con 2 filas de 8 Copas. Total 64 Copas
+  NUEVA    A45H3P16S/P-BLT = 3 Botellas al costado izquierdo
+  NUEVA    A45H3P3S/P-BLT = 6 Botellas al costado izquierdo
+  NUEVA    A60H3P16S/P-BLT = 3 Botellas al costado izquierdo + 2 Botellas lado derecho
+  NUEVA    A60H3P3S/P-BLT = 6 Botellas al costado izquierdo + 4 Botellas lado derecho
+  NUEVA    A45H4P16S/P-BLT = 4 Botellas al costado izquierdo
+  NUEVA    A45H4P3S/P-BLT = 8 Botellas al costado izquierdo
+  NUEVA    A60H4P16S/P-BLT = 4 Botellas al costado izquierdo + 3 Botellas lado derecho
+  NUEVA    A60H4P3S/P-BLT = 8 Botellas al costado izquierdo + 6 Botellas lado derecho
+  NUEVA    A45H5P16S/P-BLT = 5 Botellas al costado izquierdo
+  NUEVA    A45H5P3S/P-BLT = 10 Botellas al costado izquierdo
+  NUEVA    A60H5P16S/P-BLT = 5 Botellas al costado izquierdo + 4 Botellas lado derecho
+  NUEVA    A60H5P3S/P-BLT = 10 Botellas al costado izquierdo + 8 Botellas lado derecho
+  NUEVA    A45H6P16S/P-BLT = 6 Botellas al costado izquierdo
+  NUEVA    A45H6P3S/P-BLT = 12 Botellas al costado izquierdo
+  NUEVA    A60H6P16S/P-BLT = 6 Botellas al costado izquierdo + 5 Botellas lado derecho
+  NUEVA    A60H6P3S/P-BLT = 12 Botellas al costado izquierdo + 10 Botellas lado derecho
+  NUEVA    A45H7P16S/P-BLT = 7 Botellas al costado izquierdo
+  NUEVA    A45H7P3S/P-BLT = 14 Botellas al costado izquierdo
+  NUEVA    A60H7P16S/P-BLT = 7 Botellas al costado izquierdo + 6 Botellas lado derecho
+  NUEVA    A60H7P3S/P-BLT = 14 Botellas al costado izquierdo + 12 Botellas lado derecho
+  NUEVA    BTL-A-CP = Módulo de Vinos Tipo A (Pines de vinos a la izquierda) + Porta copas 4 copas
+  NUEVA    BTL B-CP = Módulo de Vinos Tipo B (Pines de vinos a la derecha) + Porta copas 4 copas
+  NUEVA    BTL-CP = Módulo de Vinos Tipo Con Pines para vinos en ambos lados + Porta copas 5 copas
+  NUEVA    BTL-HRZ = Módulo con Pines para Vineras y Gavetas con soporte para botellas de vino
+  NUEVA    BTL-REP-T1 = Módulo de Vinos Tipo Bar T1 (2 Repisas) + Gavetas con soporte para botellas de vino
+  NUEVA    BTL-REP-T2 = Módulo de Vinos Tipo Bar T2 (2 Repisas + 1 repisa inferior de menor profundidad) + Gavetas con soporte para botellas de vino
+  NUEVA    X45P1.6S/P-CP = Módulo Vinera Ancho 45cm Altura H11 y Profundidad 16cm con pines cortos para colgar, y con capacidad para 8 copas
+  NUEVA    X45P3S/P-CP = Módulo Vinera Ancho 45cm Altura H11 y Profundidad 32cm con pines cortos para colgar, y con capacidad para 16 copas
+  NUEVA    X60P1.6S/P-CP = Módulo Vinera Ancho 60cm Altura H11 y Profundidad 16cm con pines cortos para colgar, y con capacidad para 10 copas
+  NUEVA    X60P3S/P-CP = Módulo Vinera Ancho 60cm Altura H11 y Profundidad 32cm con pines cortos para colgar, y con capacidad para 36 copas
+  NUEVA    S/P-CP-T = Módulo Vinera tubo redondo a lo ancho para colgar, y con capacidad para
+  NUEVA    SBTVIN = Soporte Botellas de Vino
+  NUEVA    SACVIN = Soporte Accesorios Vinos
+  NUEVA    ACBV-CLA = Accesorio Cuero Botellas de vino. Color Cuero Claro
+  NUEVA    ACBV-OSC = Accesorio Cuero Botellas de vino. Color Cuero Oscuro
+  NUEVA    ACV-CLA = Accesorio de cuero para accesorios de vino. Color Cuero Claro
+  NUEVA    ACV-OSC = Accesorio de cuero para accesorios de vino. Color Cuero Oscuro
+  NUEVA    RV = Módulo con puerta de madera y vidrio. Con repisas de vidrio
+  NUEVA    RFV = Módulo con puerta Fraccionada de madera y vidrio. Con repisas de vidrio
+  NUEVA    TP-DS = Módulo de despensa con divisiones y espacios de almacenamiento
+  NUEVA    REXT = Repisa Extraible
+  NUEVA    LEX6 = Legumbrero x6
+  NUEVA    EXDSP = Esquinero de despensa
+  DISTINTA T1 = Tipo 1 (2 repisas)
+  NUEVA    T2 = Tipo 2 (2 repisas grandes + 1 epqueña)
+  NUEVA    T3 = Tipo 3 (1 repisa + Módulo para cafetera)
+  NUEVA    BM = Base Madera (Mismo acabado que la estructura del módulo)
+  DISTINTA PM = Base Pre Meson (Aglomerado crudo para colocar piedra de revestimiento) / Premesón tablero crudo
+  NUEVA    EXG = Puertas Pocket Door Excedra Salice
+  NUEVA    CAUCH-NE = Caucho Negro Exedra Gravity
+  NUEVA    CAUCH-GF = Caucho Gris Exedra Gravity
+  DISTINTA DEX55 = Distanciador 55mm / DISTANCIADOR 55
+  DISTINTA DEX110 = Distanciador 110mm / DISTANCIADOR 110
+  NUEVA    DEX55-DEX110 = Distanciador 55mm + Distanciador 110mm
+  NUEVA    D-ZOC = Destaje para Zócalo
+  IGUAL    PCOPX3 = Porta copas x3
+  NUEVA    VIN = Tipo Vinera
+  NUEVA    PTCOP = Puerta Sistema Coplanar Salice / Accesorio Porta Copas
+  NUEVA    BCO = Bar Coplanar
+  NUEVA    MZ-F = Parante F Mozione (1 Punto de Fijación al piso y 2 Puntos de Fijación a la Pared)
+  NUEVA    MZ-J = Parante J Mozione
+  NUEVA    MZ-JAR = Jardinera Mozione
+  NUEVA    CAJA-SI-S = Bandeja Decorativa Extraible (Al piso o a la base)
+  NUEVA    VIN-SI-S = Bandeja Decorativa Extraible con accesorio para vinos (Al piso o a la base)
+  NUEVA    MZ-SOPR = Soporte Mozione para Repisa
+  NUEVA    MZ-SOPM = Soporte Mozione para Módulo
+  NUEVA    RSP-TST = Respaldo Tipo Estructura
+  NUEVA    RSP-TPT = Respaldo Tipo Puerta
+  NUEVA    MG1 = Módulo Mozione con 1 gaveta (Si es H1 o H2, solo es gaveta. Si es mayor a H2 Puede ser módulo de Microondas)
+  NUEVA    CAFG1 = Módulo Mozione de Cafetera con 1 gaveta
+  NUEVA    MZ-BR = Módulo de Bar Mozione
+  NUEVA    MZ-S = Módulo Mozione Suspendido
+  NUEVA    MZ-A = Módulo Mozione Alto
+  NUEVA    D4L = 4 Lados Decorativos
+  NUEVA    AB-COMI = Abatible Compas con dobre frente
+  NUEVA    HPIVD = Hoja Pivot Apertura Derecha
+  NUEVA    HPIVI = Hoja Pivot Apertura Izquierda
+  NUEVA    DINH1 = Dintel H1
+  NUEVA    DINH2 = Dintel H2
+  NUEVA    DINH3 = Dintel H3
+  NUEVA    DINH4 = Dintel H4
+  NUEVA    DINH5 = Dintel H5
+  NUEVA    TIR-PL = Tiradera Sierra Plateado Mate
+  NUEVA    TIR-NE = Tiradera Sierra Negro Mate
+  NUEVA    PDES-OC-I = Puerta de despensa oculta apertura izquierda
+  NUEVA    PDES-OC-D = Puerta de despensa oculta apertura derecha
+  NUEVA    DINTEL-I = Dintel para puerta de despensa oculta Izquierdo
+  NUEVA    DINTEL-D = Dintel para puerta de despensa oculta Derecho
+  NUEVA    CORBAT = Corbatero
+  NUEVA    ESPEJO = Espejo
+  NUEVA    ACC-CLA = Accesorio Cuero Claro
+  NUEVA    ACC-OSC = Accesorio Cuero Oscuro
+  NUEVA    CMBLINE = Accesorio Comboline Color Negro
+  NUEVA    COPA = Accesorio Porta Copas Comboline
+  NUEVA    ROLLO = Accesorio Porta Rollo
+  NUEVA    GANCHO = Ganchos para colgar
+  NUEVA    HORIZON-BIG 120 = Accesorio Horizon Big Metálico con tubo redondo, ganchos y soporte para jabonera redonda
+  NUEVA    PRM = Panel para Repisa Metálica
+  DISTINTA R1 = Repisa metálcia N1 / REPISA METALICA LATITUD CERO
+  DISTINTA R2 = Repisa metálcia N2 / REPISA METALICA LATITUD CERO
+  DISTINTA R3 = Repisa metálcia N3 / REPISA METALICA LATITUD CERO
+  DISTINTA R4 = Repisa metálcia N4 / REPISA METALICA LATITUD CERO
+  DISTINTA R5 = Repisa metálcia N5 / REPISA METALICA LATITUD CERO
+  DISTINTA R6 = Repisa metálcia N6 / REPISA METALICA LATITUD CERO
+  -- 17_Duo
+  IGUAL    FF = Frente Falso
+  IGUAL    FU = Frente Util
+  IGUAL    1BANDEJAS = 1 División Vertical
+  IGUAL    2BANDEJAS = 2 Divisiones Verticales
+  IGUAL    3BANDEJAS = 3 Divisiones Verticales
+  IGUAL    G1ABLAV = Módulo de lavandería
+  DISTINTA PGVI = Destaje para perfil gola vertical en lado izquierdo / DESTAJE PARA PERFIL GOLA VERTICA IZQUIERDO
+  DISTINTA PGVD = Destaje para perfil gola vertical en lado derecho / DESTAJE PARA PERFIL GOLA VERTICA DERECHO
+  DISTINTA 1/2PGVI = Perfil gola vertical en lado izquierdo / PERFIL GOLA VERTICA IZQUIERDO
+  DISTINTA 1/2PGVD = Perfil gola vertical en lado derecho / PERFIL GOLA VERTICA DERECHO
+  IGUAL    LBI34H3DUO-L = Lateral Bajo Izquierdo P34 H3 Duo Tipo "L"
+  IGUAL    LBI44H3DUO-L = Lateral Bajo Izquierdo P44 H3 Duo Tipo "L"
+  IGUAL    LBI60H3DUO-L = Lateral Bajo Izquierdo P60 H3 Duo Tipo "L"
+  IGUAL    LBI67H3DUO-L = Lateral Bajo Izquierdo P67 H3 Duo Tipo "L"
+  IGUAL    LBD34H3DUO-L = Lateral Bajo Derecho P34 H3 Duo Tipo "L"
+  IGUAL    LBD44H3DUO-L = Lateral Bajo Derecho P44 H3 Duo Tipo "L"
+  IGUAL    LBD60H3DUO-L = Lateral Bajo Derecho P60 H3 Duo Tipo "L"
+  IGUAL    LBD67H3DUO-L = Lateral Bajo Derecho P67 H3 Duo Tipo "L"
+  IGUAL    LBI34DUO-L = Lateral Bajo Izquierdo P34 Duo Tipo "L"
+  IGUAL    LBI44DUO-L = Lateral Bajo Izquierdo P44 Duo Tipo "L"
+  IGUAL    LBI60DUO-L = Lateral Bajo Izquierdo P60 Duo Tipo "L"
+  IGUAL    LBI67DUO-L = Lateral Bajo Izquierdo P67 Duo Tipo "L"
+  IGUAL    LBD34DUO-L = Lateral Bajo Derecho P34 Duo Tipo "L"
+  IGUAL    LBD44DUO-L = Lateral Bajo Derecho P44 Duo Tipo "L"
+  IGUAL    LBD60DUO-L = Lateral Bajo Derecho P60 Duo Tipo "L"
+  IGUAL    LBD67DUO-L = Lateral Bajo Derecho P67 Duo Tipo "L"
+  IGUAL    LBI60H6DUO-L = Lateral Bajo Izquierdo P60 H6 Duo Tipo "L"
+  IGUAL    LBD60H6DUO-L = Lateral Bajo Derecho P60 H6 Duo Tipo "L"
+  IGUAL    LBI67H6DUO-L = Lateral Bajo Izquierdo P67 H6 Duo Tipo "L"
+  IGUAL    LBD67H6DUO-L = Lateral Bajo Derecho P67 H6 Duo Tipo "L"
+  IGUAL    FV68H3DUO-U = Lateral Bajo P68 H3 Duo Tipo "U"
+  IGUAL    FV78H3DUO-U = Lateral Bajo P78 H3 Duo Tipo "U"
+  IGUAL    FV94H3DUO-U = Lateral Bajo P94 H3 Duo Tipo "U"
+  IGUAL    FV102H3DUO-U = Lateral Bajo P102 H3 Duo Tipo "U"
+  IGUAL    FV104H3DUO-U = Lateral Bajo P104 H3 Duo Tipo "U"
+  IGUAL    FV120H3DUO-U = Lateral Bajo P120 H3 Duo Tipo "U"
+  IGUAL    LXI60DUO-L = Lateral Auxiliar H11 Izquierdo P60 Duo Tipo "L"
+  IGUAL    LXI67DUO-L = Lateral Auxiliar H11 Izquierdo P67 Duo Tipo "L"
+  IGUAL    LXI70DUO-L = Lateral Auxiliar H11 Izquierdo P70 Duo Tipo "L"
+  IGUAL    LXI80DUO-L = Lateral Auxiliar H11 Izquierdo P80 Duo Tipo "L"
+  IGUAL    LXD60DUO-L = Lateral Auxiliar H11 Derecho P60 Duo Tipo "L"
+  IGUAL    LXD67DUO-L = Lateral Auxiliar H11 Derecho P67 Duo Tipo "L"
+  IGUAL    LXD70DUO-L = Lateral Auxiliar H11 Derecho P70 Duo Tipo "L"
+  IGUAL    LXD80DUO-L = Lateral Auxiliar H11 Derecho P80 Duo Tipo "L"
+  IGUAL    LH12I60DUO-L = Lateral Auxiliar H12 Izquierdo P60 Duo Tipo "L"
+  IGUAL    LH12I67DUO-L = Lateral Auxiliar H12 Izquierdo P67 Duo Tipo "L"
+  IGUAL    LH12I70DUO-L = Lateral Auxiliar H12 Izquierdo P70 Duo Tipo "L"
+  IGUAL    LH12I80DUO-L = Lateral Auxiliar H12 Izquierdo P80 Duo Tipo "L"
+  IGUAL    LH12D60DUO-L = Lateral Auxiliar H12 Derecho P60 Duo Tipo "L"
+  IGUAL    LH12D67DUO-L = Lateral Auxiliar H12 Derecho P67 Duo Tipo "L"
+  IGUAL    LH12D70DUO-L = Lateral Auxiliar H12 Derecho P70 Duo Tipo "L"
+  IGUAL    LH12D80DUO-L = Lateral Auxiliar H12 Derecho P80 Duo Tipo "L"
+  IGUAL    LB68H3DUO-U = Lateral Bajo P68 H3 Duo Tipo "U" Sin Perfil Gola
+  IGUAL    LB82H3DUO-U = Lateral Bajo P82 H3 Duo Tipo "U" Sin Perfil Gola
+  IGUAL    LB94H3DUO-U = Lateral Bajo P94 H3 Duo Tipo "U" Sin Perfil Gola
+  IGUAL    LB104H3DUO-U = Lateral Bajo P104 H3 Duo Tipo "U" Sin Perfil Gola
+  IGUAL    LB120H3DUO-U = Lateral Bajo P120 H3 Duo Tipo "U" Sin Perfil Gola
+  IGUAL    LB68DUO-U = Lateral Bajo P68 H4 Duo Tipo "U" Sin Perfil Gola
+  IGUAL    LB82DUO-U = Lateral Bajo P82 H4 Duo Tipo "U" Sin Perfil Gola
+  IGUAL    LB94DUO-U = Lateral Bajo P94 H4 Duo Tipo "U" Sin Perfil Gola
+  IGUAL    LB104DUO-U = Lateral Bajo P104 H4 Duo Tipo "U" Sin Perfil Gola
+  IGUAL    LB120DUO-U = Lateral Bajo P120 H4 Duo Tipo "U" Sin Perfil Gola
+  IGUAL    FB60H3DUO-I = Forro Bajo 60 H3 Profundidad 8cm Henzo Tipo "I"
+  IGUAL    FB90H3DUO-I = Forro Bajo 90 H3 Profundidad 8cm Henzo Tipo "I"
+  IGUAL    FB100H3DUO-I = Forro Bajo 100 H3 Profundidad 8cm Henzo Tipo "I"
+  IGUAL    FB110H3DUO-I = Forro Bajo 110 H3 Profundidad 8cm Henzo Tipo "I"
+  IGUAL    FB120H3DUO-I = Forro Bajo 120 H3 Profundidad 8cm Henzo Tipo "I"
+  IGUAL    FB60P2H3DUO-I = Forro Bajo 60 H3 Profundidad 220cm Henzo Tipo "I"
+  IGUAL    FB90P2H3DUO-I = Forro Bajo 90 H3 Profundidad 220cm Henzo Tipo "I"
+  IGUAL    FB100P2H3DUO-I = Forro Bajo 100 H3 Profundidad 220cm Henzo Tipo "I"
+  IGUAL    FB110P2H3DUO-I = Forro Bajo 110 H3 Profundidad 220cm Henzo Tipo "I"
+  IGUAL    FB120P2H3DUO-I = Forro Bajo 120 H3 Profundidad 220cm Henzo Tipo "I"
+  IGUAL    FB60P3H3DUO-I = Forro Bajo 60 H3 Profundidad 340cm Henzo Tipo "I"
+  IGUAL    FB90P3H3DUO-I = Forro Bajo 90 H3 Profundidad 340cm Henzo Tipo "I"
+  IGUAL    FB100P3H3DUO-I = Forro Bajo 100 H3 Profundidad 340cm Henzo Tipo "I"
+  IGUAL    FB110P3H3DUO-I = Forro Bajo 110 H3 Profundidad 340cm Henzo Tipo "I"
+  IGUAL    FB120P3H3DUO-I = Forro Bajo 120 H3 Profundidad 340cm Henzo Tipo "I"
+  IGUAL    FB60P4H3DUO-I = Forro Bajo 60 H3 Profundidad 440cm Henzo Tipo "I"
+  IGUAL    FB90P4H3DUO-I = Forro Bajo 90 H3 Profundidad 440cm Henzo Tipo "I"
+  IGUAL    FB100P4H3DUO-I = Forro Bajo 100 H3 Profundidad 440cm Henzo Tipo "I"
+  IGUAL    FB110P4H3DUO-I = Forro Bajo 110 H3 Profundidad 440cm Henzo Tipo "I"
+  IGUAL    FB120P4H3DUO-I = Forro Bajo 120 H3 Profundidad 440cm Henzo Tipo "I"
+  IGUAL    FB60DUO-I = Forro Bajo 60 H4 Profundidad 8cm Henzo Tipo "I"
+  IGUAL    FB90DUO-I = Forro Bajo 90 H4 Profundidad 8cm Henzo Tipo "I"
+  IGUAL    FB100DUO-I = Forro Bajo 100 H4 Profundidad 8cm Henzo Tipo "I"
+  IGUAL    FB110DUO-I = Forro Bajo 110 H4 Profundidad 8cm Henzo Tipo "I"
+  IGUAL    FB120DUO-I = Forro Bajo 120 H4 Profundidad 8cm Henzo Tipo "I"
+  IGUAL    FB60P2DUO-I = Forro Bajo 60 H4 Profundidad 220cm Henzo Tipo "I"
+  IGUAL    FB90P2DUO-I = Forro Bajo 90 H4 Profundidad 220cm Henzo Tipo "I"
+  IGUAL    FB100P2DUO-I = Forro Bajo 100 H4 Profundidad 220cm Henzo Tipo "I"
+  IGUAL    FB110P2DUO-I = Forro Bajo 110 H4 Profundidad 220cm Henzo Tipo "I"
+  IGUAL    FB120P2DUO-I = Forro Bajo 120 H4 Profundidad 220cm Henzo Tipo "I"
+  IGUAL    FB60P3DUO-I = Forro Bajo 60 H4 Profundidad 340cm Henzo Tipo "I"
+  IGUAL    FB90P3DUO-I = Forro Bajo 90 H4 Profundidad 340cm Henzo Tipo "I"
+  IGUAL    FB100P3DUO-I = Forro Bajo 100 H4 Profundidad 340cm Henzo Tipo "I"
+  IGUAL    FB110P3DUO-I = Forro Bajo 110 H4 Profundidad 340cm Henzo Tipo "I"
+  IGUAL    FB120P3DUO-I = Forro Bajo 120 H4 Profundidad 340cm Henzo Tipo "I"
+  IGUAL    FB60P4DUO-I = Forro Bajo 60 H4 Profundidad 440cm Henzo Tipo "I"
+  IGUAL    FB90P4DUO-I = Forro Bajo 90 H4 Profundidad 440cm Henzo Tipo "I"
+  IGUAL    FB100P4DUO-I = Forro Bajo 100 H4 Profundidad 440cm Henzo Tipo "I"
+  IGUAL    FB110P4DUO-I = Forro Bajo 110 H4 Profundidad 440cm Henzo Tipo "I"
+  IGUAL    FB120P4DUO-I = Forro Bajo 120 H4 Profundidad 440cm Henzo Tipo "I"
+  IGUAL    FV92DUO-U-H14 = Estructura Superior Ancho 920 H14 Tipo "U" Para Desayunadores Duo
+  IGUAL    FV102DUO-U-H14 = Estructura Superior Ancho 102 H14 Tipo "U" Para Desayunadores Duo
+  IGUAL    FV112DUO-U-H14 = Estructura Superior Ancho 112 H14 Tipo "U" Para Desayunadores Duo
+  IGUAL    FV120DUO-U-H14 = Estructura Superior Ancho 120 H14 Tipo "U" Para Desayunadores Duo
+  IGUAL    FV132DUO-U-H14 = Estructura Superior Ancho 132 H14 Tipo "U" Para Desayunadores Duo
+  IGUAL    FV92DUO-U-H14-H2 = Estructura Inferior Ancho 920 H2 Tipo "U" Con perfil gola superior
+  IGUAL    FV102DUO-U-H14-H2 = Estructura Inferior Ancho 102 H2 Tipo "U" Con perfil gola superior
+  IGUAL    FV112DUO-U-H14-H2 = Estructura Inferior Ancho 112 H2 Tipo "U" Con perfil gola superior
+  IGUAL    FV120DUO-U-H14-H2 = Estructura Inferior Ancho 120 H2 Tipo "U" Con perfil gola superior
+  IGUAL    FV132DUO-U-H14-H2 = Estructura Inferior Ancho 132 H2 Tipo "U" Con perfil gola superior
+  IGUAL    FV92DUO-U-H14-H3 = Estructura Inferior Ancho 920 H3 Tipo "U" Con perfil gola superior
+  IGUAL    FV102DUO-U-H14-H3 = Estructura Inferior Ancho 102 H3 Tipo "U" Con perfil gola superior
+  IGUAL    FV112DUO-U-H14-H3 = Estructura Inferior Ancho 112 H3 Tipo "U" Con perfil gola superior
+  IGUAL    FV120DUO-U-H14-H3 = Estructura Inferior Ancho 120 H3 Tipo "U" Con perfil gola superior
+  IGUAL    FV132DUO-U-H14-H3 = Estructura Inferior Ancho 132 H3 Tipo "U" Con perfil gola superior
+  IGUAL    OTP10BH3-DUO = Oreja Baja Tipo Puerta ancho 10cm H3
+  IGUAL    OTP15BH3-DUO = Oreja Baja Tipo Puerta ancho 15cm H3
+  IGUAL    OTP20BH3-DUO = Oreja Baja Tipo Puerta ancho 20cm H3
+  IGUAL    OTP10B-DUO = Oreja Baja Tipo Puerta ancho 10cm H4
+  IGUAL    OTP15B-DUO = Oreja Baja Tipo Puerta ancho 15cm H4
+  IGUAL    OTP20B-DUO = Oreja Baja Tipo Puerta ancho 20cm H4
+  IGUAL    OTP10BH6-DUO = Oreja Baja Tipo Puerta ancho 10cm H6
+  IGUAL    OTP15BH6-DUO = Oreja Baja Tipo Puerta ancho 15cm H6
+  IGUAL    OTP20BH6-DUO = Oreja Baja Tipo Puerta ancho 20cm H6
+  IGUAL    EST-DES-DUO = Estructura desayunador Duo
+  IGUAL    PATA-DES-DUO = Pata Desayunador Duo
+  IGUAL    MTX90 DESAYDUOP68 = Premesón MTX Desayunador Duo P68
+  IGUAL    MTX90 DESAYDUOP82 = Premesón MTX Desayunador Duo P82
+  IGUAL    MTX90 DESAYDUOP94 = Premesón MTX Desayunador Duo P94
+  IGUAL    MTX90 DESAYDUOP104 = Premesón MTX Desayunador Duo P104
+  IGUAL    MTX90 DESAYDUOP120 = Premesón MTX Desayunador Duo P120
+  IGUAL    MES-E3-GOTI = Mesón Desayunador Gota Izquierdo
+  IGUAL    MES-E3-GOTD = Mesón Desayunador Gota Derecho
+  PATRON   A-DR-220H115-MC"L" = Desayunador rústico de madera sólida color claro tipo "L"
+  PATRON   A-DR-220H115-MO"L" = Desayunador rústico de madera sólida color oscuro tipo "L"
+  IGUAL    A-DR180P4-MC = Desayunador rústico de madera clara color claro Tipo Recto
+  IGUAL    A-DR220P4-MC = Desayunador rústico de madera clara color claro Tipo Recto
+  IGUAL    A-DR180P4-MO = Desayunador rústico de madera clara color oscuro Tipo Recto
+  IGUAL    A-DR220P4-MO = Desayunador rústico de madera clara color oscuro Tipo Recto
+  IGUAL    A-MD90P4E6-NA = Desayunador Madera Sólida Ancho 90cm P40cm Espesor 6cm Color Natural
+  IGUAL    A-MD120P4E6-NA = Desayunador Madera Sólida Ancho 120cm P40cm Espesor 6cm Color Natural
+  IGUAL    A-MD150P4E6-NA = Desayunador Madera Sólida Ancho 150cm P40cm Espesor 6cm Color Natural
+  IGUAL    A-MD180P4E6-NA = Desayunador Madera Sólida Ancho 180cm P40cm Espesor 6cm Color Natural
+  IGUAL    A-MDESPE6-NA = Desayunador Madera Sólida Medida especial Espesor 6cm Color Natural
+  IGUAL    A-PMDESPE6-NAV = Desayunador Madera Sólida Medida especial Espesor 6cm y Altura 94,6cm Color Natural Veta Vertical
+  IGUAL    A-PMDESPE6-NAH = Desayunador Madera Sólida Medida especial Espesor 6cm y Altura 94,6cm Color Natural Veta Horizontal
+  IGUAL    CG-DES = Desayunador Caja de Granito
+  IGUAL    AC-SDZI-GRANITO = Soporte Desayunador volado Z izquierdo para islas Duo para revestimiento de piedras de 20mm
+  IGUAL    AC-SDZD-GRANITO = Soporte Desayunador volado Z derecho para islas Duo para revestimiento de piedras de 20mm
+  IGUAL    AC-SDZI-PIEDRA = Soporte Desayunador volado Z izquierdo para islas Duo para revestimiento de piedras de 12mm
+  IGUAL    AC-SDZD-PIEDRA = Soporte Desayunador volado Z derecho para islas Duo para revestimiento de piedras de 12mm
+  IGUAL    AC-BDESRED = Soporte desayunador de pata redonda para tableros en islas Duo
+  IGUAL    KIT-GAVETA SERVO DRIVE = Kit para servodrive en gavetas
+  IGUAL    KIT-EXTENSION SERVO DRIVE = Kit de extension para servodrive
+  IGUAL    KIT AVENTOS = Kit para servodrive en aventos
+  -- 3_Nomenclatura_modulos_bajos
+  IGUAL    BANDEJAS = Divisiones Verticales
+  DISTINTA F = Fregadero / Escobero Fraccionado / Frente Fraccionado
+  IGUAL    ACK = Accesorio Kessebohmer
+  IGUAL    OL = Organizador de Limpieza
+  IGUAL    SFR = Soporte Fregadero
+  IGUAL    AQUA = Protector Aquanon
+  IGUAL    CAMP-MES = Campana Meson
+  IGUAL    RM = Respaldo Removible / REPISAS DE MADERA
+  IGUAL    CMP-MES = Campana Meson
+  IGUAL    CP-MES = Campana Meson
+  IGUAL    CMP-IND = Campana Meson Indurama
+  IGUAL    F-C/R = Fregadero con respaldo
+  IGUAL    ACK-AB-PAR-1GI = Accesorio Kessebohmer Abatible Paralelo con gaveta interna
+  IGUAL    ACF-U = Accesorio FGV Fregadero "U"
+  IGUAL    ACF-B = Accesorio FGV Fregadero Basurero Redondo 10 litros
+  IGUAL    L2 = Doble Frente
+  IGUAL    ACF-MC = Accesorio Moving Corner
+  IGUAL    ACF-BL = Accesorio Bandeja Lemans
+  IGUAL    ACV-FLBX = Accesorio Vibo Fly Box
+  IGUAL    HS = Horno Simple
+  IGUAL    HS-REJILLA = Horno Simple con rejilla de ventilación
+  IGUAL    MH = Microondas
+  IGUAL    CP = Calentador de Platos / Complementario
+  IGUAL    ACV-BA = Accesorio Vibo Basurero
+  IGUAL    ACH-CO = Condimentero Hengel
+  IGUAL    ACF-CO = Condimentero FGV
+  IGUAL    ACK-CO = Condimentero Kessebohmer
+  IGUAL    ACV-CO = Condimentero Vibo
+  IGUAL    ACF-PP = Accesorio Planchador Retractil Plegable FGV
+  IGUAL    DE = Despensa
+  IGUAL    D-D = 2 Despensas
+  IGUAL    ACV-JINO = Accesorio Vibo Carrito Jino
+  IGUAL    FBAI = Fregadero con basurero derecha y puerta apertura izquierda
+  IGUAL    FBAD = Fregadero con basurero izquierda y puerta apertura derecha
+  IGUAL    AQUA-BA = Protector Aquanon de Basurero
+  IGUAL    CO = Condimentero
+  IGUAL    SM-E-T = Sistema Métabox con accesorio especiero y botellero
+  IGUAL    G3H1IN = 3 gavetas: 2 gavetas externas (1 gaveta h1) y 1 gaveta interna
+  IGUAL    G2 = 2 gavetas
+  IGUAL    G3 = 3 gavetas
+  IGUAL    G3IN = 2 gavetas externas + 1 gaveta interna
+  IGUAL    G4 = 4 gavetas
+  IGUAL    SI-DEC = Gavetas decorativas Sistema Invisible
+  IGUAL    U = Gaveta vacía en U / Lateral Tipo U
+  IGUAL    NK = Novak
+  NUEVA    AB-DES-SALICE = Módulo de puerta Descendente con herraje "Pacta" de Salice
+  -- 4_Nomenclatura_componentes
+  IGUAL    TPM = TAPA PREMESON
+  IGUAL    LID = LATERAL IZQUIERDO DECORATIVO
+  IGUAL    LDD = LATERAL DERECHO DECORATIVO
+  IGUAL    LSP = LUZ LED SPOT
+  IGUAL    LBA = LUZ LED BASE
+  IGUAL    2PULS = 2 PULSADORES LUZ LED
+  IGUAL    LSU = LUZ LED SUPERIOR
+  IGUAL    BAXD = BASE DEC/CRUDO
+  IGUAL    TEXD = TECHO DEC/CRUDO
+  IGUAL    PUSH = PUERTA PUSH
+  IGUAL    ON = TIP-ON GAVETAS
+  IGUAL    TOMCOR = TOMACORRIENTE DE CAJON
+  IGUAL    S/SL = SUBDIVISION 45 SL
+  IGUAL    LLT = LUZ LED LATERAL DOBLE
+  IGUAL    LTI = LUZ LED LATERAL IZQUIERDA
+  IGUAL    LTD = LUZ LED LATERAL DERECHA
+  IGUAL    RV-EC = REPISA VIDRIO EXTRA CLARO
+  IGUAL    RV-BN = REPISA VIDRIO BRONCE NATURAL
+  IGUAL    LTC = LUZ LED TUBO
+  IGUAL    LGA = LUZ LED GAVETAS
+  IGUAL    E-RESP-D = RESPALDO ESTRUCTURA-DEC
+  IGUAL    INPR = INTERRUPTOR DE PRESION
+  IGUAL    LRC = LUZ LED CONTINUA
+  IGUAL    LEX = LUZ LEX EXTERIOR
+  IGUAL    SD = SERVO DRIVE
+  IGUAL    LIM = LIMITADOR APERTURA HF
+  IGUAL    LRE = LUZ LED REPISAS
+  IGUAL    BF = BISAGRA FRENO
+  IGUAL    ESC = ESCALERA STEP POLO PEKA
+  IGUAL    R7 = REPISA METALICA LATITUD CERO
+  IGUAL    ACC-ESC-PL = ESCALERA PLEGABLE
+  IGUAL    C-OR = CUBERTERO ORGANILE
+  IGUAL    H-OR = CUCHILLERO ORGANILE
+  IGUAL    R-OR = ROLLOS ORGANILE
+  IGUAL    S-OR = SUBDIVISION ORGANILE
+  IGUAL    C-AM = CUBERTERO AMBIALINE
+  IGUAL    H-AM = CUCHILLERO AMBIALINE
+  IGUAL    R-AM = ROLLOS AMBIALINE
+  IGUAL    S-AM = SUBDIVISION AMBIALINE
+  IGUAL    C = CUBERTERO
+  DISTINTA H = CUCHILLERO
+  IGUAL    O = OLLERO
+  IGUAL    T = BOTELLERO
+  IGUAL    S/B = GAVETA SIN BOX SIDE
+  IGUAL    VI = GAVETA CON COSTADO VIDRIO MRV
+  IGUAL    E-OR = ESPECIERO ORGALINE
+  IGUAL    E-AM = ESPECIERO AMBIALINE
+  IGUAL    ONI = TIP-ON EN GAVETA INFERIOR
+  IGUAL    B4C = 4 CUBOS DE BASURA 2 DE 8 LITROS Y 2 DE 17 LITROS
+  IGUAL    C-H = CUBERTERO Y CUCHILLERO SL 45CM / CUBERTERO Y CUCHILLERO SL 60CM / CUBERTERO Y CUCHILLERO SL 90CM
+  IGUAL    C-S = CUBERTERO Y SUBDIVISIO SL 45CM / CUBERTERO Y SUBDIVISIO SL 60CM / CUBERTERO Y SUBDIVISIO SL 90CM
+  IGUAL    C-R = CUBERTERO Y ROLLOS SL 45CM / CUBERTERO Y ROLLOS SL 60CM / CUBERTERO Y ROLLOS SL 90CM
+  IGUAL    H-S = CUCHILLERO Y SUBDIVISI SL 45CM / CUCHILLERO Y SUBDIVISI SL 60CM / CUCHILLERO Y SUBDIVISI SL 90CM
+  IGUAL    H-R = CUCHILLERO Y ROLLOS SL 45CM / CUCHILLERO Y ROLLOS SL 60CM / CUCHILLERO Y ROLLOS SL 90CM
+  IGUAL    S-R = SUBDIVISION Y ROLLOS SL 45CM / SUBDIVISION Y ROLLOS SL 60CM / SUBDIVISION Y ROLLOS SL 90CM
+  IGUAL    D-O_DEOL60SL = DESPENSA Y OLLAS SL 60 CM
+  IGUAL    D-P_DEPO60SL = DESPENSA Y PORTAPLATO SL 60 CM
+  IGUAL    O-P_OLPO60SL = OLLAS Y PORTAPLATOS SL 60 CM
+  IGUAL    D-O_DEOL90SL = DESPENSA Y OLLAS SL 90 CM
+  IGUAL    D-P_DEPO90SL = DESPENSA Y PORTAPLATO SL 90 CM
+  IGUAL    O-P_OLPO90SL = OLLAS Y PORTAPLATOS SL 90 CM
+  IGUAL    C-H-AM_CUHU45MR = CUB Y CUCH MR 45CM
+  IGUAL    C-S-AM_CUSU45MR = CUB Y SUB MR 45CM
+  IGUAL    C-R-AM_CURO45MR = CUB Y ROLLOS MR 45CM
+  IGUAL    H-S-AM_HUSU45MR = CUCH Y SUB MR 45CM
+  IGUAL    H-R-AM_HURO45MR = CUCH Y ROLLOS MR 45CM
+  IGUAL    S-R-AM_SURO45MR = SUBD Y ROLLOS MR 45CM
+  IGUAL    C-H-AM_CUHU60MR = CUB Y CUCH MR 60CM
+  IGUAL    C-S-AM_CUSU60MR = CUB Y SUBD MR 60CM
+  IGUAL    C-R-AM_CURO60MR = CUB Y ROLLOS MR 60CM
+  IGUAL    H-S-AM_HUSU60MR = CUCH Y SUB MR 60CM
+  IGUAL    H-R-AM_HURO60MR = CUCH Y ROLLOS MR 60CM
+  IGUAL    S-R-AM_SURO60MR = SUB Y ROLLOS MR 60CM
+  IGUAL    C-H-AM_CUHU90MR = CUB Y CUCH MR 90CM
+  IGUAL    C-S-AM_CUSU90MR = CUB Y SUB MR 90CM
+  IGUAL    C-R-AM_CURO90MR = CUB Y ROLLOS MR 90CM
+  IGUAL    H-S-AM_HUSU90MR = CUCH Y SUB MR 90CM
+  IGUAL    H-R-AM_HURO90MR = CUCH Y ROLLOS MR 90CM
+  IGUAL    S-R-AM_SURO90MR = SUB Y ROLLOS MR 90CM
+  IGUAL    SE=84 = SOPORTE ENTRE MESON-ESTR H=84
+  IGUAL    SE=94 = SOPORTE ENTRE MESON-ESTR H=94
+  IGUAL    SE=104 = SOPORTE ENTRE MESON-ESTR H=104
+  IGUAL    SE=112 = SOPORTE ENTRE MESON-ESTR H=112
+  IGUAL    SE=ESPECIAL = SOPORTE ENTRE MESON-ESTR H=ESP
+  IGUAL    DU=ESPECIAL = DUCTO SOBRE CAMPANA H=ESP
+  IGUAL    ACC-PESC = SUJETA MANGOS 4 ESCOBAS
+  IGUAL    CF = FRENO CAJON FGV
+  IGUAL    LF = LUZ LED FULL
+  DISTINTA LI-I = LATERAL IZQUIERDO "I" / Lateral izquierdo tipo "I"
+  DISTINTA LI-J = LATERAL IZQUIERDO "J" / Lateral izquierdo tipo "J"
+  IGUAL    LI-E3 = LATERAL IZQUIERDO "E3"
+  DISTINTA LD-I = LATERAL DERECHO "I" / Lateral derecho tipo "I"
+  DISTINTA LD-J = LATERAL DERECHO "J" / Lateral derecho tipo "J"
+  IGUAL    LD-E3 = LATERAL DERECHO "E3"
+  IGUAL    TAPA-VID-166.4P6-E3 = TAPA VIDRIO ISLA CUBIK
+  IGUAL    1GOCU = GAVETA OCULTA
+  IGUAL    TA-LS = REPISA TAPA CON LUZ (DINAMIK)
+  IGUAL    PCOI = PORTA CORBATAS SUP IZQ
+  IGUAL    PCOD = PORTA CORBATAS SUP DER
+  IGUAL    PCI = PORTA CINTURONES INF IZQ
+  IGUAL    PCD = PORTA CINTURONES INF DER
+  IGUAL    CE-GSU = GAVETA SUP CERRADURA HUELLA
+  IGUAL    ZAPPL(10) = 10 ZAPATERAS COLOR NEGRO
+  IGUAL    ZAPPL(20) = 20 ZAPATERAS COLOR NEGRO
+  IGUAL    ZAPPL(30) = 30 ZAPATERAS COLOR NEGRO
+  IGUAL    TRS = TRAVESAÑO COUNTRY SUPERIOR
+  IGUAL    TRI = TRAVESAÑO COUNTRY INFERIOR
+  IGUAL    FH = FRENTE HORNO
+  IGUAL    RFH = REPISA HORNO
+  IGUAL    AHG = ALZAS 1,8CM HORNO A GAS
+  IGUAL    5BAN = LATERALES BANDEJA
+  -- 4_Nomenclatura_modulos_altos
+  IGUAL    TI = Tiradera Interna
+  IGUAL    AI = Asiento Iluminado (Base de vidrio + luz led)
+  IGUAL    PTI60 = Puerta Combinada. Puerta izquierda de 60cm
+  IGUAL    PTD60 = Puerta Combinada. Puerta derecha de 60cm
+  IGUAL    RDE = Repisero Despensa
+  IGUAL    BOT = Botellas / Botellero
+  IGUAL    AB-SIM = Abatible Simple
+  IGUAL    AB-COM = Abatible Compas
+  IGUAL    AB-GIR = Abatible Simple
+  IGUAL    AB-PLE = Abatible Plegable
+  IGUAL    SOSOAB-PLE = Abatible Plegable Frente Sólido-Sólido
+  IGUAL    ASM = Alto Sobre Mesón
+  IGUAL    EX = Extractor Visto / Esquinero Auxiliar
+  IGUAL    ACJ = Accesorio Jenair Incluido
+  IGUAL    ACS = Accesorio Sirius Incluido
+  IGUAL    EE = Extractor Embutido
+  IGUAL    CP/J = Accesorio Jenair No incluido
+  IGUAL    CP/S = Accesorio Sirius no incluido
+  IGUAL    RF = Alto sobre Refrigerador / Repisero Fraccionado / Refrigerador
+  IGUAL    ACF-EP = Accesorio FGV escurre platos
+  IGUAL    ACL-TV = Acesorio Hafele elevador TV
+  IGUAL    ACR-PE-SG = Accesorio persiana de aluminio sobre mesón
+  IGUAL    ACR-PE-SM = Accesorio persiana de aluminio sobre módulo
+  IGUAL    ACK-ELEV = Accesorio elevador Kessebohmer
+  NUEVA    PTA-ANCHA = Puerta Ancha
+  -- 5_Altos_Auxiliares_Plegables
+  IGUAL    DACE-PPUSH = 2 puertas plegables lado derecho
+  IGUAL    IACE-PPUSH = 2 puertas plegables lado izquierdo
+  IGUAL    ACE-PPUSH = 4 Puertas plegables
+  -- 5_Complementos
+  IGUAL    LB = Lateral bajo
+  IGUAL    LBTR = Lateral bajo, tipo recto
+  IGUAL    RI-MIX = Riel Mixta
+  IGUAL    NIV = Nivelador
+  IGUAL    LB2L = Lateral bajo 2 lados decorativos
+  IGUAL    L-S = Lateral tipo "L" Simple
+  IGUAL    U-S = Lateral tipo "U" Simple
+  IGUAL    LATR = Lateral alto tipo recto
+  IGUAL    LX = Lateral de auxiliar
+  IGUAL    LXTR = Lateral auxiliar tipo recto
+  IGUAL    E8 = Lateral engrosado de 8cm
+  IGUAL    LVAENV = Lateral Visto alto envolvente
+  NUEVA    TAPA = Tapa
+  IGUAL    INF = Envolvente Inferior de mueble alto
+  IGUAL    SUP = Envolvente superior de mueble alto
+  IGUAL    E3 = Engrosado
+  IGUAL    FBTA = Forramiento Bajo tipo armazon
+  IGUAL    FATA = Forramiento Alto tipo armazon
+  IGUAL    FXTA = Forramiento Auxiliar tipo armazon
+  IGUAL    FBTR = Forramiento bajo tipo recto
+  IGUAL    FXTR = Forramiento auxiliar tipo recto
+  IGUAL    ST = Estructura de isla
+  IGUAL    REP = Repisa
+  IGUAL    TAP = Repisa interior
+  IGUAL    VOL-3S = Repisa volada con 3 soportes
+  IGUAL    VOL-4S = Repisa volada con 4 soportes
+  IGUAL    VOL-5S = Repisa volada con 5 soportes
+  IGUAL    TAPADEC = Tapa Decorativa
+  IGUAL    TAPADECESP = Tapa Decorativa especial
+  IGUAL    TPL = Tapa losa incluye perfiles de fijación
+  IGUAL    TBZ = Tapa Base incluye patas plásticas
+  NUEVA    CAJA = Caja
+  IGUAL    ILUM = Iluminada
+  IGUAL    CR = Cornisa
+  -- 6_Mesones
+  NUEVA    PM-ES = Premesón tablero crudo, medida especial
+  IGUAL    MES = Meson
+  IGUAL    DIAM = Desayunador Diamante
+  DISTINTA GOTI-150P240 = Desayunador Gota Izquiedo 150cm de diámetro y 240cm de profundidad
+  IGUAL    GOTD-150P240 = Desayunador Gota Derecho 150cm de diámetro y 240cm de profundidad
+  DISTINTA GOTI-120P192 = Desayunador Gota Izquiedo 120cm de diámetro y 192cm de profundidad
+  IGUAL    GOTD-120P192 = Desayunador Gota Derecho 120cm de diámetro y 192cm de profundidad
+  DISTINTA GOTI-105P167 = Desayunador Gota Izquiedo 105cm de diámetro y 167cm de profundidad
+  IGUAL    GOTD-105P167 = Desayunador Gota Derecho 105cm de diámetro y 167cm de profundidad
+  DISTINTA GOTI-95P150 = Desayunador Gota Izquiedo 95cm de diámetro y 150cm de profundidad
+  IGUAL    GOTD-95P150 = Desayunador Gota Derecho 95cm de diámetro y 150cm de profundidad
+  IGUAL    CAJA-MES-BREAK300 = Desayunador extraible sistema breakfast 3000 x 940
+  IGUAL    CAJA-MES-BREAK180 = Desayunador extraible sistema breakfast 1800 x 940
+  IGUAL    CG-DES90P4H1.2 = Desayunador Caja de Granito
+  IGUAL    CG-DES12P4H1.0 = Desayunador Caja de Granito
+  IGUAL    CG-DES12.4P4H0.8 = Desayunador Caja de Granito
+  IGUAL    CAJA-MES-123X105X7.2-MQ = Desayunador Caja acabado decorativo
+  IGUAL    CAJA-MES-93X105X7.2-MQ = Desayunador Caja acabado decorativo
+  -- 6_Nomenclatura_Módulos_Auxiliar
+  IGUAL    R = Repisero / ROLLOS
+  IGUAL    E = Escobero / ESPECIERO
+  IGUAL    ACK-BL = Accesorio Kessebohmer Bandeja Lemans
+  IGUAL    BLA = Bandeja Lemans Color Blanco
+  IGUAL    ANT = Bandeja Lemans Antracita
+  DISTINTA P = Planchador / PORTAPLATOS
+  IGUAL    ACH-DS = Accesorio Hengel Despensa Simple
+  IGUAL    ACV-DS = Accesorio Vibo Despensa simple
+  IGUAL    ACH-DD = Accesorio Hengel Despensa Doble
+  IGUAL    ACF-DD = Accesorio FGV Despensa Doble
+  IGUAL    ACF-DX = Accesorio FGV Despensa Extraible
+  IGUAL    DM = Despensa Múltible
+  IGUAL    ACP = Accesorio Peka
+  IGUAL    ACP-LIM = Accesorio de limpieza Peka
+  IGUAL    BP = Bandeja Libell
+  IGUAL    VIN-HOR = Vinera Horizontal
+  IGUAL    V-D-D-D = Vacío - Despensa - Despensa - Despensa
+  IGUAL    DEF = Despensa fraccionada
+  IGUAL    REX = Repisa Extraible
+  IGUAL    HC = Horno combinado: mircoondas + horno
+  IGUAL    HT = Horno Triple. (Espacio adicional para calienta platos)
+  IGUAL    TEK = Módulo adaptado a electrodoméstico Teka
+  IGUAL    REJILLA = Rejilla de ventilación
+  IGUAL    PG = Puerta Giratoria: Puertas pocket herraje EXL / Puerta Giratoria Sistema EXL
+  IGUAL    REFRIG = Módulo para embutir refrigerador
+  IGUAL    G2I = 2 gavetas internas
+  NUEVA    INV = Puerta fraccionada Invertida
+  IGUAL    G1H16 = Gaveta inferior de horno altura 16 cm
+  IGUAL    G1H26 = Gaveta inferior de horno altura 26cm
+  IGUAL    G1H28 = Gaveta inferior de horno altura 28cm
+  IGUAL    G1H38 = Gaveta inferior de horno altura 38cm
+  IGUAL    C1 = Módulo con 1 tubo colgador
+  IGUAL    C2 = Módulo con 2 tubos colgadores
+  IGUAL    S/P = Sin Puertas
+  -- 7_Bastidores
+  DISTINTA BS = Bastidor
+  NUEVA    BSX = Bastidor
+  NUEVA    PLE = Plegable 2 Hojas
+  NUEVA    PLED = Plegable 4 Hojas
+  -- 7_Complementos Micro-Hornos
+  IGUAL    DEC = Acabado interno decorativo
+  IGUAL    STC = Estructura Corta
+  -- 7_Estructuras_mesones
+  IGUAL    ESTR-DES-A1 = Estructura para desayunador tipo A1
+  IGUAL    ESTR-DES-A2 = Estructura para desayunador tipo A2
+  IGUAL    ESTR-DES-A3 = Estructura para desayunador tipo A3
+  IGUAL    ESTR-DES-B1 = Estructura para desayunador tipo B1
+  IGUAL    ESTR-DES-B2 = Estructura para desayunador tipo B2
+  IGUAL    ESTR-DES-C1 = Estructura para desayunador tipo C1
+  IGUAL    ESTR-DES-C2 = Estructura para desayunador tipo C2
+  IGUAL    ESTR-DES-D1 = Estructura para desayunador tipo D1
+  IGUAL    ESTR-DES-D2 = Estructura para desayunador tipo D2
+  IGUAL    SOP80 = Soporte sobre mesón para estructura desayunador
+  -- 8_Accesorios_Herrajes_Unic
+  IGUAL    PIE AMIGO 30X25 = Pie de amigo ancho 25 alto 300 profundidad 250
+  IGUAL    PIE AMIGO 30X55 = Pie de amigo ancho 25 alto 300 profundidad 550
+  IGUAL    T. COLGADOR = Tubo colgador de closet
+  PATRON   AC-BD(MEDIDA)R = Base desayunador rectangular color acero inoxidable
+  PATRON   AC-BD(MEDIDA)RNE = Base desayunador rectangular color negro
+  IGUAL    AC-BASE ISLA = Base de isla ancho: 900 Profundidad: 600 Alto: 316
+  IGUAL    AC-BASE ISLA 105 = Base de isla ancho: 105 Profundidad: 600 Alto: 316
+  PATRON   AC-PATA-X-H(ALTURA) = Pata desayunador X
+  IGUAL    AC-PATA-CRUZ = Pata para desayunador en cruz
+  IGUAL    AC-PATA-H = Pata desayunador H
+  IGUAL    AC-SDLP = Soporte en L pintado H:16 Alto:220 Profundidad: 160
+  IGUAL    AC-SDLP40 = Soporte en L pintado H:16 Alto:300 Profundidad: 400
+  IGUAL    AC-SDTI = Soporte desayunador "T" color acero inoxidable
+  IGUAL    AC-SDTP = Soporte desayunador "T" pintado
+  IGUAL    AC-SDFI = Soporte tipo "F" color acero inoxidable
+  IGUAL    AC-SDII = Soporte desayunador "I". Color acero inoxidable
+  IGUAL    AC-SDIP = Soporte desayunador "I". Pintado
+  IGUAL    AC-SDHI = Soporte desayunador tipo "H". Color acero inoxidable
+  IGUAL    AC-SDHP = Soporte desayunador tipo "H". Pintado
+  IGUAL    AC-SDAP = Soporte desayunador tipo "A". Pintado
+  IGUAL    DES-SESTANTE = Desayunador Sestante
+  IGUAL    AC-BDP-P0.76H0.7 = Desayunador de estructura metálica y aglomerado para revestir con piedra
+  IGUAL    AC-BDP-P0.94H1.1 = Desayunador de estructura metálica y aglomerado para revestir con piedra
+  IGUAL    AC-PVT45H69.6 = Pata de vidrio. Ancho 45cm. Altura 69.6cm
+  IGUAL    AC-PVT60H69.6 = Pata de vidrio. Ancho 60cm. Altura 69.6cm
+  IGUAL    AC-PVT4588.6 = Pata de vidrio. Ancho 45cm. Altura 88.6cm
+  IGUAL    AC-PVT60H88.6 = Pata de vidrio. Ancho 60cm. Altura 88.6cm
+  IGUAL    AC-APN = Apoyapies Negro
+  IGUAL    PORTAPLATOS BLUM = Portaplatos Blum
+  -- 8_Modulación Country-Shaker
+  IGUAL    CT = Detalle Decorativo Estilo Shaker 2.0
+  -- 9_Modulación Aurora
+  IGUAL    AU = Detalle decorativo estilo Aurora
+  IGUAL    DESY = Desayunador
+  IGUAL    PATAE6-AU = Pata decoratuva estilo Aurora
+  -- 9_Zócalos
+  IGUAL    ZOCMEL = Zócalo de melamina
+  IGUAL    ZOCMEL2L = Zócalo de melamina 2 lados
+  IGUAL    ZOC-PER-ALU = Zócalo Perfil Aluminio
+  IGUAL    UNI-90-ZOC-PER-ALU = Unión de 90 grados para Zócalo Perfil Aluminio
+  IGUAL    UNI-180-ZOC-PER-ALU = Unión recta para Zócalo Perfil Aluminio
+  NUEVA    RPLAST = Riel plástica en zócalo
