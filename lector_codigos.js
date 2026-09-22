@@ -19,7 +19,7 @@ function obtenerNombre(cod) {
             if (interpretado.length > 0) return interpretado.join(" + ");
 
             // Divide por guiones para intentar traducir cada parte como respaldo.
-            return combinarTokensEspeciales(codigo.split("-").filter(Boolean)).map(parte => traducirToken(parte)).join(" + ");
+            return unirPartesConocidas(combinarTokensEspeciales(codigo.split("-").filter(Boolean))).map(parte => traducirToken(parte)).join(" + ");
         }
 
 function combinarTokensEspeciales(partes) {
@@ -85,8 +85,11 @@ function interpretarCodigoModulo(codigo) {
             const separado = separarCodigoPrincipalYAccesorios(codigo);
             const principal = separado.principal;
 
-            // Toma el resto como accesorios o condiciones adicionales.
-            const accesorios = separado.accesorios;
+            // Toma el resto como accesorios, juntando partes que forman una clave conocida (ACK-ELEV, C-H).
+            const accesorios = unirPartesConocidas(separado.accesorios);
+
+            // En Henzo/Duo, S y D despues de guion significan Simple y Doble (perfil gola).
+            const esHenzoODuo = /HZ|DUO/.test(codigo);
 
             // Primero intenta leer una nomenclatura conocida antes de H/P aunque tenga numeros internos.
             const compactoConToken = separarTokenConDetalleCompacto(principal);
@@ -94,7 +97,7 @@ function interpretarCodigoModulo(codigo) {
                 const descripcion = [traducirToken(compactoConToken.token)];
                 const detalles = interpretarDetalleCompacto(compactoConToken.detalle, compactoConToken.token);
                 descripcion.push(...detalles);
-                accesorios.forEach(accesorio => descripcion.push(traducirToken(accesorio)));
+                accesorios.forEach(accesorio => descripcion.push(traducirAccesorio(accesorio, esHenzoODuo)));
                 return descripcion.filter(Boolean);
             }
 
@@ -102,7 +105,7 @@ function interpretarCodigoModulo(codigo) {
             const match = principal.match(/^([A-Z]+(?:-[A-Z]+)*)(\d+(?:[.,]\d+)?)(.*)$/);
 
             // Si no coincide con formato de modulo, intenta traducir accesorios normales.
-            if (!match) return partes.map(parte => traducirToken(parte));
+            if (!match) return unirPartesConocidas(partes).map(parte => traducirToken(parte));
 
             // Extrae cada parte capturada.
             const [, tipo, ancho, detalleCompacto] = match;
@@ -129,7 +132,7 @@ function interpretarCodigoModulo(codigo) {
             }
 
             // Traduce accesorios despues de guiones.
-            accesorios.forEach(accesorio => descripcion.push(traducirToken(accesorio)));
+            accesorios.forEach(accesorio => descripcion.push(traducirAccesorio(accesorio, esHenzoODuo)));
 
             // Devuelve descripcion sin valores vacios.
             return descripcion.filter(Boolean);
@@ -220,6 +223,14 @@ function interpretarDetalleCompacto(detalle, tipo) {
                 if (resto.startsWith("IN")) {
                     partes.push("1 Interna");
                     resto = resto.slice(2);
+                    continue;
+                }
+
+                // Detecta despensas DE, DEF o DM antes de leer D como apertura derecha.
+                const despensa = resto.match(/^(DEF|DE|DM)(?![A-Z])/);
+                if (despensa) {
+                    partes.push(traducirToken(despensa[1]));
+                    resto = resto.slice(despensa[1].length);
                     continue;
                 }
 
@@ -476,6 +487,55 @@ function traducirAltura(altura) {
 
             // Devuelve descripcion clara.
             return `Altura ${codigoAltura} (${mm}mm)`;
+        }
+
+// Componentes de una letra: despues de un guion son accesorios de gaveta, no tipo, altura ni profundidad.
+const COMPONENTES_UNA_LETRA = {
+            C: "Cubertero",
+            H: "Cuchillero",
+            R: "Rollos",
+            S: "Subdivision",
+            O: "Ollero",
+            D: "Despensa",
+            P: "Portaplatos",
+            T: "Botellero",
+            E: "Especiero"
+        };
+
+// Traduce una parte escrita despues de guion (accesorio o componente).
+function traducirAccesorio(token, esHenzoODuo = false) {
+            const limpio = String(token || "").toUpperCase().trim();
+
+            if (esHenzoODuo && limpio === "S") return "Simple";
+            if (esHenzoODuo && limpio === "D") return "Doble";
+            if (COMPONENTES_UNA_LETRA[limpio]) return COMPONENTES_UNA_LETRA[limpio];
+
+            return traducirToken(limpio);
+        }
+
+// Junta partes separadas por guion cuando juntas forman una clave de la DB, como ACK-ELEV o CU-LI.
+function unirPartesConocidas(partes) {
+            const resultado = [];
+
+            for (let i = 0; i < partes.length; i++) {
+                let usadas = 1;
+                let unida = partes[i];
+
+                // Prueba primero la union mas larga (hasta 4 partes).
+                for (let n = Math.min(4, partes.length - i); n >= 2; n--) {
+                    const candidato = partes.slice(i, i + n).join("-").toUpperCase();
+                    if (DB[candidato]) {
+                        unida = candidato;
+                        usadas = n;
+                        break;
+                    }
+                }
+
+                resultado.push(unida);
+                i += usadas - 1;
+            }
+
+            return resultado;
         }
 
 function traducirToken(token) {

@@ -262,7 +262,7 @@
         /* Barra de contadores y avisos. */
         .stats-bar {
             display: none;
-            align-items: flex-start;
+            align-items: center;
             gap: 10px;
             flex-wrap: wrap;
             padding: 11px 28px;
@@ -691,6 +691,70 @@
             background: #cfe5d7;
         }
 
+        /* Mantiene toda la fila con error del mismo tono (antes quedaba a rayas). */
+        tr.row-error td:nth-child(odd):not(:first-child) {
+            background: #f5dfda;
+        }
+
+        /* En filas con error el indicador cambia de check verde a X roja. */
+        tr.row-error .row-check {
+            background: #f6d5cf;
+            color: #a3392d;
+        }
+
+        tr.row-error .row-check::before {
+            content: "\2715";
+        }
+
+        /* Boton pequeno para mostrar solo muebles con error. */
+        .btn-small {
+            min-height: 28px;
+            padding: 4px 12px;
+            font-size: 0.78rem;
+        }
+
+        /* Estado activo del filtro de errores. */
+        .btn-small.active {
+            background: var(--danger-soft);
+            border-color: #dfbbb4;
+            color: var(--danger);
+        }
+
+        /* Estado inicial clickeable para cargar archivo. */
+        .empty-drop {
+            display: block;
+            max-width: 620px;
+            margin: 24px auto;
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            background: rgba(255, 253, 248, 0.6);
+            cursor: pointer;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .empty-drop:hover {
+            border-color: var(--accent);
+            background: #fffdf8;
+        }
+
+        /* Capa que aparece al arrastrar un archivo sobre la pagina. */
+        body.arrastrando::after {
+            content: "Suelta el archivo Excel o CSV aqui";
+            position: fixed;
+            inset: 12px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px dashed var(--accent);
+            border-radius: 14px;
+            background: rgba(255, 253, 248, 0.92);
+            color: var(--accent-dark);
+            font-size: 1.3rem;
+            font-weight: 750;
+            pointer-events: none;
+        }
+
         /* Mensaje inicial o sin resultados. */
         .empty {
             padding: 58px 18px;
@@ -757,9 +821,26 @@
             }
 
             .controls {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+                position: static;
+                grid-template-columns: repeat(6, minmax(0, 1fr));
                 padding-top: 12px;
                 padding-bottom: 12px;
+            }
+
+            /* Filtros de a dos por fila y los tres botones en una sola fila. */
+            .controls .f-input {
+                grid-column: span 3;
+                min-width: 0;
+            }
+
+            .controls .btn {
+                grid-column: span 2;
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
+            .decoder {
+                position: static;
             }
 
             .decoder {
@@ -844,7 +925,6 @@
                 flex: 1 1 100%;
             }
 
-            .controls,
             .decoder,
             .compare-panel {
                 grid-template-columns: 1fr;
@@ -852,8 +932,17 @@
                 padding-right: 12px;
             }
 
-            .btn {
+            .controls {
+                gap: 8px;
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            .controls .btn {
                 width: 100%;
+                font-size: 0.76rem;
+                white-space: normal;
+                line-height: 1.15;
             }
 
             .stats-bar {
@@ -986,6 +1075,8 @@
             <span>Mostrando <strong id="vis-count">0</strong> de <strong id="total-count">0</strong> muebles</span>
             <span>Mostrando <strong id="vis-piece-count">0</strong> de <strong id="total-piece-count">0</strong> piezas</span>
         </span>
+        <!-- Muestra solo los muebles con error despues de validar. -->
+        <button type="button" class="btn btn-secondary btn-small" id="btn-solo-errores" style="display:none" aria-pressed="false">Ver solo errores</button>
         <!-- Advertencia sobre columnas o lectura. -->
         <span class="chip warn" id="chip-warn" style="display:none"></span>
     </section>
@@ -996,8 +1087,8 @@
         <div id="avisos"></div>
         <!-- Contenedor de la lista de OP y muebles. -->
         <div id="lista">
-            <!-- Estado inicial antes de cargar datos. -->
-            <div class="empty">
+            <!-- Estado inicial antes de cargar datos; tambien abre el selector de archivo. -->
+            <label class="empty empty-drop" for="upload">
                 <!-- Icono de tabla vacia. -->
                 <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                     <rect x="3" y="3" width="18" height="18" rx="2"></rect>
@@ -1006,8 +1097,9 @@
                 <!-- Titulo del estado vacio. -->
                 <h3>Sin datos cargados</h3>
                 <!-- Mensaje de ayuda inicial. -->
-                <p>Sube un archivo Excel (.xlsx/.xls) o CSV para comenzar.</p>
-            </div>
+                <p>Haz click aqui o arrastra un archivo Excel (.xlsx/.xls) o CSV.</p>
+                <p>Se valida automaticamente al cargarlo.</p>
+            </label>
         </div>
     </main>
     <script src="./lector_codigos.js"></script>

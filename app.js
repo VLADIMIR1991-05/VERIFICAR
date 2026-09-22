@@ -124,6 +124,9 @@
         // Guarda la posicion del navegador de errores.
         let INDICE_ERROR_ACTUAL = -1;
 
+        // Indica si solo se muestran los muebles con error.
+        let SOLO_ERRORES = false;
+
         // Referencias a elementos principales para no buscarlos repetidamente.
         const uploadEl = document.getElementById("upload");
         const listaEl = document.getElementById("lista");
@@ -149,6 +152,14 @@
 
         // Conecta el boton de validacion.
         document.getElementById("btn-validar").addEventListener("click", validarTodo);
+        document.getElementById("btn-validar").addEventListener("click", actualizarBotonSoloErrores);
+
+        // Muestra u oculta los muebles correctos.
+        const btnSoloErroresEl = document.getElementById("btn-solo-errores");
+        btnSoloErroresEl.addEventListener("click", alternarSoloErrores);
+
+        // Permite arrastrar un archivo a cualquier parte de la pagina.
+        conectarArrastrarYSoltar();
 
         // Permite saltar de error en error al hacer click en el contador.
         chipErrEl.addEventListener("click", irAlSiguienteError);
@@ -176,8 +187,9 @@
             // Si no hay archivo, termina sin hacer nada.
             if (!file) return;
 
-            // Reinicia el estado de validacion.
+            // Reinicia el estado de validacion y el filtro de errores.
             VALIDADO = false;
+            SOLO_ERRORES = false;
 
             // Limpia avisos anteriores.
             limpiarAvisos();
@@ -208,6 +220,11 @@
 
                     // Dibuja los datos en pantalla.
                     renderizar(DATA_GLOBAL);
+
+                    // Valida automaticamente para no depender del boton.
+                    validarTodo();
+                    actualizarBotonSoloErrores();
+                    filtrarUniversal();
                 })
                 .catch(error => {
                     // Muestra un mensaje claro si el archivo no se pudo interpretar.
@@ -1305,7 +1322,8 @@
             // Recorre cada tarjeta y decide si mostrarla.
             contenedores.forEach(div => {
                 const texto = div.dataset.universal || "";
-                const mostrar = filtros.every(filtro => texto.includes(filtro));
+                const mostrar = filtros.every(filtro => texto.includes(filtro)) &&
+                    (!SOLO_ERRORES || div.classList.contains("err"));
                 const piezas = Number.parseInt(div.dataset.piezas, 10) || 0;
                 piezasTotal += piezas;
                 div.style.display = mostrar ? "" : "none";
@@ -1323,6 +1341,59 @@
 
             // Actualiza contadores.
             actualizarStats(visibles, contenedores.length, piezasVisibles, piezasTotal);
+        }
+
+        // Activa o desactiva la vista de solo muebles con error.
+        function alternarSoloErrores() {
+            SOLO_ERRORES = !SOLO_ERRORES;
+            actualizarBotonSoloErrores();
+            filtrarUniversal();
+        }
+
+        // Muestra el boton de errores solo si la validacion encontro fallas.
+        function actualizarBotonSoloErrores() {
+            const hayErrores = document.querySelector(".mueble-container.err") !== null;
+            if (!hayErrores) SOLO_ERRORES = false;
+
+            btnSoloErroresEl.style.display = hayErrores ? "" : "none";
+            btnSoloErroresEl.textContent = SOLO_ERRORES ? "Ver todos" : "Ver solo errores";
+            btnSoloErroresEl.classList.toggle("active", SOLO_ERRORES);
+            btnSoloErroresEl.setAttribute("aria-pressed", String(SOLO_ERRORES));
+        }
+
+        // Carga el archivo soltado sobre la pagina usando el mismo flujo del boton.
+        function conectarArrastrarYSoltar() {
+            let contador = 0;
+
+            const tieneArchivos = event => [...(event.dataTransfer?.types || [])].includes("Files");
+
+            document.addEventListener("dragenter", event => {
+                if (!tieneArchivos(event)) return;
+                event.preventDefault();
+                contador++;
+                document.body.classList.add("arrastrando");
+            });
+
+            document.addEventListener("dragover", event => {
+                if (tieneArchivos(event)) event.preventDefault();
+            });
+
+            document.addEventListener("dragleave", () => {
+                contador = Math.max(0, contador - 1);
+                if (contador === 0) document.body.classList.remove("arrastrando");
+            });
+
+            document.addEventListener("drop", event => {
+                if (!tieneArchivos(event)) return;
+                event.preventDefault();
+                contador = 0;
+                document.body.classList.remove("arrastrando");
+
+                const file = event.dataTransfer.files[0];
+                if (!file) return;
+
+                manejarArchivoSeleccionado({ target: { files: [file] } });
+            });
         }
 
         // Limpia los filtros y vuelve a mostrar todos los muebles.
