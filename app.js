@@ -1624,7 +1624,17 @@
             }
 
             // Muestra la lectura usando el mismo traductor de las tarjetas.
-            resultado.textContent = obtenerNombre(codigo);
+            const lineas = [obtenerNombre(codigo)];
+
+            // Agrega coleccion y avisos de fabricacion cuando aplican.
+            if (typeof obtenerAvisosColeccion === "function") {
+                const infoColeccion = obtenerAvisosColeccion(codigo);
+                if (infoColeccion.coleccion) lineas.push(`Coleccion: ${infoColeccion.coleccion}`);
+                infoColeccion.avisos.forEach(aviso => lineas.push(`Aviso: ${aviso}`));
+                infoColeccion.notas.forEach(nota => lineas.push(`Nota: ${nota}`));
+            }
+
+            resultado.textContent = lineas.join("\n");
         }
 
         // Obtiene el primer valor no vacio de una lista de columnas posibles.

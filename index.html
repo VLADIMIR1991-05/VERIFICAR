@@ -706,6 +706,28 @@
             content: "\2715";
         }
 
+        /* Avisos de coleccion: informativos, no cuentan como error. */
+        .avisos-coleccion {
+            margin: 0 0 10px;
+            padding: 8px 12px 8px 26px;
+            border: 1px solid #edd18b;
+            border-radius: 7px;
+            background: var(--warning-soft);
+            color: #725322;
+            font-size: 0.8rem;
+            line-height: 1.45;
+        }
+
+        .badge-coleccion {
+            background: #efe6d2;
+            color: #6b5530;
+        }
+
+        /* Permite varias lineas en el consultor de codigos. */
+        .decoder-result {
+            white-space: pre-line;
+        }
+
         /* Boton pequeno para mostrar solo muebles con error. */
         .btn-small {
             min-height: 28px;
@@ -1104,6 +1126,7 @@
     </main>
     <script src="./lector_codigos.js"></script>
     <script src="./reglas_validacion.js"></script>
+    <script src="./reglas_coleccion.js"></script>
     <script src="./app.js"></script>
 </body>
 </html>

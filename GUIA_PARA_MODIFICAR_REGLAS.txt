@@ -23,7 +23,13 @@ ARCHIVOS IMPORTANTES
    Aqui estan las reglas de validacion de medidas.
    Este es el archivo principal para aumentar condiciones.
 
-6. app.js
+6. reglas_coleccion.js
+   Avisos amarillos por coleccion y limites de fabricacion (ancho maximo
+   de puertas y gavetas, Duo sin altos, LBA solo en altos, alturas especiales).
+   No cambian medidas ni cuentan como error. Cada regla se apaga en
+   REGLAS_COLECCION poniendo activa: false.
+
+7. app.js
    Maneja pantalla, carga de Excel, filtros, renderizado y comparacion.
    Normalmente no debes tocarlo para agregar reglas de medidas.
 

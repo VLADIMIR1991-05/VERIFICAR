@@ -32,6 +32,9 @@ function validarTodo() {
 
                 // Actualiza badge de estado.
                 actualizarBadgeEstado(card, errores.length === 0);
+
+                // Agrega avisos de coleccion (amarillos, no cuentan como error).
+                if (typeof mostrarAvisosColeccion === "function") mostrarAvisosColeccion(card);
             });
 
             // Actualiza chips de resumen.
@@ -179,6 +182,9 @@ function limpiarEstadoValidacion(card) {
             // Quita badge de estado anterior.
             const existingBadge = card.querySelector(".badge-status");
             if (existingBadge) existingBadge.remove();
+
+            // Quita avisos y badge de coleccion anteriores.
+            card.querySelectorAll(".avisos-coleccion, .badge-coleccion").forEach(el => el.remove());
         }
 
 function mostrarErroresEnTarjeta(card, errores) {
@@ -200,6 +206,31 @@ function mostrarErroresEnTarjeta(card, errores) {
 
             // Muestra la caja.
             validationList.classList.add("show");
+        }
+
+function mostrarAvisosColeccion(card) {
+            const resultado = obtenerAvisosColeccion(card.dataset.codpuro || "");
+
+            if (resultado.coleccion) {
+                const badge = document.createElement("span");
+                badge.className = "badge badge-coleccion";
+                badge.textContent = resultado.coleccion;
+                card.querySelector(".badges").appendChild(badge);
+            }
+
+            const mensajes = [...resultado.avisos, ...resultado.notas];
+            if (mensajes.length === 0) return;
+
+            const box = document.createElement("div");
+            box.className = "avisos-coleccion";
+            const ul = document.createElement("ul");
+            mensajes.forEach(mensaje => {
+                const li = document.createElement("li");
+                li.textContent = mensaje;
+                ul.appendChild(li);
+            });
+            box.appendChild(ul);
+            card.querySelector(".validation-list").insertAdjacentElement("afterend", box);
         }
 
 function actualizarBadgeEstado(card, ok) {
