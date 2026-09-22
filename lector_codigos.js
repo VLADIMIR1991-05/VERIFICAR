@@ -264,7 +264,7 @@ function traducirTipoModulo(tipo) {
                 B: "Modulo Bajo",
                 A: "Modulo Alto",
                 S: "Modulo Suspendido",
-                BS: "Modulo Bajo Suspendido",
+                BS: "Bastidor",
                 MBS: "Mueble Bajo Suspendido",
                 BAR: "Bar",
                 X: "Modulo Auxiliar",
@@ -378,10 +378,24 @@ function obtenerDimensionesModulo(cod) {
                 const profundidad = profundidadCodigoCompleto || extraerProfundidadMm(detalle);
                 resultado.profundidad = profundidad || (tipoUsaNumeroComoProfundidad(tipo) ? profundidadTotalDesdeNumeroP(Number.parseFloat(String(ancho).replace(",", "."))) : profundidadPorDefecto(tipo));
                 resultado.profundidadEstructura = profundidad ? profundidadEstructuraDesdeCodigo(codigo, profundidad, tipo) : resultado.profundidad;
+
+                // Altos sobre refrigerador (RF) usan profundidad de bajo: 600 total, 580 de estructura.
+                if (!profundidad && ["A", "EA"].includes(tipo) && /RF(?![A-Z])/.test(detalle)) {
+                    resultado.profundidad = 600;
+                    resultado.profundidadEstructura = 580;
+                }
+
+                // Anchos de 3 cifras sin punto en modulos (B643, X765) son decimas de cm: 64.3 y 76.5 cm.
+                if (TIPOS_MODULO_ANCHO_DECIMAL.includes(tipo) && resultado.ancho > 2500) {
+                    resultado.ancho = Math.round(resultado.ancho / 10);
+                }
             }
 
             return resultado;
         }
+
+// Tipos de modulo que nunca pasan de 250 cm de ancho.
+const TIPOS_MODULO_ANCHO_DECIMAL = ["B", "A", "S", "X", "BS", "MBS", "MB", "EB", "EA", "CL", "CM", "BSCL"];
 
 function convertirNumeroCodigoAMm(valor) {
             const numero = Number.parseFloat(String(valor || "").replace(",", "."));
@@ -405,7 +419,7 @@ function extraerAlturaMm(texto) {
         }
 
 function extraerProfundidadMm(texto) {
-            const match = String(texto || "").toUpperCase().match(/(?<![A-Z\/])P(\d+(?:[.,]\d+)?)/);
+            const match = String(texto || "").toUpperCase().match(/(?<![A-CE-HJ-QS-Z\/])P(\d+(?:[.,]\d+)?)/);
             if (!match) return 0;
 
             const numero = Number.parseFloat(match[1].replace(",", "."));
@@ -416,7 +430,8 @@ function extraerProfundidadMm(texto) {
 
 function profundidadTotalDesdeNumeroP(numero) {
             if (!Number.isFinite(numero)) return 0;
-            if (numero >= 10 && Number.isInteger(numero)) return Math.round(numero * 10);
+            // P de 10 o mas va en cm (P13.5 = 135, P55 = 550); menor a 10 en decimetros (P6.7 = 670).
+            if (numero >= 10) return Math.round(numero * 10);
             if (numero >= 2 && numero <= 4 && Number.isInteger(numero)) return Math.round(numero * 100 + 20);
             return Math.round(numero < 20 ? numero * 100 : numero * 10);
         }
@@ -427,16 +442,19 @@ function tipoUsaNumeroComoProfundidad(tipo) {
         }
 
 function profundidadEstructuraDesdeCodigo(texto, profundidadTotal, tipo = "") {
-            const match = String(texto || "").toUpperCase().match(/(?<![A-Z\/])P(\d+(?:[.,]\d+)?)/);
+            const match = String(texto || "").toUpperCase().match(/(?<![A-CE-HJ-QS-Z\/])P(\d+(?:[.,]\d+)?)/);
             const numero = match ? Number.parseFloat(match[1].replace(",", ".")) : 0;
             const profundidad = Number(profundidadTotal) || 0;
             const familia = String(tipo || "").toUpperCase();
 
             if (!profundidad) return 0;
             if (String(texto || "").toUpperCase().includes("S/P")) return profundidad;
-            if (familia === "ST") return profundidad;
+            // Estructuras ST usan la profundidad total (P3 = 340, P4 = 440).
+            if (familia === "ST") return (numero === 3 || numero === 4) ? profundidad + 20 : profundidad;
             if (numero === 2) return profundidad - 20;
-            if ((numero === 3 || numero === 4) || numero >= 20) return profundidad;
+            if (numero === 3 || numero === 4) return profundidad;
+            // P de 20 o mas (P55, P67) descuenta 20 mm solo en modulos; complementos (PM, TPL...) usan la total.
+            if (numero >= 20 && !TIPOS_MODULO_ANCHO_DECIMAL.includes(familia)) return profundidad;
             return profundidad > 20 ? profundidad - 20 : 0;
         }
 
@@ -444,7 +462,8 @@ function profundidadPorDefecto(tipo) {
             const familia = String(tipo || "").toUpperCase();
 
             if (["A", "EA"].includes(familia)) return 320;
-            if (["BS", "MBS", "S", "ES"].includes(familia)) return 530;
+            if (["BS", "BSCL"].includes(familia)) return 75;
+            if (["MBS", "S", "ES"].includes(familia)) return 530;
             if (familia === "MB") return 530;
             if (familia === "ST") return 600;
             if (["B", "X", "CM", "BAR", "CL", "CLOSET", "ECL", "EB", "EX"].includes(familia)) return 580;

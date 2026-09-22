@@ -21,7 +21,7 @@ const DB = {
     "AU": "Detalle Decorativo Estilo Aurora",
     "BF": "Bisagra Frenada / BISAGRA FRENO",
     "BP": "Bandeja Libell",
-    "BS": "Modulo Bajo Suspendido",
+    "BS": "Bastidor",
     "C1": "Módulo con 1 tubo colgador",
     "C2": "Módulo con 2 tubos colgadores",
     "CF": "Freno Cajon FGV",

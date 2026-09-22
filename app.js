@@ -4,10 +4,10 @@
 // La lectura de nomenclatura esta en lector_codigos.js.
 
 // Columnas que el sistema intenta leer del archivo.
-        const COLS_DESEADAS = ["op", "Tipo", "cod_mueble", "jov", "cod_pieza", "cant_piezas", "medida1", "medida2", "l1", "l2", "c1", "c2", "nomueble", "material_nombre", "ubicacion", "ubi"];
+        const COLS_DESEADAS = ["op", "Tipo", "cod_mueble", "jov", "cod_pieza", "cant_piezas", "medida1", "medida2", "l1", "l2", "c1", "c2", "nomueble", "material_nombre", "ubicacion", "ubi", "linea"];
 
         // Columnas que se muestran en la tabla; op, cod_mueble, Tipo, material y ubicacion se usan fuera de la tabla.
-        const COLS_TABLA = COLS_DESEADAS.filter(col => !["op", "cod_mueble", "Tipo", "material_nombre", "ubicacion", "ubi"].includes(col));
+        const COLS_TABLA = COLS_DESEADAS.filter(col => !["op", "cod_mueble", "Tipo", "material_nombre", "ubicacion", "ubi", "linea"].includes(col));
 
         // Etiquetas visibles para columnas internas.
         const LABEL_COLUMNAS = {
@@ -91,7 +91,8 @@
             nomueble: ["nomueble", "no_mueble", "numueble", "no mueble", "numero_mueble", "numeromueble", "nro_mueble", "nromueble", "ubicacion", "ubi"],
             material_nombre: ["material_nombre", "materialnombre", "nombre_material", "nombrematerial", "descripcion_material", "descripcionmaterial", "material", "tablero"],
             ubicacion: ["ubicacion", "ubi"],
-            ubi: ["ubi", "ubicacion"]
+            ubi: ["ubi", "ubicacion"],
+            linea: ["linea", "linea_producto", "coleccion"]
         };
 
         // Margen permitido en milimetros al comparar medidas.
@@ -1149,6 +1150,7 @@
             card.dataset.tpm = tieneTokenCodigo(cod, "TPM") ? "1" : "0";
             card.dataset.tipoModulo = dimensionesModulo.tipo || "";
             card.dataset.codpuro = cod;
+            card.dataset.linea = obtenerPrimerValor(items, ["linea"]).toUpperCase();
             card.dataset.tipo = tipoVal.toUpperCase();
             card.dataset.op = op;
             card.dataset.universal = textoUniversal;
@@ -1628,7 +1630,7 @@
 
             // Agrega coleccion y avisos de fabricacion cuando aplican.
             if (typeof obtenerAvisosColeccion === "function") {
-                const infoColeccion = obtenerAvisosColeccion(codigo);
+                const infoColeccion = obtenerAvisosColeccion(codigo, { incluirNotasAltura: true });
                 if (infoColeccion.coleccion) lineas.push(`Coleccion: ${infoColeccion.coleccion}`);
                 infoColeccion.avisos.forEach(aviso => lineas.push(`Aviso: ${aviso}`));
                 infoColeccion.notas.forEach(nota => lineas.push(`Nota: ${nota}`));

@@ -11,6 +11,7 @@ function validarTodo() {
             // Contadores de resultado.
             let countOk = 0;
             let countErr = 0;
+            let countSinRegla = 0;
 
             // Recorre cada tarjeta de mueble.
             document.querySelectorAll(".mueble-container").forEach(card => {
@@ -25,20 +26,23 @@ function validarTodo() {
                     card.classList.add("err");
                     mostrarErroresEnTarjeta(card, errores);
                     countErr++;
+                } else if (card.dataset.sinRegla === "1") {
+                    card.classList.add("sinregla");
+                    countSinRegla++;
                 } else {
                     card.classList.add("ok");
                     countOk++;
                 }
 
                 // Actualiza badge de estado.
-                actualizarBadgeEstado(card, errores.length === 0);
+                actualizarBadgeEstado(card, errores.length === 0, card.dataset.sinRegla === "1" && errores.length === 0);
 
                 // Agrega avisos de coleccion (amarillos, no cuentan como error).
                 if (typeof mostrarAvisosColeccion === "function") mostrarAvisosColeccion(card);
             });
 
             // Actualiza chips de resumen.
-            chipOkEl.textContent = `${countOk} OK`;
+            chipOkEl.textContent = countSinRegla ? `${countOk} OK · ${countSinRegla} sin regla` : `${countOk} OK`;
             chipErrEl.textContent = `${countErr} con errores`;
             chipOkEl.style.display = countOk > 0 ? "" : "none";
             chipErrEl.style.display = countErr > 0 ? "" : "none";
@@ -71,7 +75,11 @@ function validarMueble(card) {
             const ancho = Number.parseInt(card.dataset.ancho, 10) || 0;
 
             // Lee alto y profundidad interpretadas desde el codigo.
-            const alto = Number.parseInt(card.dataset.alto, 10) || 0;
+            const linea = card.dataset.linea || "";
+
+            // Closets de la linea MOU tienen la estructura 70 mm mas baja (laterales 2050 en H11).
+            const esClosetMou = /^MOU/.test(linea) && ["CL", "CM"].includes(card.dataset.tipoModulo || "");
+            const alto = (Number.parseInt(card.dataset.alto, 10) || 0) - (esClosetMou ? 70 : 0);
             const profundidadTotal = Number.parseInt(card.dataset.profundidad, 10) || 0;
             const profundidadBase = Number.parseInt(card.dataset.profundidadEstructura, 10) || Number.parseInt(card.dataset.profundidad, 10) || 0;
             const tieneTpm = card.dataset.tpm === "1";
@@ -94,6 +102,12 @@ function validarMueble(card) {
 
             // Cuenta filas que si entraron en una regla de validacion.
             let filasValidadas = 0;
+
+            // Tableros sueltos: el codigo del mueble es un codigo de material (TRBLBL18, LNLN18).
+            if (/^[A-Z]{4,8}\d{2}$/.test(cod)) {
+                card.dataset.sinRegla = "1";
+                return errores;
+            }
 
             // Recorre filas de piezas.
             card.querySelectorAll("tbody tr").forEach((tr, index) => {
@@ -122,6 +136,7 @@ function validarMueble(card) {
                     contextoOrejas,
                     contextoFrenteFalso,
                     tipo: card.dataset.tipoModulo || "",
+                    linea,
                     cod
                 });
 
@@ -143,12 +158,8 @@ function validarMueble(card) {
             });
 
             // Si ninguna pieza pudo compararse, marca la tabla como error.
-            if (filasValidadas === 0) {
-                const detalle = !ancho && !alto && !profundidad
-                    ? " No pude detectar dimensiones suficientes desde el codigo del mueble."
-                    : " Ninguna fila entro en una regla de validacion.";
-                errores.push(`No se pudo validar "${cod}".${detalle}`);
-            }
+            // Si ninguna pieza tiene regla, no es un error: se marca como "sin regla".
+            card.dataset.sinRegla = filasValidadas === 0 ? "1" : "0";
 
             if (contextoOrejas.emparejadas && !contextoOrejas.descuentoEn) {
                 errores.push(`OTP/OA deben trabajar en pareja: si estan en la misma cantidad, el descuento de 3 mm debe aplicarse completo en todas las OTP o completo en todas las OA.`);
@@ -160,7 +171,7 @@ function validarMueble(card) {
 
 function limpiarEstadoValidacion(card) {
             // Quita clases de estado.
-            card.classList.remove("err", "ok");
+            card.classList.remove("err", "ok", "sinregla");
 
             // Quita marcas de filas con error.
             card.querySelectorAll(".row-error").forEach(row => row.classList.remove("row-error"));
@@ -209,7 +220,8 @@ function mostrarErroresEnTarjeta(card, errores) {
         }
 
 function mostrarAvisosColeccion(card) {
-            const resultado = obtenerAvisosColeccion(card.dataset.codpuro || "");
+            const resultado = obtenerAvisosColeccion(card.dataset.codpuro || "", { linea: card.dataset.linea || "" });
+            if (card.dataset.sinRegla === "1") resultado.notas.push("Sin regla de medidas para este codigo: no se comparo ninguna pieza.");
 
             if (resultado.coleccion) {
                 const badge = document.createElement("span");
@@ -233,7 +245,7 @@ function mostrarAvisosColeccion(card) {
             card.querySelector(".validation-list").insertAdjacentElement("afterend", box);
         }
 
-function actualizarBadgeEstado(card, ok) {
+function actualizarBadgeEstado(card, ok, sinRegla = false) {
             // Busca contenedor de badges.
             const badgesEl = card.querySelector(".badges");
 
@@ -241,10 +253,11 @@ function actualizarBadgeEstado(card, ok) {
             const badge = document.createElement("span");
 
             // Asigna clases segun estado.
-            badge.className = `badge ${ok ? "badge-ok" : "badge-err"} badge-status`;
+            badge.className = `badge ${sinRegla ? "badge-sinregla" : ok ? "badge-ok" : "badge-err"} badge-status`;
+            badge.title = sinRegla ? "Ninguna pieza de este codigo tiene regla de medidas todavia" : "";
 
             // Asigna texto visible.
-            badge.textContent = ok ? "OK" : "Error";
+            badge.textContent = sinRegla ? "Sin regla" : ok ? "OK" : "Error";
 
             // Agrega badge a la tarjeta.
             badgesEl.appendChild(badge);
@@ -350,22 +363,30 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
             if (esPuerta(nombre)) {
                 if (!modulo.ancho || !modulo.alto) return { ok: true, mensaje: "", valida: false };
 
-                const cantidadPuertas = modulo.ancho > 619 ? 2 : 1;
+                // Abatibles (AB-SIM, AB-DES...) llevan una sola puerta del ancho completo.
+                const esAbatible = /(^|[-+])AB-|AB-(SIM|COM|GIR|PLE|DES)/.test(String(modulo.cod || "").toUpperCase());
+                const cantidadPuertas = esAbatible ? 1 : modulo.ancho > 619 ? 2 : 1;
                 const anchoPuertaCodigo = extraerAnchoPuertaDesdeCodigo(modulo.cod);
                 const anchoPuerta = anchoPuertaCodigo ? anchoPuertaCodigo - 3 : Math.round(modulo.ancho / cantidadPuertas) - 3;
                 const extraNovak = tieneNovak(modulo.cod) ? 110 : 0;
-                const descuentoHenzo = tieneHenzo(modulo.cod) ? 35 : 0;
+                const descuentoHenzo = tieneHenzo(modulo.cod, modulo.linea) ? 35 : 0;
                 const contextoFF = modulo.contextoFrenteFalso || {};
                 const descuentoFrenteFalso = contextoFF.tieneFF ? 152 : 0;
                 const fugaFrenteFalso = contextoFF.tieneFF ? 38 : 0;
                 const altoPuerta = extraNovak
                     ? modulo.alto + extraNovak
                     : modulo.alto - descuentoHenzo - descuentoFrenteFalso - fugaFrenteFalso - 3;
-                const ok = coincideParMedidas(medida1, medida2, altoPuerta, anchoPuerta);
+                // Auxiliares y closets pueden llevar puertas fraccionadas: 947 abajo y el resto arriba.
+                const altosPuerta = ["X", "CL", "CM"].includes(modulo.tipo) && !extraNovak
+                    ? [altoPuerta, 947, modulo.alto - 953]
+                    : [altoPuerta];
+                const ok = altosPuerta.some(alto => coincideParMedidas(medida1, medida2, alto, anchoPuerta));
 
                 return {
                     ok,
-                    mensaje: extraNovak
+                    mensaje: altosPuerta.length > 1
+                        ? `deberia medir ${altosPuerta.join(" o ")} x ${anchoPuerta} mm como puerta (entera o fraccionada 947 + resto).`
+                        : extraNovak
                         ? `deberia medir ${altoPuerta} x ${anchoPuerta} mm como puerta Novak, sumando 110 mm solo a la altura.`
                         : descuentoFrenteFalso
                             ? `deberia medir ${altoPuerta} x ${anchoPuerta} mm como puerta con frente falso FF, descontando FF, fuga extra de 38 mm y 1.5 mm por lado.`
@@ -437,6 +458,18 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                     mensaje: `deberia tener ancho ${anchoFrente} mm como frente de cajon, descontando 1.5 mm por lado.`,
                     valida: true,
                     objetivos: [anchoFrente]
+                };
+            }
+
+            const reglaSistema = medidasSistemaGaveta(nombre, modulo);
+            if (reglaSistema) {
+                const ok = reglaSistema.anchos.some(ancho => reglaSistema.alturas.some(altura => coincideParMedidas(medida1, medida2, ancho, altura)));
+
+                return {
+                    ok,
+                    mensaje: `deberia medir ${reglaSistema.ancho} x ${reglaSistema.alturas.join("/")} mm como ${reglaSistema.nombre} (ancho interno - ${reglaSistema.descuento}).`,
+                    valida: true,
+                    objetivos: [...reglaSistema.anchos, ...reglaSistema.alturas]
                 };
             }
 
@@ -632,10 +665,14 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                     };
                 }
 
-                const ok = coincideParMedidas(medida1, medida2, modulo.anchoInterno, modulo.profundidad);
+                // En modulos con tiradera interna (TI) la base puede ir 22 mm menos profunda.
+                const profundidadesBase = tieneTiraderaInterna(modulo.cod) && esBase(nombre)
+                    ? [modulo.profundidad, modulo.profundidad - 22]
+                    : [modulo.profundidad];
+                const ok = profundidadesBase.some(prof => coincideParMedidas(medida1, medida2, modulo.anchoInterno, prof));
                 return {
                     ok,
-                    mensaje: `deberia medir ${modulo.anchoInterno} x ${modulo.profundidad} mm segun ancho interno y profundidad.`,
+                    mensaje: `deberia medir ${modulo.anchoInterno} x ${profundidadesBase.join(" o ")} mm segun ancho interno y profundidad.`,
                     valida: true,
                     objetivos: [modulo.anchoInterno, modulo.profundidad]
                 };
@@ -659,7 +696,8 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
             if (esMaletera(nombre)) {
                 if (!modulo.anchoInterno) return { ok: true, mensaje: "", valida: false };
 
-                const profundidadMaletera = profundidadRepisaMovil(modulo);
+                const profundidadBase = Number(modulo.profundidad) || 0;
+                const profundidadMaletera = profundidadBase > 110 ? profundidadBase - 110 + (esModuloAlto(modulo) ? 40 : 0) : profundidadBase;
                 const ok = coincideParMedidas(medida1, medida2, modulo.anchoInterno, profundidadMaletera);
 
                 return {
@@ -851,9 +889,10 @@ function obtenerGrosorRespaldoDesdeCard(card) {
 
 function profundidadRepisaMovil(modulo) {
             const profundidad = Number(modulo.profundidad) || 0;
-            const ajusteAlto = esModuloAlto(modulo) ? 40 : 0;
 
-            return profundidad > 110 ? profundidad - 110 + ajusteAlto : profundidad;
+            // Segun produccion real: modulos P3 (hasta 350) descuentan 70 mm, los demas 110 mm.
+            if (profundidad <= 110) return profundidad;
+            return profundidad <= 350 ? profundidad - 70 : profundidad - 110;
         }
 
 function esModuloAlto(modulo) {
@@ -872,7 +911,10 @@ function tieneNivelador(cod) {
                 .some(parte => parte === "NIV");
         }
 
-function tieneHenzo(cod) {
+function tieneHenzo(cod, linea = "") {
+            // La linea del archivo (KUHZ, MCUHZ, BUHZ...) tambien indica coleccion Henzo.
+            if (/HZ/.test(String(linea || "").toUpperCase().split("+")[0])) return true;
+
             return String(cod || "")
                 .toUpperCase()
                 .split(/[-+]/)
@@ -897,6 +939,7 @@ function altoBaseOreja(modulo) {
             const alto = Number(modulo && modulo.alto) || 0;
             if (!alto) return 0;
 
+            // Las orejas solo descuentan Henzo cuando el codigo trae HZ (no por la linea).
             const descuentoHenzo = tieneHenzo(modulo.cod) ? 35 : 0;
             return alto - descuentoHenzo;
         }
@@ -1095,6 +1138,40 @@ function esFrenteFalso(pieza) {
             const normal = normalizarPieza(pieza);
             const partes = normal.split("-").filter(Boolean);
             return normal === "FF" || partes.includes("FF") || normal.includes("FRENTEFALSO");
+        }
+
+// Piezas de sistemas de gaveta, medidas contra el ancho interno (ancho - 2 espesores - 1).
+// Deducido de 20 despieces reales. FI = gaveta interna tras puerta: descuenta 37 mm mas.
+const SISTEMAS_GAVETA = {
+    SS: { nombre: "Slim", FON: { d: 19, h: [490] }, POS: { d: 40, h: [63, 101, 199, 300, 380, 435] }, FRI: { d: 3, h: [110, 240] }, FRI_FI: { d: 34, h: [135] } },
+    SB: { nombre: "SB", FON: { d: [31, 25], h: [498, 530] }, POS: { d: [31, 25], h: [100, 199, 70] }, FRI: { d: 3, h: [100] }, FRI_FI: { d: 34, h: [135] } },
+    SM: { nombre: "Metabox", FON: { d: 31, h: [483, 498] }, POS: { d: 31, h: [71, 199] }, FRI: { d: 63, h: [61] } },
+    SL: { nombre: "Legrabox", FON: { d: 34, h: [490, 260] }, POS: { d: 37, h: [148, 63] } },
+    SI: { nombre: "Sistema invisible", FON: { d: 41, h: [475, 425] }, POS: { d: 41, h: [105] } },
+    MRV: { nombre: "Merivobox", FON: { d: 51, h: [474, 480] }, POS: { d: 51, h: [83, 184, 300] } }
+};
+
+function medidasSistemaGaveta(pieza, modulo) {
+            const match = String(pieza || "").match(/^(FON|POS|FRI)-(SS|SB|SM|SL|SI|MRV)$/);
+            if (!match || !modulo.anchoInterno) return null;
+
+            const [, parte, sistemaCodigo] = match;
+            const sistema = SISTEMAS_GAVETA[sistemaCodigo];
+            const esInterna = /FI(?![A-Z])/.test(String(modulo.cod || "").toUpperCase());
+            const regla = (esInterna && sistema[`${parte}_FI`]) || sistema[parte];
+            if (!regla) return null;
+
+            const extraInterna = esInterna && !sistema[`${parte}_FI`] ? 37 : 0;
+            const descuentos = (Array.isArray(regla.d) ? regla.d : [regla.d]).map(d => d + extraInterna);
+            const nombres = { FON: "fondo", POS: "posicion", FRI: "friso" };
+
+            return {
+                nombre: `${nombres[parte]} ${sistema.nombre}`,
+                descuento: descuentos.join(" o "),
+                anchos: descuentos.map(d => modulo.anchoInterno - d),
+                ancho: modulo.anchoInterno - descuentos[0],
+                alturas: regla.h
+            };
         }
 
 function esFondoMerivobox(pieza) {
