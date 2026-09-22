@@ -1,6 +1,7 @@
 ==============================================================================
 REVISION DEL EXCEL "Nomenclaturas y codigos Madeval" CONTRA LA BASE db_codigos.js
-Fecha: 2026-09-22   -   NADA DE ESTO ESTA APLICADO TODAVIA
+Fecha: 2026-09-22   -   APLICADO: secciones 4.1, 5.1 y 6 (y errata "Gratito").
+NO aplicado: 4.2 (pendiente de confirmar), 4.3, 4.4, 5.2, 5.3.
 ==============================================================================
 
 1. RESUMEN
