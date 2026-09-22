@@ -552,9 +552,12 @@ function descripcionAlturaDB(token) {
             return parteAltura || descripcion;
         }
 
+let clavesDbOrdenadas = null;
+
 function buscarTokenConocido(texto) {
-            // Ordena claves largas primero para evitar partir codigos compuestos.
-            const claves = Object.keys(DB).sort((a, b) => b.length - a.length);
+            // Ordena claves largas primero para evitar partir codigos compuestos (se calcula una sola vez).
+            if (!clavesDbOrdenadas) clavesDbOrdenadas = Object.keys(DB).sort((a, b) => b.length - a.length);
+            const claves = clavesDbOrdenadas;
 
             // Devuelve la primera clave que coincida al inicio.
             return claves.find(clave => texto.startsWith(clave)) || "";

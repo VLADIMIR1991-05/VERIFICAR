@@ -6,11 +6,14 @@ ARCHIVOS IMPORTANTES
    Pagina principal recomendada para publicar en GitHub Pages.
 
 2. validador_despiece_mejorado.html
-   Misma pagina principal, con el nombre que ya estabas usando.
+   Solo redirige a index.html (se conserva para no romper enlaces viejos).
 
 3. db_codigos.js
    Base de datos de abreviaturas y nombres.
    Aqui se agregan significados, no formulas de medidas.
+   Formato: "CODIGO": "Descripcion / Otra descripcion",
+   No pegar precios, costos, cantidades ni columnas completas de Excel:
+   solo el codigo y su significado. Guardar el archivo en UTF-8.
 
 4. lector_codigos.js
    Lee el codigo del mueble.
@@ -99,8 +102,9 @@ Funciones utiles:
 
 SI ALGO NO FUNCIONA
 
-Hay una copia de respaldo:
-validador_despiece_mejorado.backup.html
+Las versiones anteriores quedan guardadas en el historial de GitHub
+(pestana "History" de cada archivo). Desde ahi se puede ver o restaurar
+cualquier version, por eso no hace falta guardar copias como
+archivo1.1js o archivo.backup.html dentro del repositorio.
 
 Tambien puedes desactivar una regla comentandola o apagando su detector.
-

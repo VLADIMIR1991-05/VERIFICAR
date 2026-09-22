@@ -248,11 +248,6 @@ function marcarMedidasValidas(tr, objetivos) {
             });
         }
 
-function obtenerProfundidadEsperada(tipo) {
-            // Usa la misma regla de profundidad de estructura que muestra el encabezado.
-            return profundidadPorDefecto(tipo) || 580;
-        }
-
 function validarMedidasPieza(pieza, medida1, medida2, modulo) {
             const nombre = normalizarPieza(pieza);
 
@@ -867,14 +862,6 @@ function alturaUtilModulo(modulo) {
             return tieneNivelador(modulo.cod) ? alto - 8 : alto;
         }
 
-function altoOrejaTipoPuerta(modulo) {
-            const alto = Number(modulo && modulo.alto) || 0;
-            if (!alto) return 0;
-
-            const descuentoHenzo = tieneHenzo(modulo.cod) ? 35 : 0;
-            return alto - descuentoHenzo - 3;
-        }
-
 function altoBaseOreja(modulo) {
             const alto = Number(modulo && modulo.alto) || 0;
             if (!alto) return 0;
@@ -1303,16 +1290,6 @@ function coincideParMedidas(medida1, medida2, esperado1, esperado2) {
 
 function formatearMedida(valor) {
             return Number.isFinite(valor) ? String(valor) : "-";
-        }
-
-function esPiezaDeAncho(pieza) {
-            // Base, techo y ajustes suelen depender del ancho total.
-            return pieza.includes("BASE") || pieza.includes("TECHO") || pieza.startsWith("AJ_");
-        }
-
-function esPiezaEstructural(pieza) {
-            // Piezas estructurales principales.
-            return pieza.startsWith("AJ_") || pieza.includes("BAS") || pieza.includes("TEC") || pieza.startsWith("LAT");
         }
 
 function coincideMedida(valor, esperado) {

@@ -936,37 +936,7 @@
             return value !== undefined && value !== null ? String(value).trim() : "";
         }
 
-        // Devuelve el nombre descriptivo de un codigo.
-// Recompone tokens que contienen guion pero deben leerse como una sola regla.
-// Normaliza S-P como S/P porque siempre significa Sin Puerta.
-// Separa el codigo principal aunque el tipo tenga guiones, como IS-CUB126H85P6-SI.
-// Interpreta el codigo tecnico principal y sus accesorios.
-// Separa casos como LATRH1 o LX2LH243.6P8, donde H/P marca altura/profundidad.
-// Interpreta detalles pegados despues del ancho, como IH36 o H12P6.7S/P.
-// Traduce el tipo inicial del modulo.
-// Traduce apertura I/D.
-// Traduce codigos compactos de repisas como 1RP.
-// Traduce codigos compactos de gavetas como G6.
-// Devuelve altura por defecto segun la familia del modulo.
-// Traduce codigos de profundidad como P6.7 en milimetros.
-// Obtiene dimensiones compactas desde el codigo, como 625X950X600.
-// Obtiene dimensiones numericas del modulo desde el codigo.
-// Convierte numeros de nomenclatura a milimetros: 50 -> 500, 62.5 -> 625.
-// Extrae altura en milimetros desde un texto que contenga Hnumero.
-// Extrae profundidad en milimetros desde un texto que contenga Pnumero.
-// Convierte el numero despues de P a profundidad total.
-// Convierte profundidad total de codigo a profundidad de estructura para validar piezas.
-// Devuelve profundidad de estructura cuando el codigo no trae P explicita.
-// Alturas por defecto para piezas compactas que no tienen ancho de modulo, como LATRH1 o LXTRP7.
-// Profundidades por defecto para laterales decorativos y piezas compactas.
-// Traduce codigos de altura como H4, H5 o H36.
-// Traduce un token usando primero el diccionario completo.
-// Detecta Tiradera Interna como token separado o al final del codigo.
-// Detecta un token separado por guion o signo mas dentro del codigo.
-// Devuelve una descripcion de DB sin repetir partes separadas por slash.
-// Devuelve solo la descripcion de altura cuando la DB incluye tambien el numero suelto.
-// Busca el token mas largo conocido al inicio de un texto compacto.
-// Renderiza todos los muebles agrupados por OP.
+        // Renderiza todos los muebles agrupados por OP.
         function renderizar(data) {
             // Limpia la lista anterior.
             listaEl.textContent = "";
@@ -1619,50 +1589,7 @@
             return texto ? `(${texto})` : "";
         }
 
-        // Valida la estructura de todos los muebles renderizados.
-// Salta al siguiente mueble con falla cada vez que se pulsa el contador de errores.
-// Valida un solo mueble y devuelve lista de errores.
-// Limpia clases y mensajes de una validacion anterior.
-// Muestra errores dentro de la tarjeta.
-// Actualiza el badge OK/Error de una tarjeta.
-// Agrega un check pequeno a la primera celda de una fila validada.
-// Agrega checks junto a MEDIDA1/MEDIDA2 cuando coinciden con valores esperados.
-// Devuelve profundidad esperada segun tipo de mueble.
-// Valida una pieza contra las medidas esperadas del modulo.
-// Extrae el grosor desde JOB/JOV en filas de base, techo o ajustes.
-// Extrae el grosor del material guardado en la tarjeta.
-// Profundidad por defecto para repisas moviles segun la estructura del modulo.
-// Detecta codigos donde solo se pudo leer ancho y una segunda dimension.
-// Extrae un numero de grosor desde codigos/materiales como CPCP18CO.
-// Piezas cuyo JOB/JOV define el grosor general del modulo.
-// Normaliza nombres de piezas para detectar familias.
-// Detecta bases y techos.
-// Detecta puertas principales PT sin confundir piezas especiales de puerta abatible.
-// Detecta frentes de cajon, incluso cuando vienen con prefijo especial como ESP4FC.
-// Detecta zocalos de melamina o laca.
-// Detecta orejas tipo puerta OTP.
-// Detecta repisas portacopas, que manejan profundidad propia de 280 mm.
-// Detecta maleteras.
-// Detecta repisas tapa, REPT, REPTA y variantes.
-// Detecta bases con codigos completos o abreviados, como BAS, BA o E-BAS-DEC-TI.
-// Detecta techos con codigos completos o abreviados.
-// Detecta bases con tiradera interna, como BAS-TI o E-BAS-DEC-TI.
-// Detecta ajustes AJ.
-// Detecta laterales principales.
-// Detecta respaldos.
-// Detecta repisas moviles, que descuentan 1 mm adicional de ancho.
-// Detecta repisas normales o fijas sin confundirlas con repisas moviles.
-// Detecta piezas planas que solo necesitan ancho y alto, como forramientos FXTR.
-// Detecta la pieza TPM, que tiene descuento propio de profundidad.
-// Compara un par de medidas sin importar el orden en la tabla.
-// Muestra una medida o guion si no es numerica.
-// Detecta si una pieza debe validar ancho.
-// Detecta si una pieza debe validar profundidad.
-// Compara una medida con una esperada usando tolerancia.
-// Obtiene texto de una celda segun su columna.
-// Obtiene numero de una celda segun su columna.
-// Detecta ancho desde el codigo del mueble.
-// Construye texto de busqueda para los filtros universales.
+        // Construye texto de busqueda para los filtros universales.
         function construirTextoUniversal(op, cod, nombre, items) {
             // Une datos principales.
             const base = [op, cod, nombre].join(" ");
