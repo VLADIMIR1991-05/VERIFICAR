@@ -11,7 +11,10 @@ const DESCRIPCION_PIEZAS = {
     BAS: "Base", "BAS-TI": "Base con tiradera interna", TEC: "Techo",
     AJP: "Ajuste AJP", AJPS: "Ajuste AJPS", AJF: "Ajuste AJF", AJPI: "Ajuste AJPI",
     RESP: "Respaldo", REPMM: "Repisa movil", REPMP: "Repisa movil", REPF: "Repisa fija",
-    MALE: "Maletera", PT: "Puerta", FC: "Frente de cajon"
+    MALE: "Maletera", PT: "Puerta", FC: "Frente de cajon",
+    LDD: "Lateral decorativo derecho", LDI: "Lateral decorativo izquierdo",
+    ZAPAP: "Zapatera", ZPIN: "Zapatero inclinado", LTE3: "Lateral torre de cajones",
+    "D-LATI": "Lateral izquierdo (vestidor)", "D-LATD": "Lateral derecho (vestidor)"
 };
 
 const NOMBRE_SISTEMA = { SS: "Slim", SB: "SB", SM: "Metabox", SL: "Legrabox", SI: "Sistema invisible", MRV: "Merivobox" };
@@ -23,6 +26,7 @@ const CANTOS_TIPICOS = {
     AJP: [0, 0, 0, 0], AJPS: [0, 0, 2, 0], AJF: [0, 0, 2, 0], AJPI: [0, 0, 2, 0],
     RESP: [0, 0, 0, 0], REPMM: [0, 0, 2, 2], REPMP: [0, 0, 2, 2], REPF: [0, 0, 1, 0], MALE: [0, 0, 1, 0],
     PT: [0, 0, 2, 2], FC: [0, 0, 2, 2],
+    "D-LATI": [0, 0, 1, 0], "D-LATD": [0, 0, 1, 0], ZAPAP: [0, 0, 1, 0], ZPIN: [0, 0, 1, 0], LTE3: [0, 0, 1, 0],
     "FON-SS": [0, 0, 0, 0], "POS-SS": [0, 0, 2, 0], "FRI-SS": [0, 0, 2, 2],
     "FON-MRV": [0, 0, 0, 0], "POS-MRV": [0, 0, 2, 0],
     "FON-SM": [0, 0, 0, 0], "POS-SM": [0, 0, 2, 0], "FRI-SM": [0, 0, 2, 0],
@@ -43,6 +47,14 @@ const POSICIONES_GAVETA = {
     SI: { 1: [105], 2: [105, 105], 3: [105, 105, 105], 4: [105, 105, 105, 105] }
 };
 const FONDO_METABOX = { 1: [498], 2: [483, 498], 3: [483, 483, 498], 4: [483, 483, 483, 498] };
+
+// Comodin de closet (CM) por sistema: altura de posicion, friso del frente interno,
+// alto del frente de cajon y laterales de torre LTE3 (aprendido de produccion).
+const COMODIN_POR_SISTEMA = {
+    SS: { posicion: 63, posicionRepisero: 101, friso: "FRI-SB", frente: 140, frenteRepisero: 143, lte3: true },
+    SB: { posicion: 100, posicionRepisero: 100, friso: "FRI-SB", frente: 175, frenteRepisero: 175, lte3: false },
+    SI: { posicion: 105, posicionRepisero: 105, friso: "FRI-SI", frente: 175, frenteRepisero: 175, lte3: true, lte3Medida: [760, 518] }
+};
 
 // Altura de frentes de cajon para bajos H4 (760).
 const FRENTES_CAJON_H4 = { G1: [757], G2: [342, 342], G3: [170, 170, 342], G4: [187, 187, 187, 187], G2IN: [722], G3IN: [342, 342] };
@@ -79,8 +91,14 @@ function analizarCodigoParaDespiece(cod, linea = "") {
                 tiraderaInterna: partes.includes("TI"),
                 fregadero: /^[A-Z]+[\d.,]+[ID]?(H[\d.,]+)?(P[\d.,]+)?F(?!F)/.test(principal),
                 sinPuertas: lectura.includes("SIN PUERTA"),
-                repisero: /[\d.]R(?![A-Z])|RP\d|[\d.]R[SP-]|C\dR/.test(principal) || /^CL[\d.]+(H\d+)?R/.test(principal),
+                repisero: /[\d.]R(?![A-Z])|RP\d|[\d.]R[SP-]|C\dR/.test(principal) || /^(CL|CM)[\d.]+[ID]?(H\d+)?R/.test(principal),
                 colgador: /C[12]/.test(principal),
+                colgadorSimple: /C1/.test(principal),
+                zapatero: /ZH/.test(principal),
+                frenteInterno: /FI/.test(principal) || partes.includes("FI"),
+                // Closets abiertos (S/P) usan laterales D-LATI / D-LATD (menos linea MOU);
+                // en vestidor VU tambien los de puerta de aluminio (AL).
+                lateralVestidor: (codigo.includes("S/P") && !/^MOU/.test(lineaBase)) || (/^VU/.test(lineaBase) && /AL/.test(principal)),
                 lectura
             };
         }
@@ -92,9 +110,9 @@ function recetaModulo(info, opciones) {
             const { tipo, dims } = info;
             // Laterales Henzo, salvo gavetas de la linea MCUHZ (van con laterales normales).
             const usaLateralHenzo = info.henzo && ["B", "MB", "MBS", "EB"].includes(tipo) && !(info.gavetas && /^MCU/.test(info.lineaBase));
-            const latI = usaLateralHenzo ? "LATI-HZ" : "LATI";
+            const latI = usaLateralHenzo ? "LATI-HZ" : info.lateralVestidor && ["CL", "CM", "ECL"].includes(tipo) ? "D-LATI" : "LATI";
             const repisaMovil = info.nombreRepisaMovil;
-            const latD = latI === "LATI-HZ" ? "LATD-HZ" : "LATD";
+            const latD = latI.replace("LATI", "LATD");
             const casco = () => { agregar(latI, 1); agregar(latD, 1); };
 
             if (tipo === "BS" || tipo === "BSCL") {
@@ -141,20 +159,48 @@ function recetaModulo(info, opciones) {
                     agregar("REPF", 1);
                     agregar(repisaMovil, dims.alto >= 2120 ? 5 : Math.max(0, Math.round(dims.alto / 400) - 1));
                 }
-            } else if (["CL", "CM"].includes(tipo)) {
+            } else if (["CL", "CM", "ECL"].includes(tipo)) {
+                // Closets (produccion real): casco 15, maletera/repisas/zapatera 18.
                 casco();
                 agregar("BAS", 1);
                 agregar("TEC", 1);
                 agregar("AJP", 2, { alturaAjuste: 60 });
                 agregar("RESP", 1);
-                agregar("MALE", 1);
-                if (info.repisero && !info.colgador) agregar("REPMP", 4);
+                // C2 (dos tubos) en altura 2120 no lleva maletera: no queda espacio.
+                const sinMaletera = /C2/.test(info.codigo) && dims.alto - (info.closetMou ? 70 : 0) <= 2120;
+                if (!sinMaletera) agregar("MALE", 1);
+                if (info.zapatero) agregar("ZPIN", 7);
+                else if (info.repisero) agregar("REPMP", tipo === "CM" ? 2 : 4);
+                else if (info.colgadorSimple && tipo !== "CM") agregar("ZAPAP", 1);
+                if (tipo === "CM") {
+                    // Comodin: repisa fija sobre 4 gavetas (Slim por defecto).
+                    agregar("REPF", 1);
+                    const sistema = COMODIN_POR_SISTEMA[info.sistema] ? info.sistema : "SS";
+                    const reglaCm = COMODIN_POR_SISTEMA[sistema];
+                    // Slim: posicion 63 con frente interno o colgador C1; 101 en repisero sin FI.
+                    const alturaPosicion = info.frenteInterno || info.colgadorSimple ? reglaCm.posicion : reglaCm.posicionRepisero;
+                    for (let i = 0; i < 4; i++) {
+                        agregar(`FON-${sistema}`, 1);
+                        agregar(`POS-${sistema}`, 1, { alturaSistema: alturaPosicion });
+                        // Friso del frente interno (en Slim sale como FRI-SB).
+                        if (info.frenteInterno) agregar(reglaCm.friso, 1, { alturaSistema: 135, medidaComo: `FRI-${sistema}` });
+                    }
+                    if (info.frenteInterno && reglaCm.lte3) {
+                        // Laterales de la torre de cajones (medida aprendida, no depende del ancho).
+                        const nota = "medida aprendida de produccion, por confirmar";
+                        if (reglaCm.lte3Medida) agregar("LTE3", 2, { medidaFija: reglaCm.lte3Medida, nota });
+                        else if (dims.alto >= 2310) agregar("LTE3", 1, { medidaFija: [727, 472], espesorFijo: 36, nota });
+                        else agregar("LTE3", 2, { medidaFija: [757, 502], nota });
+                    } else if (!info.frenteInterno && opciones.incluirFrentes) {
+                        agregar("FC", 4, { alturaFrente: info.colgadorSimple ? reglaCm.frente : reglaCm.frenteRepisero, nota: "altura aprendida de produccion, por confirmar" });
+                    }
+                }
             } else {
                 return null;
             }
 
-            // Piezas del sistema de gavetas.
-            if (info.gavetas && info.sistema) {
+            // Piezas del sistema de gavetas (el comodin CM ya las agrego arriba).
+            if (info.gavetas && info.sistema && tipo !== "CM") {
                 const tabla = POSICIONES_GAVETA[info.sistema] || {};
                 const alturas = (info.gavetaInterna && tabla[`${info.gavetas}IN`]) || tabla[info.gavetas] || [];
                 alturas.forEach((altura, i) => {
@@ -166,8 +212,8 @@ function recetaModulo(info, opciones) {
             }
 
             // Frentes (solo cuando los frentes van en melamina y en este despiece).
-            if (opciones.incluirFrentes && !info.sinPuertas) {
-                if (info.gavetas) {
+            if (opciones.incluirFrentes && !info.sinPuertas && !(tipo === "CM" && !info.frenteInterno)) {
+                if (info.gavetas && tipo !== "CM") {
                     const claveFrentes = `G${info.gavetas}${info.gavetaInterna ? "IN" : ""}`;
                     const alturas = dims.alto === 760 ? FRENTES_CAJON_H4[claveFrentes] : null;
                     if (alturas) alturas.forEach(altura => agregar("FC", 1, { alturaFrente: altura }));
@@ -189,8 +235,12 @@ function calcularMedidasGeneradas(item, modulo) {
             const regla = validarMedidasPieza(item.pieza, 1, 1, modulo);
             const objetivos = (regla && regla.objetivos) || [];
 
+            if (item.medidaFija) {
+                return { largo: item.medidaFija[0], ancho: item.medidaFija[1], formula: "medida fija aprendida de produccion" };
+            }
+
             if (/^(FON|POS|FRI)-/.test(item.pieza)) {
-                const sistema = medidasSistemaGaveta(item.pieza, modulo);
+                const sistema = medidasSistemaGaveta(item.medidaComo || item.pieza, modulo);
                 if (!sistema) return null;
                 return { largo: sistema.anchos[0], ancho: item.alturaSistema || sistema.alturas[0], formula: `ancho interno - ${sistema.anchos.length > 1 ? sistema.descuento.split(" o ")[0] : sistema.descuento}` };
             }
@@ -211,7 +261,8 @@ function calcularMedidasGeneradas(item, modulo) {
 // opciones: { grosorCasco, grosorRespaldo, grosorRepisas, grosorFrentes, incluirFrentes, cantidad }
 function generarDespiece(cod, opciones = {}) {
             const op = {
-                grosorCasco: Number(opciones.grosorCasco) || 18,
+                // Closets siempre casco 15; cocina y bano 18 (si no se indica otro).
+                grosorCasco: Number(opciones.grosorCasco) || (/^(CL|CM|ECL)$/.test(obtenerDimensionesModulo(normalizarSinPuerta(String(cod || "").toUpperCase())).tipo || "") ? 15 : 18),
                 grosorRespaldo: Number(opciones.grosorRespaldo) || 6,
                 grosorRepisas: Number(opciones.grosorRepisas) || 18,
                 grosorFrentes: Number(opciones.grosorFrentes) || 18,
@@ -258,7 +309,8 @@ function generarDespiece(cod, opciones = {}) {
 
             const espesorDe = pieza => {
                 if (pieza === "RESP") return op.grosorRespaldo;
-                if (/^REP|^MALE/.test(pieza)) return op.grosorRepisas;
+                // Repisas, maletera, zapateras y frisos de gaveta van en el grosor de repisas (18).
+                if (/^REP|^MALE|^ZAP|^ZPIN|^FRI-/.test(pieza)) return op.grosorRepisas;
                 if (/^(PT|FC)$/.test(pieza)) return op.grosorFrentes;
                 if (/^(FON|POS|FRI)-/.test(pieza)) return op.grosorCasco;
                 return op.grosorCasco;
@@ -280,13 +332,18 @@ function generarDespiece(cod, opciones = {}) {
                     return;
                 }
 
+                // Lateral decorativo: LDD / LDI reemplazan al lateral de ese lado.
+                let nombrePieza = item.pieza;
+                if (/LATD$/.test(item.pieza) && tieneTokenCodigo(info.codigo, "LDD")) nombrePieza = "LDD";
+                if (/LATI$/.test(item.pieza) && tieneTokenCodigo(info.codigo, "LDI")) nombrePieza = "LDI";
+
                 piezas.push({
-                    pieza: item.pieza,
-                    descripcion: DESCRIPCION_PIEZAS[item.pieza] || descripcionPiezaSistema(item.pieza),
+                    pieza: nombrePieza,
+                    descripcion: DESCRIPCION_PIEZAS[nombrePieza] || descripcionPiezaSistema(nombrePieza),
                     cant: cant * op.cantidad,
                     largo: Math.round(medidas.largo * 10) / 10,
                     ancho: Math.round(medidas.ancho * 10) / 10,
-                    espesor: espesorDe(item.pieza),
+                    espesor: item.espesorFijo || espesorDe(item.pieza),
                     cantos: CANTOS_TIPICOS[item.pieza] || [0, 0, 0, 0],
                     formula: medidas.formula,
                     nota: item.nota || ""

@@ -708,6 +708,35 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                 };
             }
 
+            // Zapatera de closet (C1): ancho interno - 1 x 320 (esquineros ECL a veces al ancho interno).
+            if (/^ZAPAP/.test(nombre)) {
+                if (!modulo.anchoInterno) return { ok: true, mensaje: "", valida: false };
+
+                const largos = [modulo.anchoInterno - 1, modulo.anchoInterno];
+                const ok = largos.some(largo => coincideParMedidas(medida1, medida2, largo, 320));
+
+                return {
+                    ok,
+                    mensaje: `deberia medir ${largos[0]} x 320 mm como zapatera, descontando laterales y 1 mm.`,
+                    valida: true,
+                    objetivos: [largos[0], 320]
+                };
+            }
+
+            // Zapatero inclinado de closet (ZH): ancho interno x 300.
+            if (/^ZPIN/.test(nombre)) {
+                if (!modulo.anchoInterno) return { ok: true, mensaje: "", valida: false };
+
+                const ok = coincideParMedidas(medida1, medida2, modulo.anchoInterno, 300);
+
+                return {
+                    ok,
+                    mensaje: `deberia medir ${modulo.anchoInterno} x 300 mm como zapatero inclinado.`,
+                    valida: true,
+                    objetivos: [modulo.anchoInterno, 300]
+                };
+            }
+
             if (esMaletera(nombre)) {
                 if (!modulo.anchoInterno) return { ok: true, mensaje: "", valida: false };
 

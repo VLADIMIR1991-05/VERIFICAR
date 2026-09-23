@@ -94,7 +94,7 @@ function mostrarFichaCodigo() {
             const previa = generarDespiece(codigo, {});
             if (previa.piezas.length) {
                 const resumen = previa.piezas.map(p => `${p.cant} ${p.pieza}`).join(" · ");
-                contenedor.appendChild(crearElemento("h3", "ficha-subtitulo", "Piezas que genera (casco 18, respaldo 6)"));
+                contenedor.appendChild(crearElemento("h3", "ficha-subtitulo", `Piezas que genera (casco ${previa.modulo ? previa.modulo.grosor : 18}, respaldo 6)`));
                 contenedor.appendChild(crearElemento("p", "ficha-resumen", resumen));
             } else if (previa.avisos.length) {
                 contenedor.appendChild(crearElemento("p", "ficha-resumen", previa.avisos[0]));
@@ -132,7 +132,8 @@ function leerCodigosDelFormulario() {
 function leerOpcionesGenerador() {
             const frentes = document.getElementById("gen-frentes").value;
             const opciones = {
-                grosorCasco: Number(document.getElementById("gen-casco").value) || 18,
+                // Vacio = automatico: closets 15, cocina y bano 18.
+                grosorCasco: Number(document.getElementById("gen-casco").value) || 0,
                 grosorRespaldo: Number(document.getElementById("gen-respaldo").value) || 6,
                 grosorRepisas: Number(document.getElementById("gen-repisas").value) || 18,
                 grosorFrentes: Number(document.getElementById("gen-frentes-grosor").value) || 18,
