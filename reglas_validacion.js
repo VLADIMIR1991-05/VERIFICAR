@@ -77,11 +77,16 @@ function validarMueble(card) {
             // Lee alto y profundidad interpretadas desde el codigo.
             const linea = card.dataset.linea || "";
 
-            // Closets de la linea MOU tienen la estructura 70 mm mas baja (laterales 2050 en H11).
-            const esClosetMou = /^MOU/.test(linea) && ["CL", "CM", "BSCL"].includes(card.dataset.tipoModulo || "");
-            const alto = (Number.parseInt(card.dataset.alto, 10) || 0) - (esClosetMou ? 70 : 0);
-            const profundidadTotal = Number.parseInt(card.dataset.profundidad, 10) || 0;
-            const profundidadBase = Number.parseInt(card.dataset.profundidadEstructura, 10) || Number.parseInt(card.dataset.profundidad, 10) || 0;
+            // Ajustes por linea: MOU (closets 70 mm mas bajos si no hay H) y Cubik (bajos 690 x 540).
+            const dimsLinea = ajustarDimensionesPorLinea({
+                tipo: card.dataset.tipoModulo || "",
+                alto: Number.parseInt(card.dataset.alto, 10) || 0,
+                profundidad: Number.parseInt(card.dataset.profundidad, 10) || 0,
+                profundidadEstructura: Number.parseInt(card.dataset.profundidadEstructura, 10) || 0
+            }, cod, linea);
+            const alto = dimsLinea.alto;
+            const profundidadTotal = dimsLinea.profundidad;
+            const profundidadBase = dimsLinea.profundidadEstructura || dimsLinea.profundidad;
             const tieneTpm = card.dataset.tpm === "1";
             const profundidad = profundidadBase;
 
@@ -292,11 +297,41 @@ function marcarMedidasValidas(tr, objetivos) {
             });
         }
 
+// Envoltura: piezas engrosadas E3 (TAPAE3, LBE3, REPE3...) van en 2 piezas de 18 mm
+// pedidas 30 mm mas grandes por lado para refilar despues de pegar (o 1 pieza de 36 exacta).
 function validarMedidasPieza(pieza, medida1, medida2, modulo) {
+            const resultado = validarMedidasPiezaBase(pieza, medida1, medida2, modulo);
+            const nombre = normalizarPieza(pieza);
+            if (!/E3/.test(nombre) || /^LTE3/.test(nombre) || !resultado.valida || resultado.ok) return resultado;
+
+            const conRefilado = validarMedidasPiezaBase(pieza, medida1 - 30, medida2 - 30, modulo);
+            if (conRefilado.ok) {
+                return { ...conRefilado, mensaje: `${conRefilado.mensaje} Engrosado E3: 2 piezas de 18 con 30 mm extra por lado para refilar.` };
+            }
+            return {
+                ...resultado,
+                mensaje: `${resultado.mensaje} Si es engrosado E3 en 2 piezas de 18, cada medida lleva 30 mm mas para refilar.`
+            };
+        }
+
+function validarMedidasPiezaBase(pieza, medida1, medida2, modulo) {
             const nombre = normalizarPieza(pieza);
 
             if (!Number.isFinite(medida1) || !Number.isFinite(medida2)) {
                 return { ok: true, mensaje: "", valida: false };
+            }
+
+            // Esquinero de closet en L (ECL110DP70, ECL80x80): piezas en L.
+            const esquinero = medidasEsquineroL(modulo);
+            if (esquinero && /^(TECL|BASL|RESP)/.test(nombre)) {
+                const opciones = /^RESP/.test(nombre) ? esquinero.respaldos : esquinero.tapas;
+                const ok = opciones.some(([a, b]) => coincideParMedidas(medida1, medida2, a, b));
+                return {
+                    ok,
+                    mensaje: `deberia medir ${opciones.map(o => o.join(" x ")).join(" o ")} mm como pieza de esquinero en L (segundo lado ${esquinero.ladoB}).`,
+                    valida: true,
+                    objetivos: opciones[0]
+                };
             }
 
             // Friso del zapatero del sistema invisible: alto 150, ancho como el friso interno.
@@ -319,7 +354,8 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
 
             if (esTapaDecorativa(nombre)) {
                 const medidaA = modulo.ancho || modulo.anchoInterno;
-                const medidaB = modulo.profundidad || modulo.alto;
+                // La tapa usa la profundidad total del codigo (TAPADEC130P10 = 100), sin descuento de estructura.
+                const medidaB = modulo.profundidadTotal || modulo.profundidad || modulo.alto;
                 if (!medidaA || !medidaB) return { ok: true, mensaje: "", valida: false };
 
                 const ok = coincideParMedidas(medida1, medida2, medidaA, medidaB);
@@ -356,11 +392,13 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                 const medidaB = usaProfundidadDelCodigo ? profundidadPlano : (modulo.ancho || profundidadPlano);
                 if (!medidaA || !medidaB) return { ok: true, mensaje: "", valida: false };
 
-                const ok = coincideParMedidas(medida1, medida2, medidaA, medidaB);
+                // Panel LXTR: 20 mm mas profundo que la P del codigo (P67 -> 690).
+                const extraPanel = /^LXTR/.test(modulo.tipo || "") && usaProfundidadDelCodigo ? [0, 20] : [0];
+                const ok = extraPanel.some(extra => coincideParMedidas(medida1, medida2, medidaA, medidaB + extra));
 
                 return {
                     ok,
-                    mensaje: `deberia medir ${medidaA} x ${medidaB} mm como pieza plana de dos dimensiones.`,
+                    mensaje: `deberia medir ${medidaA} x ${extraPanel.map(e => medidaB + e).join(" o ")} mm como pieza plana de dos dimensiones.`,
                     valida: true,
                     objetivos: [medidaA, medidaB]
                 };
@@ -376,7 +414,12 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                 // Con apertura I/D (MBS55DP6LAVABO) va una sola puerta.
                 const conApertura = /^[A-Z]+[\d.]+[ID](?![A-Z]{2})|[ID](LV|LAVABO)/.test(codigoPuerta.split("-")[0]);
                 const dosPuertasForzadas = (!conApertura && /\dLV|LAVABO/.test(codigoPuerta)) || /(?<![\d.])2P(?![A-Z\d.,])/.test(codigoPuerta);
-                const cantidadPuertas = esAbatible ? 1 : (modulo.ancho > 619 || dosPuertasForzadas) ? 2 : 1;
+                // Plegables: PLED/PLEI = 4 hojas; con apertura antes (BSX69DPLE) = 2 hojas.
+                // Cada hoja = ancho total / hojas - 3.
+                const hojasPlegable = !esAbatible && /PLE/.test(codigoPuerta) && modulo.tipo !== "EB"
+                    ? (/PLE[DI](?=$|[-+HP\d])/.test(codigoPuerta) && !/[\d.][ID]PLE/.test(codigoPuerta) ? 4 : 2)
+                    : 0;
+                const cantidadPuertas = hojasPlegable || (esAbatible ? 1 : (modulo.ancho > 619 || dosPuertasForzadas) ? 2 : 1);
                 const anchoPuertaCodigo = extraerAnchoPuertaDesdeCodigo(modulo.cod);
                 const anchoPuerta = anchoPuertaCodigo ? anchoPuertaCodigo - 3 : Math.round(modulo.ancho / cantidadPuertas) - 3;
                 const extraNovak = tieneNovak(modulo.cod) ? 110 : 0;
@@ -384,18 +427,25 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                 const contextoFF = modulo.contextoFrenteFalso || {};
                 const descuentoFrenteFalso = contextoFF.tieneFF ? 152 : 0;
                 const fugaFrenteFalso = contextoFF.tieneFF ? 38 : 0;
+                // Novak: puerta = alto + 110, maximo 2420 (largo util del tablero).
                 const altoPuerta = extraNovak
-                    ? modulo.alto + extraNovak
+                    ? Math.min(modulo.alto + extraNovak, 2420)
                     : modulo.alto - descuentoHenzo - descuentoFrenteFalso - fugaFrenteFalso - 3;
                 // Auxiliares y closets pueden llevar puertas fraccionadas: 947 abajo y el resto arriba.
                 const altosPuerta = ["X", "CL", "CM"].includes(modulo.tipo) && !extraNovak
                     ? [altoPuerta, 947, modulo.alto - 953]
                     : [altoPuerta];
+                // Bajo con 1 gaveta arriba y puerta abajo (B90G1): puerta = alto - 190 - 3.
+                if (["B", "MB"].includes(modulo.tipo) && /G1(?!\d|IN)/.test(codigoPuerta.split("-")[0])) altosPuerta.push(modulo.alto - 193);
+                // Puerta PTC en bastidor de closet: alto - 13.
+                if (/(^|-)PTC(-|$)/.test(codigoPuerta)) altosPuerta.push(modulo.alto - 13);
                 const ok = altosPuerta.some(alto => coincideParMedidas(medida1, medida2, alto, anchoPuerta));
 
                 return {
                     ok,
-                    mensaje: altosPuerta.length > 1
+                    mensaje: hojasPlegable
+                        ? `deberia medir ${altosPuerta[0]} x ${anchoPuerta} mm como puerta plegable de ${hojasPlegable} hojas (ancho / ${hojasPlegable} - 3).`
+                        : ["X", "CL", "CM"].includes(modulo.tipo) && !extraNovak
                         ? `deberia medir ${altosPuerta.join(" o ")} x ${anchoPuerta} mm como puerta (entera o fraccionada 947 + resto).`
                         : extraNovak
                         ? `deberia medir ${altoPuerta} x ${anchoPuerta} mm como puerta Novak, sumando 110 mm solo a la altura.`
@@ -403,7 +453,7 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                             ? `deberia medir ${altoPuerta} x ${anchoPuerta} mm como puerta con frente falso FF, descontando FF, fuga extra de 38 mm y 1.5 mm por lado.`
                         : descuentoHenzo
                             ? `deberia medir ${altoPuerta} x ${anchoPuerta} mm como puerta Henzo, descontando 35 mm y 1.5 mm por lado.`
-                            : `deberia medir ${altoPuerta} x ${anchoPuerta} mm como puerta, descontando 1.5 mm por lado.`,
+                            : `deberia medir ${altosPuerta.join(" o ")} x ${anchoPuerta} mm como puerta, descontando 1.5 mm por lado.`,
                     valida: true,
                     objetivos: [altoPuerta, anchoPuerta]
                 };
@@ -414,7 +464,10 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
 
                 const altoCostado = 60;
                 const largoCostado = modulo.anchoInterno || modulo.ancho || modulo.alto || modulo.profundidad;
-                const ok = coincideParMedidas(medida1, medida2, altoCostado, largoCostado);
+                // Altos sobre refrigerador (A..RF): costado interno de 60 x (ancho + 97).
+                const largosCostado = modulo.tipo === "A" && /\d(H[\d.]+)?RF/.test(String(modulo.cod || "").toUpperCase()) && modulo.ancho
+                    ? [largoCostado, modulo.ancho + 97] : [largoCostado];
+                const ok = largosCostado.some(largo => coincideParMedidas(medida1, medida2, altoCostado, largo));
 
                 return {
                     ok,
@@ -678,7 +731,9 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                 if (!modulo.anchoInterno) return { ok: true, mensaje: "", valida: false };
 
                 if (!modulo.profundidad) {
-                    const okAncho = coincideMedida(medida1, modulo.anchoInterno) || coincideMedida(medida2, modulo.anchoInterno);
+                    // Complementos Henzo FVLB: base 100 mm mas corta, como sus ajustes.
+                    const anchosBase = /^(FVLB|LB|LBD|LBI|FB)$/.test(modulo.tipo || "") ? [modulo.anchoInterno, modulo.anchoInterno - 100] : [modulo.anchoInterno];
+                    const okAncho = anchosBase.some(ancho => coincideMedida(medida1, ancho) || coincideMedida(medida2, ancho));
 
                     return {
                         ok: okAncho,
@@ -694,7 +749,7 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                     : [modulo.profundidad];
                 // Complementos Henzo FB: techo 24 mm menos profundo. Bastidor BS: techo Henzo 11 mm menos.
                 if (modulo.tipo === "FB" && !esBase(nombre)) profundidadesBase.push(modulo.profundidad - 24);
-                if (modulo.tipo === "BS" && !esBase(nombre)) profundidadesBase.push(modulo.profundidad - 11);
+                if (modulo.tipo === "BS" && !esBase(nombre)) profundidadesBase.push(modulo.profundidad - 11, 64);
                 const ok = profundidadesBase.some(prof => coincideParMedidas(medida1, medida2, modulo.anchoInterno, prof));
                 return {
                     ok,
@@ -821,7 +876,9 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                 const profundidadRepisa = nombre.startsWith("REPF")
                     ? modulo.profundidad - modulo.grosor - 1 - grosorRespaldo - 1
                     : modulo.profundidad;
-                const ok = coincideParMedidas(medida1, medida2, modulo.anchoInterno, profundidadRepisa);
+                // Repisa tapa suelta (REPTA94.9P47): va al ancho completo del codigo.
+                const anchosRepisa = modulo.tipo === "REPTA" && modulo.ancho ? [modulo.anchoInterno, modulo.ancho] : [modulo.anchoInterno];
+                const ok = anchosRepisa.some(ancho => coincideParMedidas(medida1, medida2, ancho, profundidadRepisa));
 
                 return {
                     ok,
@@ -875,6 +932,12 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                 // Altos sobre refrigerador (RF): laterales entre base y techo y 68 mm menos profundos.
                 if (modulo.tipo === "A" && /\d(H[\d.]+)?RF/.test(codigoMayus) && modulo.grosor) {
                     opciones.push([altoLateral - modulo.grosor * 2, profundidadLateral - 68]);
+                }
+                // Esquinero en L con lados P6P4 / P4P6: un lateral de 420.
+                if (modulo.tipo === "ECL" && /P6P4|P4P6/.test(codigoMayus)) opciones.push([altoLateral, 420]);
+                // Bastidor BSX con Novak: laterales con zocalo de 126 (H11 = 2246).
+                if (modulo.tipo === "BSX" && tieneNovak(codigoMayus)) {
+                    [altoLateral + 126, altoLateral + 120, 2436].forEach(alto => opciones.push([Math.min(alto, 2436), profundidadLateral]));
                 }
                 // STC: estructura 30 mm mas baja.
                 if (tieneTokenCodigo(codigoMayus, "STC")) opciones.push([altoLateral - 30, profundidadLateral]);
@@ -993,6 +1056,28 @@ function esRas(modulo) {
             return tieneTokenCodigo(String(modulo && modulo.cod || "").toUpperCase(), "RAS");
         }
 
+// Medidas de un esquinero de closet en L. ladoB sale de P70 (700) o de "x80" (800).
+function medidasEsquineroL(modulo) {
+            if (!modulo || modulo.tipo !== "ECL" || !modulo.ancho || !modulo.alto) return null;
+            const codigo = String(modulo.cod || "").toUpperCase();
+            const matchX = codigo.match(/X(\d+(?:[.,]\d+)?)/);
+            const matchP = codigo.match(/P(\d{2}(?:[.,]\d+)?)/);
+            const ladoB = matchX ? Math.round(Number.parseFloat(matchX[1].replace(",", ".")) * 10)
+                : matchP && Number.parseFloat(matchP[1]) >= 50 ? Math.round(Number.parseFloat(matchP[1].replace(",", ".")) * 10) : 0;
+            if (!ladoB) return null;
+
+            const fondo = modulo.profundidad || 580;
+            const grosor = modulo.grosor || 15;
+            const altoRespaldo = modulo.alto - 2 * grosor;
+            const fondosLado = [...new Set([fondo, 580, 420])];
+            return {
+                ladoB,
+                // Techo/base: lado largo (ancho - 16) y tramo del segundo lado (segundo lado - fondo - 16).
+                tapas: [[modulo.ancho - 16, fondo], ...fondosLado.map(f => [f, ladoB - fondo - 16])],
+                respaldos: [[modulo.ancho - 16, altoRespaldo], [ladoB - 2 * grosor - 1, altoRespaldo]]
+            };
+        }
+
 function esModuloAlto(modulo) {
             const tipo = String(modulo && modulo.tipo || "").toUpperCase();
             return tipo === "A" || tipo === "EA";
@@ -1010,13 +1095,14 @@ function tieneNivelador(cod) {
         }
 
 function tieneHenzo(cod, linea = "") {
-            // La linea del archivo (KUHZ, MCUHZ, BUHZ...) tambien indica coleccion Henzo.
-            if (/HZ/.test(String(linea || "").toUpperCase().split("+")[0])) return true;
-
-            return String(cod || "")
-                .toUpperCase()
-                .split(/[-+]/)
-                .some(parte => parte === "HZ");
+            const partes = String(cod || "").toUpperCase().split(/[-+]/);
+            // Apertura PUSH nunca lleva descuento Henzo (no tiene gola).
+            if (partes.includes("PUSH")) return false;
+            // El codigo manda: con HZ es Henzo.
+            if (partes.includes("HZ")) return true;
+            // Sin HZ en el codigo solo la linea de cocina Henzo (KUHZ) lo hace Henzo;
+            // MCUHZ, BUHZ, MOUHZ sin HZ en el codigo son normales (produccion real, 38 semanas).
+            return /^KUHZ/.test(String(linea || "").toUpperCase().split("+")[0]);
         }
 
 function tieneSistemaSlimTexto(texto) {
@@ -1097,7 +1183,8 @@ function analizarParejaOtpOa(card, alto, cod) {
             const otpConFuga = otp.every(item => coincideOreja(item, conFuga, anchos));
             const otpSinFuga = otp.every(item => coincideOreja(item, base, anchos));
             const oaConFuga = oa.every(item => coincideOreja(item, conFuga, anchos));
-            const oaSinFuga = oa.every(item => coincideOreja(item, base, anchos));
+            // La OA nunca lleva descuento Henzo: va al alto real del modulo (OTP10H3-HZ: OTP 532, OA 570).
+            const oaSinFuga = oa.every(item => coincideOreja(item, base, anchos) || coincideOreja(item, alto, anchos));
 
             let descuentoEn = "";
             if (otpConFuga && oaSinFuga) descuentoEn = "OTP";
@@ -1123,6 +1210,10 @@ function profundidadLateralModulo(modulo) {
             const profundidadTotal = Number(modulo && modulo.profundidadTotal) || 0;
             const profundidad = Number(modulo && modulo.profundidad) || 0;
 
+            // Laterales LX/FX con P en cm (P69) descuentan 20 como la estructura (670).
+            if ((tipo.startsWith("LX") || tipo.startsWith("FX")) && profundidadTotal >= 200 && profundidad && profundidad < profundidadTotal) {
+                return profundidad;
+            }
             if (tipo.startsWith("LA") || tipo.startsWith("LX") || tipo.startsWith("LB") || tipo.startsWith("FB") || tipo.startsWith("FX")) {
                 return profundidadTotal || profundidad;
             }
@@ -1255,7 +1346,7 @@ const SISTEMAS_GAVETA = {
     SM: { nombre: "Metabox", FON: { d: 31, h: [483, 498, 268] }, POS: { d: 31, h: [71, 103, 199] }, FRI: { d: 63, h: [61] } },
     SL: { nombre: "Legrabox", FON: { d: 34, h: [490, 260] }, POS: { d: 37, h: [148, 63] } },
     SI: { nombre: "Sistema invisible", FON: { d: [35, 41], h: [475, 425] }, POS: { d: [35, 41], h: [105, 185, 65, 255, 75, 60] }, FRI_FI: { d: 31, h: [135] } },
-    MRV: { nombre: "Merivobox", FON: { d: 51, h: [474, 480] }, POS: { d: 51, h: [83, 184, 300] } }
+    MRV: { nombre: "Merivobox", FON: { d: 51, h: [474, 480, 324] }, POS: { d: 51, h: [83, 184, 300] } }
 };
 
 function medidasSistemaGaveta(pieza, modulo) {

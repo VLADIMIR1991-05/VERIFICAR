@@ -2234,6 +2234,7 @@ const DB = {
     // 7_Bastidores
     "BSX": "Bastidor",
     "PLED": "Plegable 4 Hojas",
+    "PLEI": "Plegable 4 Hojas",
     // 9_Zócalos
     "RPLAST": "Riel plástica en zócalo",
     // 10_Cubik Living

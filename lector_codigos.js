@@ -318,6 +318,8 @@ function alturaPorDefecto(tipo) {
 
             // Auxiliares y closets usan H11 por defecto.
             if (["X", "CL", "CLOSET", "CM", "BAR", "ECL", "BSCL"].includes(tipo)) return "H11";
+            // Bastidor de puertas altas (BSX) sin H: H11 (laterales 2246 incluyen zocalo de 126).
+            if (tipo === "BSX") return "H11";
             if (/^(LX|LXTR|LX2L|FX|FXTR)/.test(tipo)) return "H11";
             if (/^(LB|LBTR|LVB|FB|FBTR)/.test(tipo)) return "H4";
 
@@ -376,10 +378,17 @@ function obtenerDimensionesModulo(cod) {
                 const alturaPrincipal = extraerAlturaMm(principal);
                 const alturaAccesorioIgnorada = !alturaPrincipal && ["X", "CL", "CM"].includes(tipo) && alturaCodigoCompleto && alturaCodigoCompleto < 1000;
                 let altura = alturaAccesorioIgnorada ? 0 : (alturaCodigoCompleto || extraerAlturaMm(detalle));
+                // En bajos y suspendidos una H despues de la gaveta es el alto del modulo (B70G1H13 = 130, B35G3H69 = 690);
+                // en altos y auxiliares (X, A, CL) es el alto del cajon.
+                const alturaTrasGaveta = principal.match(/G\d(?:IN|I)?H(\d+(?:[.,]\d+)?)/);
+                if (alturaTrasGaveta && !/(?<!G\d(?:IN|I)?)H\d/.test(principal) && ["B", "MB", "MBS", "S", "EB", "BS"].includes(tipo)) {
+                    altura = convertirNumeroCodigoAMm(alturaTrasGaveta[1]);
+                }
+
                 // En modulos, una H con decimal menor a 10 va en decimetros: B76H2.7 = 270, B60H1.0 = 100.
                 // (En complementos como FBTR60H7.0 sigue en cm = 70.)
                 const alturaDecimal = principal.match(/(?<!G\d(?:IN)?)H(\d(?:[.,]\d+))(?![\d(])/);
-                if (TIPOS_MODULO_ANCHO_DECIMAL.includes(tipo) && alturaDecimal && !alturaAccesorioIgnorada) {
+                if ((TIPOS_MODULO_ANCHO_DECIMAL.includes(tipo) || ["OTP", "OA"].includes(tipo)) && alturaDecimal && !alturaAccesorioIgnorada) {
                     altura = Math.round(Number.parseFloat(alturaDecimal[1].replace(",", ".")) * 100);
                 }
                 resultado.alto = altura || extraerAlturaMm(alturaPorDefecto(tipo));
@@ -388,6 +397,20 @@ function obtenerDimensionesModulo(cod) {
                 const profundidad = profundidadCodigoCompleto || extraerProfundidadMm(detalle);
                 resultado.profundidad = profundidad || (tipoUsaNumeroComoProfundidad(tipo) ? profundidadTotalDesdeNumeroP(Number.parseFloat(String(ancho).replace(",", "."))) : profundidadPorDefecto(tipo));
                 resultado.profundidadEstructura = profundidad ? profundidadEstructuraDesdeCodigo(codigo, profundidad, tipo) : resultado.profundidad;
+
+                // Esquinero de closet en L (ECL110DP70, ECL80x80): la P de 2 cifras o la "x" es el segundo lado,
+                // no la profundidad. El fondo queda 580 (o 420 si el codigo dice P4).
+                if (tipo === "ECL" && (/X\d/.test(principal) || (profundidad && profundidad >= 650))) {
+                    const fondoL = /P4(?![\d.])/.test(codigo) && !/P6P4|P4P6/.test(codigo) ? 420 : 580;
+                    resultado.profundidad = fondoL;
+                    resultado.profundidadEstructura = fondoL;
+                }
+
+                // Suspendidos S con gavetas sin P: 600 total / 580 estructura (produccion real).
+                if (tipo === "S" && !profundidad && /G\d/.test(principal)) {
+                    resultado.profundidad = 600;
+                    resultado.profundidadEstructura = 580;
+                }
 
                 // Bastidor Henzo sin P: 90 de profundidad.
                 if (tipo === "BS" && !extraerProfundidadMm(codigo) && /(^|[-+])HZ([-+]|$)/.test(codigo)) {
@@ -410,6 +433,32 @@ function obtenerDimensionesModulo(cod) {
             return resultado;
         }
 
+// Ajustes de medidas que dependen de la linea del despiece (columna "linea").
+// - MOU (closets CL, CM, BSCL) sin H en el codigo: estructura 70 mm mas baja (2120 -> 2050).
+// - Cubik (CB...) bajos B sin H: alto 690; sin P: 560 total / 540 estructura.
+function ajustarDimensionesPorLinea(dims, cod, linea = "") {
+            const resultado = { ...dims };
+            const lineaBase = String(linea || "").toUpperCase().split("+")[0];
+            const principal = separarCodigoPrincipalYAccesorios(normalizarSinPuerta(String(cod || "").toUpperCase())).principal;
+            const tieneAltura = /H[\d.,]+|HE(?![A-Z])/.test(principal) || /(^|-)H\d/.test(String(cod || "").toUpperCase());
+            const tieneProfundidad = !!extraerProfundidadMm(principal);
+
+            // Tambien OTP10HX (orejas de closet): 2047 / 2050 en MOU.
+            if (/^MOU/.test(lineaBase) && ["CL", "CM", "BSCL", "OTP"].includes(resultado.tipo) && !tieneAltura && resultado.alto >= 2000) {
+                resultado.alto -= 70;
+                resultado.ajusteLinea = "Linea MOU: estructura 70 mm mas baja que el codigo.";
+            }
+            if (/^CB/.test(lineaBase) && resultado.tipo === "B") {
+                if (!tieneAltura) resultado.alto = 690;
+                if (!tieneProfundidad) {
+                    resultado.profundidad = 560;
+                    resultado.profundidadEstructura = 540;
+                }
+                resultado.ajusteLinea = "Linea Cubik: bajos de 690 de alto y 540 de fondo de estructura.";
+            }
+            return resultado;
+        }
+
 // Tipos de modulo que nunca pasan de 250 cm de ancho.
 const TIPOS_MODULO_ANCHO_DECIMAL = ["B", "A", "S", "X", "BS", "MBS", "MB", "EB", "EA", "CL", "CM", "BSCL"];
 
@@ -423,6 +472,8 @@ function extraerAlturaMm(texto) {
             const limpio = String(texto || "").toUpperCase();
 
             if (limpio.includes("HE")) return 1360;
+            // HX = altura de closet (H11, 2120), p. ej. OTP10HX.
+            if (/HX(?![A-Z])/.test(limpio) && !/H\d/.test(limpio)) return 2120;
 
             // Una H pegada a la gaveta (G1H28) es el alto del cajon, no del modulo.
             const match = limpio.match(/(?<!G\d(?:IN)?)H(\d+(?:[.,]\d+)?)/);
@@ -467,13 +518,14 @@ function profundidadEstructuraDesdeCodigo(texto, profundidadTotal, tipo = "") {
             if (!profundidad) return 0;
             if (String(texto || "").toUpperCase().includes("S/P")) return profundidad;
             // Estructuras ST usan la profundidad total (P3 = 340, P4 = 440).
-            if (familia === "ST") return (numero === 3 || numero === 4) ? profundidad + 20 : profundidad;
+            // P2 en ST = 200 (produccion real).
+            if (familia === "ST") return (numero === 3 || numero === 4) ? profundidad + 20 : numero === 2 ? profundidad - 20 : profundidad;
             if (numero === 2) return profundidad - 20;
             if (numero === 3 || numero === 4) return profundidad;
             // Paneles PM usan la profundidad total (PM240P6 = 600).
             if (familia === "PM") return profundidad;
             // Laterales de complemento LX/FX descuentan 20 aunque la P venga en cm (P69 = 670).
-            if (numero >= 20 && /^(LX|FX)/.test(familia)) return profundidad - 20;
+            if (numero >= 20 && /^(LX|FX|FLD)/.test(familia)) return profundidad - 20;
             // P de 20 o mas (P55, P67) descuenta 20 mm solo en modulos; complementos (PM, TPL...) usan la total.
             if (numero >= 20 && !TIPOS_MODULO_ANCHO_DECIMAL.includes(familia)) return profundidad;
             return profundidad > 20 ? profundidad - 20 : 0;
@@ -483,7 +535,7 @@ function profundidadPorDefecto(tipo) {
             const familia = String(tipo || "").toUpperCase();
 
             if (["A", "EA"].includes(familia)) return 320;
-            if (["BS", "BSCL"].includes(familia)) return 75;
+            if (["BS", "BSCL", "BSX"].includes(familia)) return 75;
             if (["MBS", "S", "ES"].includes(familia)) return 530;
             if (familia === "MB") return 530;
             if (familia === "ST") return 600;

@@ -120,7 +120,7 @@ function agregarComodin(info, opciones, agregar) {
         }
 
 // Reparto de frentes de cajon (aprendido de 38 semanas de produccion).
-// Con gola (Henzo o Cubik): alto util = alto - 38 y cada gola intermedia ocupa 38 mm.
+// Con gola (Henzo): alto util = alto - 38 y cada gola intermedia ocupa 38 mm.
 // Sin gola: alto util = alto - 3, 3 mm entre frentes; los de arriba miden 187 y el de abajo el resto.
 function frentesCajon(info) {
             const { dims, gavetas: n } = info;
@@ -150,6 +150,12 @@ function frentesCajon(info) {
             }
 
             const util = dims.alto - 3;
+            if (info.cubik && n >= 2) {
+                const mitad = Math.floor((util - 3) / 2);
+                const chico = Math.floor((mitad - 2) / 2);
+                if (n === 2) return { alturas: [mitad, mitad], formula: "(alto - 6) / 2 (Cubik)" };
+                if (n === 3) return { alturas: [chico, chico, mitad], formula: "mitad inferior + mitad superior partida en dos (Cubik)" };
+            }
             if (info.gavetaInterna) {
                 return n >= 3
                     ? { alturas: Array(2).fill((util - 3) / 2), formula: "(alto - 3 - 3) / 2" }
@@ -171,7 +177,8 @@ function frentesCajon(info) {
 function analizarCodigoParaDespiece(cod, linea = "") {
             // Espacios se toman como guion: "B60H4G3 mrv" = "B60H4G3-MRV".
             const codigo = normalizarSinPuerta(String(cod || "").toUpperCase().trim().replace(/\s+/g, "-"));
-            const dims = obtenerDimensionesModulo(codigo);
+            // Medidas del codigo con los ajustes de la linea (MOU, Cubik).
+            const dims = ajustarDimensionesPorLinea(obtenerDimensionesModulo(codigo), codigo, linea);
             const partes = codigo.split(/[-+]/).filter(Boolean);
             const principal = separarCodigoPrincipalYAccesorios(codigo).principal;
             const lectura = interpretarCodigoModulo(codigo).join(" + ").toUpperCase();
@@ -195,7 +202,7 @@ function analizarCodigoParaDespiece(cod, linea = "") {
                 // Internas: G3IN o G3I (MOU).
                 gavetaInterna: (/G\dIN|IN(?![A-Z])|G\dI(?![A-Z])/.test(principal) || /IN$/.test(tokenGavetas)) && gavetas > 0,
                 sistema,
-                henzo: partes.includes("HZ") || /HZ/.test(codigo) || /HZ/.test(lineaBase),
+                henzo: tieneHenzo(codigo, lineaBase),
                 lineaBase,
                 materialFrente,
                 // Lineas modulares/closet (MCU, MOU, CU, VU) llaman REPMP a la repisa movil; cocina y bano REPMM.
@@ -208,7 +215,9 @@ function analizarCodigoParaDespiece(cod, linea = "") {
                 colgador: /C[12]/.test(principal),
                 colgadorSimple: /C1/.test(principal),
                 // Frentes con gola: Henzo o linea Cubik (CB...).
-                gola: partes.includes("HZ") || /HZ/.test(codigo) || /HZ/.test(lineaBase) || /^CB/.test(lineaBase),
+                gola: tieneHenzo(codigo, lineaBase),
+                // Cubik (CB...): frentes por mitades con 3 mm de luz (170 + 170 + 342).
+                cubik: /^CB/.test(lineaBase),
                 // Basurero (BA), accesorio (AC/ACV) o frente falso (FF): un frente de cajon entero en vez de puerta.
                 basurero: /^[A-Z]+[\d.]+[ID]?BA(?![A-Z])/.test(principal) || partes.includes("BA") || partes.includes("AC")
                     || /^[A-Z]+[\d.]+[ID]?(H[\d.]+)?(P[\d.]+)?ACV?(?![A-Z])/.test(principal) || /^[A-Z]+[\d.]+[ID]?(H[\d.]+)?FF(?![A-Z])/.test(principal),
@@ -233,7 +242,20 @@ function recetaModulo(info, opciones) {
             const latD = latI.replace("LATI", "LATD");
             const casco = () => { agregar(latI, 1); agregar(latD, 1); };
 
-            if (tipo === "BS" || tipo === "BSCL") {
+            if (tipo === "BSX") {
+                // Bastidor de puertas altas: 2 laterales y 1 base de 75.
+                // Con Novak (NK) los laterales llevan el zocalo: alto + 126.
+                if (tieneNovak(info.codigo)) {
+                    const prof = dims.profundidadEstructura || dims.profundidad;
+                    // Sin H: +126 (H11 -> 2246). Con H: +120. Maximo 2436 (largo del tablero).
+                    const extra = /H[\d.,]+/.test(separarCodigoPrincipalYAccesorios(info.codigo).principal) ? 120 : 126;
+                    const alto = Math.min(dims.alto + extra, 2436);
+                    const formula = `alto + ${extra} (zocalo Novak, max 2436)`;
+                    agregar(latI, 1, { medidaFija: [alto, prof], formula });
+                    agregar(latD, 1, { medidaFija: [alto, prof], formula });
+                } else casco();
+                agregar("BAS", 1);
+            } else if (tipo === "BS" || tipo === "BSCL") {
                 // Bastidor: 2 bases (arriba/abajo) y 2 laterales.
                 casco();
                 agregar("BAS", 2);
@@ -285,7 +307,7 @@ function recetaModulo(info, opciones) {
                 agregar("AJP", 2, { alturaAjuste: 60 });
                 agregar("RESP", 1);
                 // C2 (dos tubos) en altura 2120 no lleva maletera: no queda espacio.
-                const sinMaletera = /C2/.test(info.codigo) && dims.alto - (info.closetMou ? 70 : 0) <= 2120;
+                const sinMaletera = /C2/.test(info.codigo) && dims.alto <= 2120;
                 if (!sinMaletera) agregar("MALE", 1);
                 if (info.zapatero) agregar("ZPIN", 7);
                 // "+R158" / "+R202" al final del codigo: 3 repisas adicionales.
@@ -337,7 +359,7 @@ function calcularMedidasGeneradas(item, modulo) {
             const objetivos = (regla && regla.objetivos) || [];
 
             if (item.medidaFija) {
-                return { largo: item.medidaFija[0], ancho: item.medidaFija[1], formula: "medida fija aprendida de produccion" };
+                return { largo: item.medidaFija[0], ancho: item.medidaFija[1], formula: item.formula || "medida fija aprendida de produccion" };
             }
 
             if (/^(FON|POS|FRI)-/.test(item.pieza)) {
@@ -396,13 +418,13 @@ function generarDespiece(cod, opciones = {}) {
             if (!op.incluirFrentes) avisos.push("Frentes no incluidos (van en otro proceso: laca, enchape, vidrio...).");
 
             // Mismo objeto modulo que arma el validador (closets MOU: estructura 70 mm mas baja).
-            const esClosetMou = info.closetMou && ["CL", "CM", "BSCL"].includes(info.tipo);
-            if (esClosetMou) avisos.push("Closet linea MOU: estructura 70 mm mas baja que el codigo.");
+            const dimsLinea = info.dims;
+            if (dimsLinea.ajusteLinea) avisos.push(dimsLinea.ajusteLinea);
             const modulo = {
                 ancho: info.dims.ancho,
-                alto: info.dims.alto - (esClosetMou ? 70 : 0),
-                profundidad: info.dims.profundidadEstructura || info.dims.profundidad,
-                profundidadTotal: info.dims.profundidad,
+                alto: dimsLinea.alto,
+                profundidad: dimsLinea.profundidadEstructura || dimsLinea.profundidad,
+                profundidadTotal: dimsLinea.profundidad,
                 grosor: op.grosorCasco,
                 grosorRespaldo: op.grosorRespaldo,
                 anchoInterno: info.dims.ancho - op.grosorCasco * 2 - 1,
@@ -431,7 +453,8 @@ function generarDespiece(cod, opciones = {}) {
                 if (item.puertas) {
                     const regla = validarMedidasPieza("PT", 1, 1, modulo);
                     const anchoPuerta = regla.objetivos && regla.objetivos[1];
-                    cant = anchoPuerta && anchoPuerta < info.dims.ancho / 2 ? 2 : 1;
+                    // Cantidad de hojas segun el ancho que da el motor (plegables 4, lavabos 2...).
+                    cant = anchoPuerta ? Math.max(1, Math.round(info.dims.ancho / (anchoPuerta + 3))) : 1;
                 }
 
                 const medidas = calcularMedidasGeneradas(item, modulo);
