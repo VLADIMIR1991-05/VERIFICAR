@@ -119,8 +119,52 @@ function agregarComodin(info, opciones, agregar) {
             }
         }
 
-// Altura de frentes de cajon para bajos H4 (760).
-const FRENTES_CAJON_H4 = { G1: [757], G2: [342, 342], G3: [170, 170, 342], G4: [187, 187, 187, 187], G2IN: [722], G3IN: [342, 342] };
+// Reparto de frentes de cajon (aprendido de 38 semanas de produccion).
+// Con gola (Henzo o Cubik): alto util = alto - 38 y cada gola intermedia ocupa 38 mm.
+// Sin gola: alto util = alto - 3, 3 mm entre frentes; los de arriba miden 187 y el de abajo el resto.
+function frentesCajon(info) {
+            const { dims, gavetas: n } = info;
+            // Alto de cajon en el codigo (G2H13, G1H28): cada frente = alto de cajon - 3.
+            const altoCajon = Number((info.codigo.match(/G\d(?:IN|I)?H(\d+(?:[.,]\d+)?)/) || [])[1] || 0);
+            if (altoCajon) {
+                return { alturas: Array(n).fill(Math.round(altoCajon * 10) - 3), formula: `alto de cajon ${altoCajon * 10} - 3` };
+            }
+
+            if (info.gola) {
+                const util = dims.alto - 38;
+                const mitad = (util - 38) / 2;
+                if (info.gavetaInterna) {
+                    // Cajones internos: un frente entero (G2IN) o dos mitades (G3IN).
+                    return n >= 3
+                        ? { alturas: [mitad, mitad], formula: "(alto - 38 - 38) / 2 (gola)" }
+                        : { alturas: [util], formula: "alto - 38 (gola)" };
+                }
+                if (n === 1) return { alturas: [util], formula: "alto - 38 (gola)" };
+                if (n === 2) return { alturas: [mitad, mitad], formula: "(alto - 38 - 38) / 2 (gola)" };
+                if (n === 3) {
+                    const chico = (mitad - 2) / 2;
+                    return { alturas: [chico, chico, mitad], formula: "mitad inferior + mitad superior partida en dos (gola)" };
+                }
+                const igual = Math.floor((util - 38 * (n - 1)) / n);
+                return { alturas: Array(n).fill(igual), formula: "reparto igual con golas de 38", nota: "reparto estimado, confirmar" };
+            }
+
+            const util = dims.alto - 3;
+            if (info.gavetaInterna) {
+                return n >= 3
+                    ? { alturas: Array(2).fill((util - 3) / 2), formula: "(alto - 3 - 3) / 2" }
+                    : { alturas: [util], formula: "alto - 3" };
+            }
+            if (n === 1) return { alturas: [util], formula: "alto - 3" };
+            // Frentes de arriba de 187 y el de abajo con el resto (G4 en H4 queda 187 x 4).
+            const resto = util - (n - 1) * (187 + 3);
+            if (resto < 187) {
+                const igual = Math.floor((util - 3 * (n - 1)) / n);
+                return { alturas: Array(n).fill(igual), formula: "reparto igual con 3 mm de luz", nota: "reparto estimado, confirmar" };
+            }
+            return { alturas: [...Array(n - 1).fill(187), resto], formula: `187 arriba y el resto abajo (alto - 3 - ${(n - 1) * 190})` };
+        }
+
 
 // Lee del codigo lo que necesita la receta.
 // linea: columna "linea" del despiece (KUHZ+MV, MCU+LM...), opcional.
@@ -148,7 +192,8 @@ function analizarCodigoParaDespiece(cod, linea = "") {
                 dims,
                 tipo: dims.tipo || "",
                 gavetas,
-                gavetaInterna: (/G\dIN|IN(?![A-Z])/.test(principal) || /IN$/.test(tokenGavetas)) && gavetas > 0,
+                // Internas: G3IN o G3I (MOU).
+                gavetaInterna: (/G\dIN|IN(?![A-Z])|G\dI(?![A-Z])/.test(principal) || /IN$/.test(tokenGavetas)) && gavetas > 0,
                 sistema,
                 henzo: partes.includes("HZ") || /HZ/.test(codigo) || /HZ/.test(lineaBase),
                 lineaBase,
@@ -162,6 +207,11 @@ function analizarCodigoParaDespiece(cod, linea = "") {
                 repisero: /[\d.]R(?![A-Z])|RP\d|[\d.]R[SP-]|C\dR/.test(principal) || /^(CL|CM)[\d.]+[ID]?(H\d+)?R/.test(principal),
                 colgador: /C[12]/.test(principal),
                 colgadorSimple: /C1/.test(principal),
+                // Frentes con gola: Henzo o linea Cubik (CB...).
+                gola: partes.includes("HZ") || /HZ/.test(codigo) || /HZ/.test(lineaBase) || /^CB/.test(lineaBase),
+                // Basurero (BA), accesorio (AC/ACV) o frente falso (FF): un frente de cajon entero en vez de puerta.
+                basurero: /^[A-Z]+[\d.]+[ID]?BA(?![A-Z])/.test(principal) || partes.includes("BA") || partes.includes("AC")
+                    || /^[A-Z]+[\d.]+[ID]?(H[\d.]+)?(P[\d.]+)?ACV?(?![A-Z])/.test(principal) || /^[A-Z]+[\d.]+[ID]?(H[\d.]+)?FF(?![A-Z])/.test(principal),
                 zapatero: /ZH/.test(principal),
                 frenteInterno: /FI/.test(principal) || partes.includes("FI"),
                 // Closets abiertos (S/P) usan laterales D-LATI / D-LATD (menos linea MOU);
@@ -268,14 +318,11 @@ function recetaModulo(info, opciones) {
             // Frentes (solo cuando los frentes van en melamina y en este despiece).
             if (opciones.incluirFrentes && !info.sinPuertas && !(tipo === "CM" && !info.frenteInterno)) {
                 if (info.gavetas && tipo !== "CM") {
-                    const claveFrentes = `G${info.gavetas}${info.gavetaInterna ? "IN" : ""}`;
-                    const alturas = dims.alto === 760 ? FRENTES_CAJON_H4[claveFrentes] : null;
-                    if (alturas) alturas.forEach(altura => agregar("FC", 1, { alturaFrente: altura }));
-                    else {
-                        // Sin tabla para esta altura: reparte el alto en partes iguales con 3 mm de luz.
-                        const altura = Math.floor((dims.alto - 3 * info.gavetas) / info.gavetas);
-                        agregar("FC", info.gavetas, { alturaFrente: altura, nota: "Altura de frente estimada (solo hay reparto real para H4)." });
-                    }
+                    const reparto = frentesCajon(info);
+                    reparto.alturas.forEach(altura => agregar("FC", 1, { alturaFrente: altura, formula: reparto.formula, nota: reparto.nota }));
+                } else if (info.basurero) {
+                    // Basurero (BA): un solo frente de cajon al alto util.
+                    agregar("FC", 1, { alturaFrente: dims.alto - (info.gola ? 38 : 3), formula: info.gola ? "alto - 38 (gola)" : "alto - 3" });
                 } else {
                     agregar("PT", 1, { puertas: true });
                 }
@@ -300,7 +347,7 @@ function calcularMedidasGeneradas(item, modulo) {
             }
 
             if (item.pieza === "FC") {
-                return { largo: modulo.ancho - 3, ancho: item.alturaFrente || 0, formula: "ancho - 3 (1.5 mm por lado)" };
+                return { largo: modulo.ancho - 3, ancho: item.alturaFrente || 0, formula: `ancho - 3 x ${item.formula || "alto de frente"}` };
             }
 
             if (objetivos.length < 1) return null;
@@ -349,7 +396,7 @@ function generarDespiece(cod, opciones = {}) {
             if (!op.incluirFrentes) avisos.push("Frentes no incluidos (van en otro proceso: laca, enchape, vidrio...).");
 
             // Mismo objeto modulo que arma el validador (closets MOU: estructura 70 mm mas baja).
-            const esClosetMou = info.closetMou && ["CL", "CM"].includes(info.tipo);
+            const esClosetMou = info.closetMou && ["CL", "CM", "BSCL"].includes(info.tipo);
             if (esClosetMou) avisos.push("Closet linea MOU: estructura 70 mm mas baja que el codigo.");
             const modulo = {
                 ancho: info.dims.ancho,

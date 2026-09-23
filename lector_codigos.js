@@ -308,16 +308,16 @@ function traducirGavetas(cantidad) {
 
 function alturaPorDefecto(tipo) {
             // Suspendidos usan H3 cuando no se especifica altura.
-            if (["BS", "MBS", "S", "ES"].includes(tipo)) return "H3";
+            if (["MBS", "S", "ES"].includes(tipo)) return "H3";
 
-            // Bajos, muebles de bano, altos y esquineros comunes usan H4 cuando no se especifica altura.
-            if (["B", "MB", "ST", "EB", "E"].includes(tipo)) return "H4";
+            // Bajos, bastidores (BS sin H = 760 en produccion), bano, altos y esquineros usan H4.
+            if (["B", "BS", "MB", "ST", "EB", "E"].includes(tipo)) return "H4";
 
             // Altos usan H4 por defecto, pero se muestra como altura final 760mm.
             if (["A", "EA"].includes(tipo)) return "H4";
 
             // Auxiliares y closets usan H11 por defecto.
-            if (["X", "CL", "CLOSET", "CM", "BAR", "ECL"].includes(tipo)) return "H11";
+            if (["X", "CL", "CLOSET", "CM", "BAR", "ECL", "BSCL"].includes(tipo)) return "H11";
             if (/^(LX|LXTR|LX2L|FX|FXTR)/.test(tipo)) return "H11";
             if (/^(LB|LBTR|LVB|FB|FBTR)/.test(tipo)) return "H4";
 
@@ -372,12 +372,28 @@ function obtenerDimensionesModulo(cod) {
                 resultado.tipo = tipo;
                 resultado.ancho = tipoUsaNumeroComoProfundidad(tipo) ? 0 : convertirNumeroCodigoAMm(ancho);
 
-                const altura = alturaCodigoCompleto || extraerAlturaMm(detalle);
+                // En modulos altos (X, CL, CM) una H menor a 1 m en los accesorios (X45IR-H43) es de un hueco.
+                const alturaPrincipal = extraerAlturaMm(principal);
+                const alturaAccesorioIgnorada = !alturaPrincipal && ["X", "CL", "CM"].includes(tipo) && alturaCodigoCompleto && alturaCodigoCompleto < 1000;
+                let altura = alturaAccesorioIgnorada ? 0 : (alturaCodigoCompleto || extraerAlturaMm(detalle));
+                // En modulos, una H con decimal menor a 10 va en decimetros: B76H2.7 = 270, B60H1.0 = 100.
+                // (En complementos como FBTR60H7.0 sigue en cm = 70.)
+                const alturaDecimal = principal.match(/(?<!G\d(?:IN)?)H(\d(?:[.,]\d+))(?![\d(])/);
+                if (TIPOS_MODULO_ANCHO_DECIMAL.includes(tipo) && alturaDecimal && !alturaAccesorioIgnorada) {
+                    altura = Math.round(Number.parseFloat(alturaDecimal[1].replace(",", ".")) * 100);
+                }
                 resultado.alto = altura || extraerAlturaMm(alturaPorDefecto(tipo));
+
 
                 const profundidad = profundidadCodigoCompleto || extraerProfundidadMm(detalle);
                 resultado.profundidad = profundidad || (tipoUsaNumeroComoProfundidad(tipo) ? profundidadTotalDesdeNumeroP(Number.parseFloat(String(ancho).replace(",", "."))) : profundidadPorDefecto(tipo));
                 resultado.profundidadEstructura = profundidad ? profundidadEstructuraDesdeCodigo(codigo, profundidad, tipo) : resultado.profundidad;
+
+                // Bastidor Henzo sin P: 90 de profundidad.
+                if (tipo === "BS" && !extraerProfundidadMm(codigo) && /(^|[-+])HZ([-+]|$)/.test(codigo)) {
+                    resultado.profundidad = 90;
+                    resultado.profundidadEstructura = 90;
+                }
 
                 // Altos sobre refrigerador (RF) usan profundidad de bajo: 600 total, 580 de estructura.
                 if (!profundidad && ["A", "EA"].includes(tipo) && /RF(?![A-Z])/.test(detalle)) {
@@ -408,7 +424,8 @@ function extraerAlturaMm(texto) {
 
             if (limpio.includes("HE")) return 1360;
 
-            const match = limpio.match(/H(\d+(?:[.,]\d+)?)/);
+            // Una H pegada a la gaveta (G1H28) es el alto del cajon, no del modulo.
+            const match = limpio.match(/(?<!G\d(?:IN)?)H(\d+(?:[.,]\d+)?)/);
             if (!match) return 0;
 
             const codigo = `H${match[1].replace(",", ".")}`;

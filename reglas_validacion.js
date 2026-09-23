@@ -78,7 +78,7 @@ function validarMueble(card) {
             const linea = card.dataset.linea || "";
 
             // Closets de la linea MOU tienen la estructura 70 mm mas baja (laterales 2050 en H11).
-            const esClosetMou = /^MOU/.test(linea) && ["CL", "CM"].includes(card.dataset.tipoModulo || "");
+            const esClosetMou = /^MOU/.test(linea) && ["CL", "CM", "BSCL"].includes(card.dataset.tipoModulo || "");
             const alto = (Number.parseInt(card.dataset.alto, 10) || 0) - (esClosetMou ? 70 : 0);
             const profundidadTotal = Number.parseInt(card.dataset.profundidad, 10) || 0;
             const profundidadBase = Number.parseInt(card.dataset.profundidadEstructura, 10) || Number.parseInt(card.dataset.profundidad, 10) || 0;
@@ -371,7 +371,12 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
 
                 // Abatibles (AB-SIM, AB-DES...) llevan una sola puerta del ancho completo.
                 const esAbatible = /(^|[-+])AB-|AB-(SIM|COM|GIR|PLE|DES)/.test(String(modulo.cod || "").toUpperCase());
-                const cantidadPuertas = esAbatible ? 1 : modulo.ancho > 619 ? 2 : 1;
+                // Lavabos (LV, LAVABO) y el token 2P llevan 2 puertas aunque midan 50-60 cm.
+                const codigoPuerta = String(modulo.cod || "").toUpperCase();
+                // Con apertura I/D (MBS55DP6LAVABO) va una sola puerta.
+                const conApertura = /^[A-Z]+[\d.]+[ID](?![A-Z]{2})|[ID](LV|LAVABO)/.test(codigoPuerta.split("-")[0]);
+                const dosPuertasForzadas = (!conApertura && /\dLV|LAVABO/.test(codigoPuerta)) || /(?<![\d.])2P(?![A-Z\d.,])/.test(codigoPuerta);
+                const cantidadPuertas = esAbatible ? 1 : (modulo.ancho > 619 || dosPuertasForzadas) ? 2 : 1;
                 const anchoPuertaCodigo = extraerAnchoPuertaDesdeCodigo(modulo.cod);
                 const anchoPuerta = anchoPuertaCodigo ? anchoPuertaCodigo - 3 : Math.round(modulo.ancho / cantidadPuertas) - 3;
                 const extraNovak = tieneNovak(modulo.cod) ? 110 : 0;
