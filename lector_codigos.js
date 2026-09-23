@@ -19,7 +19,7 @@ function obtenerNombre(cod) {
             if (interpretado.length > 0) return interpretado.join(" + ");
 
             // Divide por guiones para intentar traducir cada parte como respaldo.
-            return combinarTokensEspeciales(codigo.split("-").filter(Boolean)).map(parte => traducirToken(parte)).join(" + ");
+            return unirPartesConocidas(combinarTokensEspeciales(codigo.split("-").filter(Boolean))).map(parte => traducirToken(parte)).join(" + ");
         }
 
 function combinarTokensEspeciales(partes) {
@@ -85,8 +85,11 @@ function interpretarCodigoModulo(codigo) {
             const separado = separarCodigoPrincipalYAccesorios(codigo);
             const principal = separado.principal;
 
-            // Toma el resto como accesorios o condiciones adicionales.
-            const accesorios = separado.accesorios;
+            // Toma el resto como accesorios, juntando partes que forman una clave conocida (ACK-ELEV, C-H).
+            const accesorios = unirPartesConocidas(separado.accesorios);
+
+            // En Henzo/Duo, S y D despues de guion significan Simple y Doble (perfil gola).
+            const esHenzoODuo = /HZ|DUO/.test(codigo);
 
             // Primero intenta leer una nomenclatura conocida antes de H/P aunque tenga numeros internos.
             const compactoConToken = separarTokenConDetalleCompacto(principal);
@@ -94,7 +97,7 @@ function interpretarCodigoModulo(codigo) {
                 const descripcion = [traducirToken(compactoConToken.token)];
                 const detalles = interpretarDetalleCompacto(compactoConToken.detalle, compactoConToken.token);
                 descripcion.push(...detalles);
-                accesorios.forEach(accesorio => descripcion.push(traducirToken(accesorio)));
+                accesorios.forEach(accesorio => descripcion.push(traducirAccesorio(accesorio, esHenzoODuo)));
                 return descripcion.filter(Boolean);
             }
 
@@ -102,7 +105,7 @@ function interpretarCodigoModulo(codigo) {
             const match = principal.match(/^([A-Z]+(?:-[A-Z]+)*)(\d+(?:[.,]\d+)?)(.*)$/);
 
             // Si no coincide con formato de modulo, intenta traducir accesorios normales.
-            if (!match) return partes.map(parte => traducirToken(parte));
+            if (!match) return unirPartesConocidas(partes).map(parte => traducirToken(parte));
 
             // Extrae cada parte capturada.
             const [, tipo, ancho, detalleCompacto] = match;
@@ -129,7 +132,7 @@ function interpretarCodigoModulo(codigo) {
             }
 
             // Traduce accesorios despues de guiones.
-            accesorios.forEach(accesorio => descripcion.push(traducirToken(accesorio)));
+            accesorios.forEach(accesorio => descripcion.push(traducirAccesorio(accesorio, esHenzoODuo)));
 
             // Devuelve descripcion sin valores vacios.
             return descripcion.filter(Boolean);
@@ -223,6 +226,14 @@ function interpretarDetalleCompacto(detalle, tipo) {
                     continue;
                 }
 
+                // Detecta despensas DE, DEF o DM antes de leer D como apertura derecha.
+                const despensa = resto.match(/^(DEF|DE|DM)(?![A-Z])/);
+                if (despensa) {
+                    partes.push(traducirToken(despensa[1]));
+                    resto = resto.slice(despensa[1].length);
+                    continue;
+                }
+
                 // Detecta apertura izquierda o derecha.
                 if (resto.startsWith("I") || resto.startsWith("D")) {
                     partes.push(traducirApertura(resto.charAt(0)));
@@ -253,7 +264,7 @@ function traducirTipoModulo(tipo) {
                 B: "Modulo Bajo",
                 A: "Modulo Alto",
                 S: "Modulo Suspendido",
-                BS: "Modulo Bajo Suspendido",
+                BS: "Bastidor",
                 MBS: "Mueble Bajo Suspendido",
                 BAR: "Bar",
                 X: "Modulo Auxiliar",
@@ -297,16 +308,18 @@ function traducirGavetas(cantidad) {
 
 function alturaPorDefecto(tipo) {
             // Suspendidos usan H3 cuando no se especifica altura.
-            if (["BS", "MBS", "S", "ES"].includes(tipo)) return "H3";
+            if (["MBS", "S", "ES"].includes(tipo)) return "H3";
 
-            // Bajos, muebles de bano, altos y esquineros comunes usan H4 cuando no se especifica altura.
-            if (["B", "MB", "ST", "EB", "E"].includes(tipo)) return "H4";
+            // Bajos, bastidores (BS sin H = 760 en produccion), bano, altos y esquineros usan H4.
+            if (["B", "BS", "MB", "ST", "EB", "E"].includes(tipo)) return "H4";
 
             // Altos usan H4 por defecto, pero se muestra como altura final 760mm.
             if (["A", "EA"].includes(tipo)) return "H4";
 
             // Auxiliares y closets usan H11 por defecto.
-            if (["X", "CL", "CLOSET", "CM", "BAR", "ECL"].includes(tipo)) return "H11";
+            if (["X", "CL", "CLOSET", "CM", "BAR", "ECL", "BSCL"].includes(tipo)) return "H11";
+            // Bastidor de puertas altas (BSX) sin H: H11 (laterales 2246 incluyen zocalo de 126).
+            if (tipo === "BSX") return "H11";
             if (/^(LX|LXTR|LX2L|FX|FXTR)/.test(tipo)) return "H11";
             if (/^(LB|LBTR|LVB|FB|FBTR)/.test(tipo)) return "H4";
 
@@ -361,16 +374,100 @@ function obtenerDimensionesModulo(cod) {
                 resultado.tipo = tipo;
                 resultado.ancho = tipoUsaNumeroComoProfundidad(tipo) ? 0 : convertirNumeroCodigoAMm(ancho);
 
-                const altura = alturaCodigoCompleto || extraerAlturaMm(detalle);
+                // En modulos altos (X, CL, CM) una H menor a 1 m en los accesorios (X45IR-H43) es de un hueco.
+                const alturaPrincipal = extraerAlturaMm(principal);
+                const alturaAccesorioIgnorada = !alturaPrincipal && ["X", "CL", "CM"].includes(tipo) && alturaCodigoCompleto && alturaCodigoCompleto < 1000;
+                let altura = alturaAccesorioIgnorada ? 0 : (alturaCodigoCompleto || extraerAlturaMm(detalle));
+                // En bajos y suspendidos una H despues de la gaveta es el alto del modulo (B70G1H13 = 130, B35G3H69 = 690);
+                // en altos y auxiliares (X, A, CL) es el alto del cajon.
+                const alturaTrasGaveta = principal.match(/G\d(?:IN|I)?H(\d+(?:[.,]\d+)?)/);
+                if (alturaTrasGaveta && !/(?<!G\d(?:IN|I)?)H\d/.test(principal) && ["B", "MB", "MBS", "S", "EB", "BS"].includes(tipo)) {
+                    altura = convertirNumeroCodigoAMm(alturaTrasGaveta[1]);
+                }
+
+                // En modulos, una H con decimal menor a 10 va en decimetros: B76H2.7 = 270, B60H1.0 = 100.
+                // (En complementos como FBTR60H7.0 sigue en cm = 70.)
+                const alturaDecimal = principal.match(/(?<!G\d(?:IN)?)H(\d(?:[.,]\d+))(?![\d(])/);
+                if ((TIPOS_MODULO_ANCHO_DECIMAL.includes(tipo) || ["OTP", "OA"].includes(tipo)) && alturaDecimal && !alturaAccesorioIgnorada) {
+                    altura = Math.round(Number.parseFloat(alturaDecimal[1].replace(",", ".")) * 100);
+                }
                 resultado.alto = altura || extraerAlturaMm(alturaPorDefecto(tipo));
+
 
                 const profundidad = profundidadCodigoCompleto || extraerProfundidadMm(detalle);
                 resultado.profundidad = profundidad || (tipoUsaNumeroComoProfundidad(tipo) ? profundidadTotalDesdeNumeroP(Number.parseFloat(String(ancho).replace(",", "."))) : profundidadPorDefecto(tipo));
                 resultado.profundidadEstructura = profundidad ? profundidadEstructuraDesdeCodigo(codigo, profundidad, tipo) : resultado.profundidad;
+
+                // Esquinero de closet en L (ECL110DP70, ECL80x80): la P de 2 cifras o la "x" es el segundo lado,
+                // no la profundidad. El fondo queda 580 (o 420 si el codigo dice P4).
+                if (tipo === "ECL" && (/X\d/.test(principal) || (profundidad && profundidad >= 650))) {
+                    const fondoL = /P4(?![\d.])/.test(codigo) && !/P6P4|P4P6/.test(codigo) ? 420 : 580;
+                    resultado.profundidad = fondoL;
+                    resultado.profundidadEstructura = fondoL;
+                }
+
+                // Suspendidos S con gavetas sin P: 600 total / 580 estructura (produccion real).
+                if (tipo === "S" && !profundidad && /G\d/.test(principal)) {
+                    resultado.profundidad = 600;
+                    resultado.profundidadEstructura = 580;
+                }
+
+                // Bastidor Henzo sin P: 90 de profundidad.
+                if (tipo === "BS" && !extraerProfundidadMm(codigo) && /(^|[-+])HZ([-+]|$)/.test(codigo)) {
+                    resultado.profundidad = 90;
+                    resultado.profundidadEstructura = 90;
+                }
+
+                // Altos sobre refrigerador (RF) usan profundidad de bajo: 600 total, 580 de estructura.
+                if (!profundidad && ["A", "EA"].includes(tipo) && /RF(?![A-Z])/.test(detalle)) {
+                    resultado.profundidad = 600;
+                    resultado.profundidadEstructura = 580;
+                }
+
+                // Anchos de 3 cifras sin punto en modulos (B643, X765) son decimas de cm: 64.3 y 76.5 cm.
+                if (TIPOS_MODULO_ANCHO_DECIMAL.includes(tipo) && resultado.ancho > 2500) {
+                    resultado.ancho = Math.round(resultado.ancho / 10);
+                }
             }
 
             return resultado;
         }
+
+// Ajustes de medidas que dependen de la linea del despiece (columna "linea").
+// - MOU (closets CL, CM, BSCL) sin H en el codigo: estructura 70 mm mas baja (2120 -> 2050).
+// - Cubik (CB...) bajos B sin H: alto 690; sin P: 560 total / 540 estructura.
+function ajustarDimensionesPorLinea(dims, cod, linea = "") {
+            const resultado = { ...dims };
+            const lineaBase = String(linea || "").toUpperCase().split("+")[0];
+            const principal = separarCodigoPrincipalYAccesorios(normalizarSinPuerta(String(cod || "").toUpperCase())).principal;
+            const tieneAltura = /H[\d.,]+|HE(?![A-Z])/.test(principal) || /(^|-)H\d/.test(String(cod || "").toUpperCase());
+            const tieneProfundidad = !!extraerProfundidadMm(principal);
+
+            // Tambien OTP10HX (orejas de closet): 2047 / 2050 en MOU.
+            if (/^MOU/.test(lineaBase) && ["CL", "CM", "BSCL", "OTP"].includes(resultado.tipo) && !tieneAltura && resultado.alto >= 2000) {
+                resultado.alto -= 70;
+                resultado.ajusteLinea = "Linea MOU: estructura 70 mm mas baja que el codigo.";
+            }
+            // Altos de la linea MOU: estructura 30 mm mas baja (807 casos en 208 semanas de produccion).
+            if (/^MOU/.test(lineaBase) && ["A", "EA"].includes(resultado.tipo) && resultado.alto) {
+                // Solo baja la estructura: las puertas siguen con el alto del codigo (757 en H4).
+                resultado.altoFrente = resultado.alto;
+                resultado.alto -= 30;
+                resultado.ajusteLinea = "Linea MOU: altos 30 mm mas bajos que el codigo.";
+            }
+            if (/^CB/.test(lineaBase) && resultado.tipo === "B") {
+                if (!tieneAltura) resultado.alto = 690;
+                if (!tieneProfundidad) {
+                    resultado.profundidad = 560;
+                    resultado.profundidadEstructura = 540;
+                }
+                resultado.ajusteLinea = "Linea Cubik: bajos de 690 de alto y 540 de fondo de estructura.";
+            }
+            return resultado;
+        }
+
+// Tipos de modulo que nunca pasan de 250 cm de ancho.
+const TIPOS_MODULO_ANCHO_DECIMAL = ["B", "A", "S", "X", "BS", "MBS", "MB", "EB", "EA", "CL", "CM", "BSCL"];
 
 function convertirNumeroCodigoAMm(valor) {
             const numero = Number.parseFloat(String(valor || "").replace(",", "."));
@@ -382,8 +479,11 @@ function extraerAlturaMm(texto) {
             const limpio = String(texto || "").toUpperCase();
 
             if (limpio.includes("HE")) return 1360;
+            // HX = altura de closet (H11, 2120), p. ej. OTP10HX.
+            if (/HX(?![A-Z])/.test(limpio) && !/H\d/.test(limpio)) return 2120;
 
-            const match = limpio.match(/H(\d+(?:[.,]\d+)?)/);
+            // Una H pegada a la gaveta (G1H28) es el alto del cajon, no del modulo.
+            const match = limpio.match(/(?<!G\d(?:IN)?)H(\d+(?:[.,]\d+)?)/);
             if (!match) return 0;
 
             const codigo = `H${match[1].replace(",", ".")}`;
@@ -394,7 +494,7 @@ function extraerAlturaMm(texto) {
         }
 
 function extraerProfundidadMm(texto) {
-            const match = String(texto || "").toUpperCase().match(/(?<![A-Z\/])P(\d+(?:[.,]\d+)?)/);
+            const match = String(texto || "").toUpperCase().match(/(?<![A-CE-GJ-QS-Z\/])(?<!(?:^|[^Z])H)P(\d+(?:[.,]\d+)?)/);
             if (!match) return 0;
 
             const numero = Number.parseFloat(match[1].replace(",", "."));
@@ -405,7 +505,8 @@ function extraerProfundidadMm(texto) {
 
 function profundidadTotalDesdeNumeroP(numero) {
             if (!Number.isFinite(numero)) return 0;
-            if (numero >= 10 && Number.isInteger(numero)) return Math.round(numero * 10);
+            // P de 10 o mas va en cm (P13.5 = 135, P55 = 550); menor a 10 en decimetros (P6.7 = 670).
+            if (numero >= 10) return Math.round(numero * 10);
             if (numero >= 2 && numero <= 4 && Number.isInteger(numero)) return Math.round(numero * 100 + 20);
             return Math.round(numero < 20 ? numero * 100 : numero * 10);
         }
@@ -416,16 +517,24 @@ function tipoUsaNumeroComoProfundidad(tipo) {
         }
 
 function profundidadEstructuraDesdeCodigo(texto, profundidadTotal, tipo = "") {
-            const match = String(texto || "").toUpperCase().match(/(?<![A-Z\/])P(\d+(?:[.,]\d+)?)/);
+            const match = String(texto || "").toUpperCase().match(/(?<![A-CE-GJ-QS-Z\/])(?<!(?:^|[^Z])H)P(\d+(?:[.,]\d+)?)/);
             const numero = match ? Number.parseFloat(match[1].replace(",", ".")) : 0;
             const profundidad = Number(profundidadTotal) || 0;
             const familia = String(tipo || "").toUpperCase();
 
             if (!profundidad) return 0;
             if (String(texto || "").toUpperCase().includes("S/P")) return profundidad;
-            if (familia === "ST") return profundidad;
+            // Estructuras ST usan la profundidad total (P3 = 340, P4 = 440).
+            // P2 en ST = 200 (produccion real).
+            if (familia === "ST") return (numero === 3 || numero === 4) ? profundidad + 20 : numero === 2 ? profundidad - 20 : profundidad;
             if (numero === 2) return profundidad - 20;
-            if ((numero === 3 || numero === 4) || numero >= 20) return profundidad;
+            if (numero === 3 || numero === 4) return profundidad;
+            // Paneles PM usan la profundidad total (PM240P6 = 600).
+            if (familia === "PM") return profundidad;
+            // Laterales de complemento LX/FX descuentan 20 aunque la P venga en cm (P69 = 670).
+            if (numero >= 20 && /^(LX|FX|FLD)/.test(familia)) return profundidad - 20;
+            // P de 20 o mas (P55, P67) descuenta 20 mm solo en modulos; complementos (PM, TPL...) usan la total.
+            if (numero >= 20 && !TIPOS_MODULO_ANCHO_DECIMAL.includes(familia)) return profundidad;
             return profundidad > 20 ? profundidad - 20 : 0;
         }
 
@@ -433,7 +542,8 @@ function profundidadPorDefecto(tipo) {
             const familia = String(tipo || "").toUpperCase();
 
             if (["A", "EA"].includes(familia)) return 320;
-            if (["BS", "MBS", "S", "ES"].includes(familia)) return 530;
+            if (["BS", "BSCL", "BSX"].includes(familia)) return 75;
+            if (["MBS", "S", "ES"].includes(familia)) return 530;
             if (familia === "MB") return 530;
             if (familia === "ST") return 600;
             if (["B", "X", "CM", "BAR", "CL", "CLOSET", "ECL", "EB", "EX"].includes(familia)) return 580;
@@ -476,6 +586,55 @@ function traducirAltura(altura) {
 
             // Devuelve descripcion clara.
             return `Altura ${codigoAltura} (${mm}mm)`;
+        }
+
+// Componentes de una letra: despues de un guion son accesorios de gaveta, no tipo, altura ni profundidad.
+const COMPONENTES_UNA_LETRA = {
+            C: "Cubertero",
+            H: "Cuchillero",
+            R: "Rollos",
+            S: "Subdivision",
+            O: "Ollero",
+            D: "Despensa",
+            P: "Portaplatos",
+            T: "Botellero",
+            E: "Especiero"
+        };
+
+// Traduce una parte escrita despues de guion (accesorio o componente).
+function traducirAccesorio(token, esHenzoODuo = false) {
+            const limpio = String(token || "").toUpperCase().trim();
+
+            if (esHenzoODuo && limpio === "S") return "Simple";
+            if (esHenzoODuo && limpio === "D") return "Doble";
+            if (COMPONENTES_UNA_LETRA[limpio]) return COMPONENTES_UNA_LETRA[limpio];
+
+            return traducirToken(limpio);
+        }
+
+// Junta partes separadas por guion cuando juntas forman una clave de la DB, como ACK-ELEV o CU-LI.
+function unirPartesConocidas(partes) {
+            const resultado = [];
+
+            for (let i = 0; i < partes.length; i++) {
+                let usadas = 1;
+                let unida = partes[i];
+
+                // Prueba primero la union mas larga (hasta 4 partes).
+                for (let n = Math.min(4, partes.length - i); n >= 2; n--) {
+                    const candidato = partes.slice(i, i + n).join("-").toUpperCase();
+                    if (DB[candidato]) {
+                        unida = candidato;
+                        usadas = n;
+                        break;
+                    }
+                }
+
+                resultado.push(unida);
+                i += usadas - 1;
+            }
+
+            return resultado;
         }
 
 function traducirToken(token) {
@@ -552,9 +711,12 @@ function descripcionAlturaDB(token) {
             return parteAltura || descripcion;
         }
 
+let clavesDbOrdenadas = null;
+
 function buscarTokenConocido(texto) {
-            // Ordena claves largas primero para evitar partir codigos compuestos.
-            const claves = Object.keys(DB).sort((a, b) => b.length - a.length);
+            // Ordena claves largas primero para evitar partir codigos compuestos (se calcula una sola vez).
+            if (!clavesDbOrdenadas) clavesDbOrdenadas = Object.keys(DB).sort((a, b) => b.length - a.length);
+            const claves = clavesDbOrdenadas;
 
             // Devuelve la primera clave que coincida al inicio.
             return claves.find(clave => texto.startsWith(clave)) || "";

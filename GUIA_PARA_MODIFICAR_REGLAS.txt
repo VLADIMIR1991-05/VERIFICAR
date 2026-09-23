@@ -6,11 +6,14 @@ ARCHIVOS IMPORTANTES
    Pagina principal recomendada para publicar en GitHub Pages.
 
 2. validador_despiece_mejorado.html
-   Misma pagina principal, con el nombre que ya estabas usando.
+   Solo redirige a index.html (se conserva para no romper enlaces viejos).
 
 3. db_codigos.js
    Base de datos de abreviaturas y nombres.
    Aqui se agregan significados, no formulas de medidas.
+   Formato: "CODIGO": "Descripcion / Otra descripcion",
+   No pegar precios, costos, cantidades ni columnas completas de Excel:
+   solo el codigo y su significado. Guardar el archivo en UTF-8.
 
 4. lector_codigos.js
    Lee el codigo del mueble.
@@ -20,9 +23,34 @@ ARCHIVOS IMPORTANTES
    Aqui estan las reglas de validacion de medidas.
    Este es el archivo principal para aumentar condiciones.
 
-6. app.js
+6. reglas_coleccion.js
+   Avisos amarillos por coleccion y limites de fabricacion (ancho maximo
+   de puertas y gavetas, Duo sin altos, LBA solo en altos, alturas especiales).
+   No cambian medidas ni cuentan como error. Cada regla se apaga en
+   REGLAS_COLECCION poniendo activa: false.
+
+7. app.js
    Maneja pantalla, carga de Excel, filtros, renderizado y comparacion.
    Normalmente no debes tocarlo para agregar reglas de medidas.
+
+8. generador_despiece.js
+   Recetas: que piezas lleva cada tipo de modulo (funcion recetaModulo) y
+   tablas de gavetas (POSICIONES_GAVETA, FRENTES_CAJON_H4), repisas por
+   altura y cantos tipicos. Las MEDIDAS no se escriben aqui: salen de
+   validarMedidasPieza, asi que al corregir una regla en reglas_validacion.js
+   el generador se corrige solo.
+
+10. app_lote.js
+   Carga de los 3 despieces del mismo lote (melamina, lacas, herrajes).
+   El tipo se detecta solo: herrajes por las columnas codstock/cantreal,
+   lacas por colorlaca/enchapado o tableros DURAFIBRA; el resto es melamina.
+   Cruces: frentes que faltan en lacas, frentes duplicados, modulos sin
+   herrajes y reglas de herrajes (sistema de gaveta, PUSH con TIP-ON,
+   bisagras por puerta segun alto: 2 hasta 900, 2-3 hasta 1600, 4-5 mas de 2000).
+
+9. app_generador.js
+   Pantalla de las pestanas Consultar codigo y Generar despiece
+   (ficha, tabla, exportar a Excel y "Validar este despiece").
 
 
 DONDE AGREGAR UNA NUEVA REGLA
@@ -99,8 +127,9 @@ Funciones utiles:
 
 SI ALGO NO FUNCIONA
 
-Hay una copia de respaldo:
-validador_despiece_mejorado.backup.html
+Las versiones anteriores quedan guardadas en el historial de GitHub
+(pestana "History" de cada archivo). Desde ahi se puede ver o restaurar
+cualquier version, por eso no hace falta guardar copias como
+archivo1.1js o archivo.backup.html dentro del repositorio.
 
 Tambien puedes desactivar una regla comentandola o apagando su detector.
-

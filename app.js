@@ -4,10 +4,10 @@
 // La lectura de nomenclatura esta en lector_codigos.js.
 
 // Columnas que el sistema intenta leer del archivo.
-        const COLS_DESEADAS = ["op", "Tipo", "cod_mueble", "jov", "cod_pieza", "cant_piezas", "medida1", "medida2", "l1", "l2", "c1", "c2", "nomueble", "material_nombre", "ubicacion", "ubi"];
+        const COLS_DESEADAS = ["op", "Tipo", "cod_mueble", "jov", "cod_pieza", "cant_piezas", "medida1", "medida2", "l1", "l2", "c1", "c2", "nomueble", "origen", "material_nombre", "ubicacion", "ubi", "linea"];
 
         // Columnas que se muestran en la tabla; op, cod_mueble, Tipo, material y ubicacion se usan fuera de la tabla.
-        const COLS_TABLA = COLS_DESEADAS.filter(col => !["op", "cod_mueble", "Tipo", "material_nombre", "ubicacion", "ubi"].includes(col));
+        const COLS_TABLA = COLS_DESEADAS.filter(col => !["op", "cod_mueble", "Tipo", "material_nombre", "ubicacion", "ubi", "linea"].includes(col));
 
         // Etiquetas visibles para columnas internas.
         const LABEL_COLUMNAS = {
@@ -91,7 +91,9 @@
             nomueble: ["nomueble", "no_mueble", "numueble", "no mueble", "numero_mueble", "numeromueble", "nro_mueble", "nromueble", "ubicacion", "ubi"],
             material_nombre: ["material_nombre", "materialnombre", "nombre_material", "nombrematerial", "descripcion_material", "descripcionmaterial", "material", "tablero"],
             ubicacion: ["ubicacion", "ubi"],
-            ubi: ["ubi", "ubicacion"]
+            ubi: ["ubi", "ubicacion"],
+            linea: ["linea", "linea_producto", "coleccion"],
+            origen: ["origen"]
         };
 
         // Margen permitido en milimetros al comparar medidas.
@@ -124,6 +126,9 @@
         // Guarda la posicion del navegador de errores.
         let INDICE_ERROR_ACTUAL = -1;
 
+        // Indica si solo se muestran los muebles con error.
+        let SOLO_ERRORES = false;
+
         // Referencias a elementos principales para no buscarlos repetidamente.
         const uploadEl = document.getElementById("upload");
         const listaEl = document.getElementById("lista");
@@ -149,6 +154,14 @@
 
         // Conecta el boton de validacion.
         document.getElementById("btn-validar").addEventListener("click", validarTodo);
+        document.getElementById("btn-validar").addEventListener("click", actualizarBotonSoloErrores);
+
+        // Muestra u oculta los muebles correctos.
+        const btnSoloErroresEl = document.getElementById("btn-solo-errores");
+        btnSoloErroresEl.addEventListener("click", alternarSoloErrores);
+
+        // Permite arrastrar un archivo a cualquier parte de la pagina.
+        conectarArrastrarYSoltar();
 
         // Permite saltar de error en error al hacer click en el contador.
         chipErrEl.addEventListener("click", irAlSiguienteError);
@@ -170,14 +183,22 @@
 
         // Lee el archivo seleccionado por el usuario.
         function manejarArchivoSeleccionado(event) {
+            // Con la carga por lote (melamina, lacas, herrajes) se leen todos los archivos elegidos.
+            if (typeof cargarArchivosLote === "function") {
+                cargarArchivosLote(event.target.files);
+                if (event.target.value !== undefined) event.target.value = "";
+                return;
+            }
+
             // Toma el primer archivo seleccionado.
             const file = event.target.files[0];
 
             // Si no hay archivo, termina sin hacer nada.
             if (!file) return;
 
-            // Reinicia el estado de validacion.
+            // Reinicia el estado de validacion y el filtro de errores.
             VALIDADO = false;
+            SOLO_ERRORES = false;
 
             // Limpia avisos anteriores.
             limpiarAvisos();
@@ -208,6 +229,11 @@
 
                     // Dibuja los datos en pantalla.
                     renderizar(DATA_GLOBAL);
+
+                    // Valida automaticamente para no depender del boton.
+                    validarTodo();
+                    actualizarBotonSoloErrores();
+                    filtrarUniversal();
                 })
                 .catch(error => {
                     // Muestra un mensaje claro si el archivo no se pudo interpretar.
@@ -936,37 +962,7 @@
             return value !== undefined && value !== null ? String(value).trim() : "";
         }
 
-        // Devuelve el nombre descriptivo de un codigo.
-// Recompone tokens que contienen guion pero deben leerse como una sola regla.
-// Normaliza S-P como S/P porque siempre significa Sin Puerta.
-// Separa el codigo principal aunque el tipo tenga guiones, como IS-CUB126H85P6-SI.
-// Interpreta el codigo tecnico principal y sus accesorios.
-// Separa casos como LATRH1 o LX2LH243.6P8, donde H/P marca altura/profundidad.
-// Interpreta detalles pegados despues del ancho, como IH36 o H12P6.7S/P.
-// Traduce el tipo inicial del modulo.
-// Traduce apertura I/D.
-// Traduce codigos compactos de repisas como 1RP.
-// Traduce codigos compactos de gavetas como G6.
-// Devuelve altura por defecto segun la familia del modulo.
-// Traduce codigos de profundidad como P6.7 en milimetros.
-// Obtiene dimensiones compactas desde el codigo, como 625X950X600.
-// Obtiene dimensiones numericas del modulo desde el codigo.
-// Convierte numeros de nomenclatura a milimetros: 50 -> 500, 62.5 -> 625.
-// Extrae altura en milimetros desde un texto que contenga Hnumero.
-// Extrae profundidad en milimetros desde un texto que contenga Pnumero.
-// Convierte el numero despues de P a profundidad total.
-// Convierte profundidad total de codigo a profundidad de estructura para validar piezas.
-// Devuelve profundidad de estructura cuando el codigo no trae P explicita.
-// Alturas por defecto para piezas compactas que no tienen ancho de modulo, como LATRH1 o LXTRP7.
-// Profundidades por defecto para laterales decorativos y piezas compactas.
-// Traduce codigos de altura como H4, H5 o H36.
-// Traduce un token usando primero el diccionario completo.
-// Detecta Tiradera Interna como token separado o al final del codigo.
-// Detecta un token separado por guion o signo mas dentro del codigo.
-// Devuelve una descripcion de DB sin repetir partes separadas por slash.
-// Devuelve solo la descripcion de altura cuando la DB incluye tambien el numero suelto.
-// Busca el token mas largo conocido al inicio de un texto compacto.
-// Renderiza todos los muebles agrupados por OP.
+        // Renderiza todos los muebles agrupados por OP.
         function renderizar(data) {
             // Limpia la lista anterior.
             listaEl.textContent = "";
@@ -1162,6 +1158,7 @@
             card.dataset.tpm = tieneTokenCodigo(cod, "TPM") ? "1" : "0";
             card.dataset.tipoModulo = dimensionesModulo.tipo || "";
             card.dataset.codpuro = cod;
+            card.dataset.linea = obtenerPrimerValor(items, ["linea"]).toUpperCase();
             card.dataset.tipo = tipoVal.toUpperCase();
             card.dataset.op = op;
             card.dataset.universal = textoUniversal;
@@ -1335,7 +1332,8 @@
             // Recorre cada tarjeta y decide si mostrarla.
             contenedores.forEach(div => {
                 const texto = div.dataset.universal || "";
-                const mostrar = filtros.every(filtro => texto.includes(filtro));
+                const mostrar = filtros.every(filtro => texto.includes(filtro)) &&
+                    (!SOLO_ERRORES || div.classList.contains("err"));
                 const piezas = Number.parseInt(div.dataset.piezas, 10) || 0;
                 piezasTotal += piezas;
                 div.style.display = mostrar ? "" : "none";
@@ -1353,6 +1351,59 @@
 
             // Actualiza contadores.
             actualizarStats(visibles, contenedores.length, piezasVisibles, piezasTotal);
+        }
+
+        // Activa o desactiva la vista de solo muebles con error.
+        function alternarSoloErrores() {
+            SOLO_ERRORES = !SOLO_ERRORES;
+            actualizarBotonSoloErrores();
+            filtrarUniversal();
+        }
+
+        // Muestra el boton de errores solo si la validacion encontro fallas.
+        function actualizarBotonSoloErrores() {
+            const hayErrores = document.querySelector(".mueble-container.err") !== null;
+            if (!hayErrores) SOLO_ERRORES = false;
+
+            btnSoloErroresEl.style.display = hayErrores ? "" : "none";
+            btnSoloErroresEl.textContent = SOLO_ERRORES ? "Ver todos" : "Ver solo errores";
+            btnSoloErroresEl.classList.toggle("active", SOLO_ERRORES);
+            btnSoloErroresEl.setAttribute("aria-pressed", String(SOLO_ERRORES));
+        }
+
+        // Carga el archivo soltado sobre la pagina usando el mismo flujo del boton.
+        function conectarArrastrarYSoltar() {
+            let contador = 0;
+
+            const tieneArchivos = event => [...(event.dataTransfer?.types || [])].includes("Files");
+
+            document.addEventListener("dragenter", event => {
+                if (!tieneArchivos(event)) return;
+                event.preventDefault();
+                contador++;
+                document.body.classList.add("arrastrando");
+            });
+
+            document.addEventListener("dragover", event => {
+                if (tieneArchivos(event)) event.preventDefault();
+            });
+
+            document.addEventListener("dragleave", () => {
+                contador = Math.max(0, contador - 1);
+                if (contador === 0) document.body.classList.remove("arrastrando");
+            });
+
+            document.addEventListener("drop", event => {
+                if (!tieneArchivos(event)) return;
+                event.preventDefault();
+                contador = 0;
+                document.body.classList.remove("arrastrando");
+
+                const files = Array.from(event.dataTransfer.files || []);
+                if (!files.length) return;
+
+                manejarArchivoSeleccionado({ target: { files } });
+            });
         }
 
         // Limpia los filtros y vuelve a mostrar todos los muebles.
@@ -1583,7 +1634,17 @@
             }
 
             // Muestra la lectura usando el mismo traductor de las tarjetas.
-            resultado.textContent = obtenerNombre(codigo);
+            const lineas = [obtenerNombre(codigo)];
+
+            // Agrega coleccion y avisos de fabricacion cuando aplican.
+            if (typeof obtenerAvisosColeccion === "function") {
+                const infoColeccion = obtenerAvisosColeccion(codigo, { incluirNotasAltura: true });
+                if (infoColeccion.coleccion) lineas.push(`Coleccion: ${infoColeccion.coleccion}`);
+                infoColeccion.avisos.forEach(aviso => lineas.push(`Aviso: ${aviso}`));
+                infoColeccion.notas.forEach(nota => lineas.push(`Nota: ${nota}`));
+            }
+
+            resultado.textContent = lineas.join("\n");
         }
 
         // Obtiene el primer valor no vacio de una lista de columnas posibles.
@@ -1619,50 +1680,7 @@
             return texto ? `(${texto})` : "";
         }
 
-        // Valida la estructura de todos los muebles renderizados.
-// Salta al siguiente mueble con falla cada vez que se pulsa el contador de errores.
-// Valida un solo mueble y devuelve lista de errores.
-// Limpia clases y mensajes de una validacion anterior.
-// Muestra errores dentro de la tarjeta.
-// Actualiza el badge OK/Error de una tarjeta.
-// Agrega un check pequeno a la primera celda de una fila validada.
-// Agrega checks junto a MEDIDA1/MEDIDA2 cuando coinciden con valores esperados.
-// Devuelve profundidad esperada segun tipo de mueble.
-// Valida una pieza contra las medidas esperadas del modulo.
-// Extrae el grosor desde JOB/JOV en filas de base, techo o ajustes.
-// Extrae el grosor del material guardado en la tarjeta.
-// Profundidad por defecto para repisas moviles segun la estructura del modulo.
-// Detecta codigos donde solo se pudo leer ancho y una segunda dimension.
-// Extrae un numero de grosor desde codigos/materiales como CPCP18CO.
-// Piezas cuyo JOB/JOV define el grosor general del modulo.
-// Normaliza nombres de piezas para detectar familias.
-// Detecta bases y techos.
-// Detecta puertas principales PT sin confundir piezas especiales de puerta abatible.
-// Detecta frentes de cajon, incluso cuando vienen con prefijo especial como ESP4FC.
-// Detecta zocalos de melamina o laca.
-// Detecta orejas tipo puerta OTP.
-// Detecta repisas portacopas, que manejan profundidad propia de 280 mm.
-// Detecta maleteras.
-// Detecta repisas tapa, REPT, REPTA y variantes.
-// Detecta bases con codigos completos o abreviados, como BAS, BA o E-BAS-DEC-TI.
-// Detecta techos con codigos completos o abreviados.
-// Detecta bases con tiradera interna, como BAS-TI o E-BAS-DEC-TI.
-// Detecta ajustes AJ.
-// Detecta laterales principales.
-// Detecta respaldos.
-// Detecta repisas moviles, que descuentan 1 mm adicional de ancho.
-// Detecta repisas normales o fijas sin confundirlas con repisas moviles.
-// Detecta piezas planas que solo necesitan ancho y alto, como forramientos FXTR.
-// Detecta la pieza TPM, que tiene descuento propio de profundidad.
-// Compara un par de medidas sin importar el orden en la tabla.
-// Muestra una medida o guion si no es numerica.
-// Detecta si una pieza debe validar ancho.
-// Detecta si una pieza debe validar profundidad.
-// Compara una medida con una esperada usando tolerancia.
-// Obtiene texto de una celda segun su columna.
-// Obtiene numero de una celda segun su columna.
-// Detecta ancho desde el codigo del mueble.
-// Construye texto de busqueda para los filtros universales.
+        // Construye texto de busqueda para los filtros universales.
         function construirTextoUniversal(op, cod, nombre, items) {
             // Une datos principales.
             const base = [op, cod, nombre].join(" ");
