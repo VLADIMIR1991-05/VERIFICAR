@@ -12,7 +12,8 @@ const DESCRIPCION_PIEZAS = {
     AJP: "Ajuste AJP", AJPS: "Ajuste AJPS", AJF: "Ajuste AJF", AJPI: "Ajuste AJPI",
     RESP: "Respaldo", REPMM: "Repisa movil", REPMP: "Repisa movil", REPF: "Repisa fija",
     MALE: "Maletera", PT: "Puerta", FC: "Frente de cajon",
-    LDD: "Lateral decorativo derecho", LDI: "Lateral decorativo izquierdo",
+    LDD: "Lateral decorativo derecho (18 mm)", LID: "Lateral decorativo izquierdo (18 mm)",
+    "FRI-SLIM": "Friso frente interno Slim", "FRI-ZAP-SI": "Friso zapatero sistema invisible", "COS-SI": "Costado cajon sistema invisible",
     ZAPAP: "Zapatera", ZPIN: "Zapatero inclinado", LTE3: "Lateral torre de cajones",
     "D-LATI": "Lateral izquierdo (vestidor)", "D-LATD": "Lateral derecho (vestidor)"
 };
@@ -51,10 +52,69 @@ const FONDO_METABOX = { 1: [498], 2: [483, 498], 3: [483, 483, 498], 4: [483, 48
 // Comodin de closet (CM) por sistema: altura de posicion, friso del frente interno,
 // alto del frente de cajon y laterales de torre LTE3 (aprendido de produccion).
 const COMODIN_POR_SISTEMA = {
-    SS: { posicion: 63, posicionRepisero: 101, friso: "FRI-SB", frente: 140, frenteRepisero: 143, lte3: true },
-    SB: { posicion: 100, posicionRepisero: 100, friso: "FRI-SB", frente: 175, frenteRepisero: 175, lte3: false },
-    SI: { posicion: 105, posicionRepisero: 105, friso: "FRI-SI", frente: 175, frenteRepisero: 175, lte3: true, lte3Medida: [760, 518] }
+    // posicionMcu: lineas MCU/MCUV; posicion: resto de lineas.
+    SS: { posicionMcu: 63, posicion: 101, lte3: true },
+    SB: { posicionMcu: 100, posicion: 100, lte3: false },
+    SI: { posicionMcu: 105, posicion: 105, lte3: true }
 };
+
+// Comodin (CM): repisa fija sobre la cajonera.
+// Con frente interno (FI, lleva puerta) va un engrosado LTE3 de 36 mm al lado de los cajones:
+// ancho para cajones = ancho - 15 - 15 - 36 - 1 (desde 800 mm, dos engrosados).
+function agregarComodin(info, opciones, agregar) {
+            const { dims } = info;
+            const sistema = COMODIN_POR_SISTEMA[info.sistema] ? info.sistema : "SS";
+            const regla = COMODIN_POR_SISTEMA[sistema];
+            const lineaMcu = /^MCU/.test(info.lineaBase);
+            const cajonesZapato = Number((info.codigo.match(/G\dZ(\d)/) || [])[1] || 0);
+            const cajones = info.gavetas === 6 ? 6 : cajonesZapato ? info.gavetas : 4;
+            const engrosados = info.frenteInterno && regla.lte3 ? (dims.ancho >= 800 ? 2 : 1) : 0;
+
+            agregar("REPF", 1);
+
+            // Posiciones: G6 sin FI lleva 2 cajones bajos (63) y 4 normales.
+            const alturaPos = lineaMcu ? regla.posicionMcu : regla.posicion;
+            const alturasPos = sistema === "SS" && cajones === 6 && !info.frenteInterno && !lineaMcu
+                ? [63, 63, 101, 101, 101, 101]
+                : Array(cajones).fill(alturaPos);
+            alturasPos.forEach(altura => {
+                agregar(`FON-${sistema}`, 1);
+                agregar(`POS-${sistema}`, 1, { alturaSistema: altura });
+                if (sistema === "SI") agregar("COS-SI", 2, { medidaFija: [490, 120] });
+            });
+            for (let i = 0; i < cajonesZapato; i++) {
+                agregar(`FON-${sistema}`, 1);
+                agregar(`POS-${sistema}`, 1, { medidaFija: null, alturaSistema: 60 });
+                if (sistema === "SI") agregar("COS-SI", 2, { medidaFija: [490, 60] });
+            }
+
+            if (info.frenteInterno) {
+                // Friso del frente interno: MCU lo nombra FRI-SB; las demas lineas FRI-SLIM (3 mm mas ancho).
+                const nombreFriso = sistema === "SI" ? "FRI-SI" : sistema === "SB" || lineaMcu ? "FRI-SB" : "FRI-SLIM";
+                const extraFriso = nombreFriso === "FRI-SB" ? 0 : 3;
+                const altosFriso = cajones === 6 ? [116, 116, 135, 135, 135, 135] : Array(cajones).fill(135);
+                altosFriso.forEach(alto => agregar(nombreFriso, 1, { alturaSistema: alto, medidaComo: `FRI-${sistema === "SI" ? "SS" : sistema}`, extraAncho: extraFriso }));
+                if (cajonesZapato) agregar("FRI-ZAP-SI", 1, { alturaSistema: 150, medidaComo: "FRI-SS", extraAncho: 3 });
+
+                if (engrosados) {
+                    const nota = "engrosado 36 mm junto a los cajones (lado segun apertura)";
+                    const alto = cajones === 6 ? 1027 : 727;
+                    if (lineaMcu) agregar("LTE3", engrosados, { medidaFija: [alto, 472], espesorFijo: 36, nota });
+                    else if (dims.alto >= 2310) agregar("LTE3", engrosados, { medidaFija: [alto, 488], espesorFijo: 36, nota });
+                    else agregar("LTE3", engrosados * 2, { medidaFija: [760, 518], espesorFijo: 18, nota: `${nota}: 2 piezas de 18 pegadas` });
+                }
+            } else if (opciones.incluirFrentes) {
+                // Frentes de cajon: 187 normal, 143 con -ST (140 con -TC-NE), 175 en sistema SB.
+                const nota = "altura aprendida de produccion";
+                const frente = sistema === "SB" ? 175 : /-ST\b|-ST-/.test(info.codigo + "-") ? (/TC-NE/.test(info.codigo) ? 140 : 143) : 187;
+                if (cajones === 6) {
+                    agregar("FC", 2, { alturaFrente: 143, nota });
+                    agregar("FC", 4, { alturaFrente: 187, nota });
+                } else {
+                    agregar("FC", cajones, { alturaFrente: frente, nota });
+                }
+            }
+        }
 
 // Altura de frentes de cajon para bajos H4 (760).
 const FRENTES_CAJON_H4 = { G1: [757], G2: [342, 342], G3: [170, 170, 342], G4: [187, 187, 187, 187], G2IN: [722], G3IN: [342, 342] };
@@ -68,10 +128,11 @@ function analizarCodigoParaDespiece(cod, linea = "") {
             const principal = separarCodigoPrincipalYAccesorios(codigo).principal;
             const lectura = interpretarCodigoModulo(codigo).join(" + ").toUpperCase();
             // Gavetas en el codigo principal (B60G3) o como accesorio (B60H4-G3).
-            const tokenGavetas = partes.find(p => /^G\d(IN)?$/.test(p)) || "";
+            const tokenGavetas = partes.find(p => /^G\d(IN|Z\d)?$/.test(p)) || "";
             const gavetas = Number((principal.match(/G(\d)/) || tokenGavetas.match(/G(\d)/) || [])[1] || 0);
-            const sistemaToken = partes.find(p => ["SS", "SLIM", "SM", "MRV", "SL", "SI", "SB"].includes(p)) || "";
-            const sistema = sistemaToken === "SLIM" ? "SS" : sistemaToken;
+            const sistemaToken = partes.find(p => ["SS", "SLIM", "SM", "MRV", "SL", "SI", "SIAL", "SB"].includes(p)) || "";
+            // SIAL = sistema invisible con frente de aluminio.
+            const sistema = sistemaToken === "SLIM" ? "SS" : sistemaToken === "SIAL" ? "SI" : sistemaToken;
             const lineaBase = String(linea || "").toUpperCase().split("+")[0];
             const materialFrente = String(linea || "").toUpperCase().split("+")[1] || "";
 
@@ -98,7 +159,7 @@ function analizarCodigoParaDespiece(cod, linea = "") {
                 frenteInterno: /FI/.test(principal) || partes.includes("FI"),
                 // Closets abiertos (S/P) usan laterales D-LATI / D-LATD (menos linea MOU);
                 // en vestidor VU tambien los de puerta de aluminio (AL).
-                lateralVestidor: (codigo.includes("S/P") && !/^MOU/.test(lineaBase)) || (/^VU/.test(lineaBase) && /AL/.test(principal)),
+                lateralVestidor: codigo.includes("S/P") && !/^MOU/.test(lineaBase),
                 lectura
             };
         }
@@ -170,31 +231,10 @@ function recetaModulo(info, opciones) {
                 const sinMaletera = /C2/.test(info.codigo) && dims.alto - (info.closetMou ? 70 : 0) <= 2120;
                 if (!sinMaletera) agregar("MALE", 1);
                 if (info.zapatero) agregar("ZPIN", 7);
-                else if (info.repisero) agregar("REPMP", tipo === "CM" ? 2 : 4);
+                // "+R158" / "+R202" al final del codigo: 3 repisas adicionales.
+                else if (info.repisero) agregar("REPMP", (tipo === "CM" ? 2 : 4) + (/\+R\d+/.test(info.codigo) ? 3 : 0));
                 else if (info.colgadorSimple && tipo !== "CM") agregar("ZAPAP", 1);
-                if (tipo === "CM") {
-                    // Comodin: repisa fija sobre 4 gavetas (Slim por defecto).
-                    agregar("REPF", 1);
-                    const sistema = COMODIN_POR_SISTEMA[info.sistema] ? info.sistema : "SS";
-                    const reglaCm = COMODIN_POR_SISTEMA[sistema];
-                    // Slim: posicion 63 con frente interno o colgador C1; 101 en repisero sin FI.
-                    const alturaPosicion = info.frenteInterno || info.colgadorSimple ? reglaCm.posicion : reglaCm.posicionRepisero;
-                    for (let i = 0; i < 4; i++) {
-                        agregar(`FON-${sistema}`, 1);
-                        agregar(`POS-${sistema}`, 1, { alturaSistema: alturaPosicion });
-                        // Friso del frente interno (en Slim sale como FRI-SB).
-                        if (info.frenteInterno) agregar(reglaCm.friso, 1, { alturaSistema: 135, medidaComo: `FRI-${sistema}` });
-                    }
-                    if (info.frenteInterno && reglaCm.lte3) {
-                        // Laterales de la torre de cajones (medida aprendida, no depende del ancho).
-                        const nota = "medida aprendida de produccion, por confirmar";
-                        if (reglaCm.lte3Medida) agregar("LTE3", 2, { medidaFija: reglaCm.lte3Medida, nota });
-                        else if (dims.alto >= 2310) agregar("LTE3", 1, { medidaFija: [727, 472], espesorFijo: 36, nota });
-                        else agregar("LTE3", 2, { medidaFija: [757, 502], nota });
-                    } else if (!info.frenteInterno && opciones.incluirFrentes) {
-                        agregar("FC", 4, { alturaFrente: info.colgadorSimple ? reglaCm.frente : reglaCm.frenteRepisero, nota: "altura aprendida de produccion, por confirmar" });
-                    }
-                }
+                if (tipo === "CM") agregarComodin(info, opciones, agregar);
             } else {
                 return null;
             }
@@ -242,7 +282,7 @@ function calcularMedidasGeneradas(item, modulo) {
             if (/^(FON|POS|FRI)-/.test(item.pieza)) {
                 const sistema = medidasSistemaGaveta(item.medidaComo || item.pieza, modulo);
                 if (!sistema) return null;
-                return { largo: sistema.anchos[0], ancho: item.alturaSistema || sistema.alturas[0], formula: `ancho interno - ${sistema.anchos.length > 1 ? sistema.descuento.split(" o ")[0] : sistema.descuento}` };
+                return { largo: sistema.anchos[0] + (item.extraAncho || 0), ancho: item.alturaSistema || sistema.alturas[0], formula: `ancho interno - ${sistema.anchos.length > 1 ? sistema.descuento.split(" o ")[0] : sistema.descuento}${item.extraAncho ? ` + ${item.extraAncho}` : ""}` };
             }
 
             if (item.pieza === "FC") {
@@ -335,7 +375,7 @@ function generarDespiece(cod, opciones = {}) {
                 // Lateral decorativo: LDD / LDI reemplazan al lateral de ese lado.
                 let nombrePieza = item.pieza;
                 if (/LATD$/.test(item.pieza) && tieneTokenCodigo(info.codigo, "LDD")) nombrePieza = "LDD";
-                if (/LATI$/.test(item.pieza) && tieneTokenCodigo(info.codigo, "LDI")) nombrePieza = "LDI";
+                if (/LATI$/.test(item.pieza) && (tieneTokenCodigo(info.codigo, "LID") || tieneTokenCodigo(info.codigo, "LDI"))) nombrePieza = "LID";
 
                 piezas.push({
                     pieza: nombrePieza,
@@ -343,7 +383,8 @@ function generarDespiece(cod, opciones = {}) {
                     cant: cant * op.cantidad,
                     largo: Math.round(medidas.largo * 10) / 10,
                     ancho: Math.round(medidas.ancho * 10) / 10,
-                    espesor: item.espesorFijo || espesorDe(item.pieza),
+                    // Laterales decorativos de closet van en 18 mm.
+                    espesor: item.espesorFijo || (/^(LDD|LID)$/.test(nombrePieza) ? 18 : espesorDe(item.pieza)),
                     cantos: CANTOS_TIPICOS[item.pieza] || [0, 0, 0, 0],
                     formula: medidas.formula,
                     nota: item.nota || ""

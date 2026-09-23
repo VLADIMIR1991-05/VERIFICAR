@@ -299,6 +299,12 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                 return { ok: true, mensaje: "", valida: false };
             }
 
+            // Friso del zapatero del sistema invisible: alto 150, ancho como el friso interno.
+            if (/^FRI-ZAP/.test(nombre)) {
+                const ok = coincideMedida(medida1, 150) || coincideMedida(medida2, 150);
+                return { ok, mensaje: "deberia tener alto 150 mm como friso de zapatero.", valida: true, objetivos: [150] };
+            }
+
             if (esZocalo(nombre)) {
                 const alturaZocalo = 126;
                 const ok = coincideMedida(medida1, alturaZocalo) || coincideMedida(medida2, alturaZocalo);
@@ -708,6 +714,24 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                 };
             }
 
+            // LTE3: engrosado de 36 mm a un lado de los cajones del comodin (medidas de produccion).
+            if (/^LTE3/.test(nombre)) {
+                const opciones = [[727, 472], [727, 488], [757, 502], [760, 518], [1027, 472], [1027, 488]];
+                const ok = opciones.some(([a, b]) => coincideParMedidas(medida1, medida2, a, b));
+                return {
+                    ok,
+                    mensaje: "deberia medir 727 x 472/488 (36 mm) o 757 x 502 / 760 x 518 (2 de 18 mm) como engrosado LTE3.",
+                    valida: true,
+                    objetivos: [727, 472]
+                };
+            }
+
+            // Costados del sistema invisible: 490 x 120 (cajon) o 490 x 60 (zapatero).
+            if (/^COS-SI/.test(nombre)) {
+                const ok = [120, 60].some(alto => coincideParMedidas(medida1, medida2, 490, alto));
+                return { ok, mensaje: "deberia medir 490 x 120/60 mm como costado de sistema invisible.", valida: true, objetivos: [490, 120, 60] };
+            }
+
             // Zapatera de closet (C1): ancho interno - 1 x 320 (esquineros ECL a veces al ancho interno).
             if (/^ZAPAP/.test(nombre)) {
                 if (!modulo.anchoInterno) return { ok: true, mensaje: "", valida: false };
@@ -741,8 +765,11 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                 if (!modulo.anchoInterno) return { ok: true, mensaje: "", valida: false };
 
                 const profundidadBase = Number(modulo.profundidad) || 0;
-                const profundidadMaletera = profundidadBase > 110 ? profundidadBase - 110 + (esModuloAlto(modulo) ? 40 : 0) : profundidadBase;
-                const ok = coincideParMedidas(medida1, medida2, modulo.anchoInterno, profundidadMaletera);
+                // Closets P3 (hasta 350) descuentan 70; RAS (al filo frontal) descuenta 25.
+                const profundidadMaletera = esRas(modulo) ? profundidadBase - 25
+                    : profundidadBase > 110 && profundidadBase <= 350 && !esModuloAlto(modulo) ? profundidadBase - 70
+                    : profundidadBase > 110 ? profundidadBase - 110 + (esModuloAlto(modulo) ? 40 : 0) : profundidadBase;
+                const ok = [profundidadMaletera, profundidadMaletera + 2].some(prof => coincideParMedidas(medida1, medida2, modulo.anchoInterno, prof));
 
                 return {
                     ok,
@@ -950,7 +977,14 @@ function profundidadRepisaMovil(modulo) {
 
             // Segun produccion real: modulos P3 (hasta 350) descuentan 70 mm, los demas 110 mm.
             if (profundidad <= 110) return profundidad;
+            // RAS: repisas al filo frontal (profundidad - ajuste - fugas - respaldo = -25).
+            if (esRas(modulo)) return profundidad - 25;
             return profundidad <= 350 ? profundidad - 70 : profundidad - 110;
+        }
+
+// Closet con repisas y maletera al ras del borde frontal (token RAS).
+function esRas(modulo) {
+            return tieneTokenCodigo(String(modulo && modulo.cod || "").toUpperCase(), "RAS");
         }
 
 function esModuloAlto(modulo) {
@@ -1210,11 +1244,11 @@ function esFrenteFalso(pieza) {
 // Piezas de sistemas de gaveta, medidas contra el ancho interno (ancho - 2 espesores - 1).
 // Deducido de 20 despieces reales. FI = gaveta interna tras puerta: descuenta 37 mm mas.
 const SISTEMAS_GAVETA = {
-    SS: { nombre: "Slim", FON: { d: 19, h: [490] }, POS: { d: 40, h: [63, 101, 199, 300, 380, 435] }, FRI: { d: 3, h: [110, 240] }, FRI_FI: { d: 34, h: [135] } },
-    SB: { nombre: "SB", FON: { d: [31, 25], h: [498, 530] }, POS: { d: [31, 25], h: [100, 199, 70] }, FRI: { d: 3, h: [100] }, FRI_FI: { d: 34, h: [135] } },
+    SS: { nombre: "Slim", FON: { d: 19, h: [490] }, POS: { d: 40, h: [63, 101, 199, 300, 380, 435] }, FRI: { d: 3, h: [110, 240] }, FRI_FI: { d: 34, h: [135, 116] } },
+    SB: { nombre: "SB", FON: { d: [31, 25], h: [498, 530] }, POS: { d: [31, 25], h: [100, 199, 70] }, FRI: { d: 3, h: [100] }, FRI_FI: { d: 34, h: [135, 116] } },
     SM: { nombre: "Metabox", FON: { d: 31, h: [483, 498] }, POS: { d: 31, h: [71, 199] }, FRI: { d: 63, h: [61] } },
     SL: { nombre: "Legrabox", FON: { d: 34, h: [490, 260] }, POS: { d: 37, h: [148, 63] } },
-    SI: { nombre: "Sistema invisible", FON: { d: 41, h: [475, 425] }, POS: { d: 41, h: [105] } },
+    SI: { nombre: "Sistema invisible", FON: { d: 41, h: [475, 425] }, POS: { d: 41, h: [105, 60] }, FRI_FI: { d: 31, h: [135] } },
     MRV: { nombre: "Merivobox", FON: { d: 51, h: [474, 480] }, POS: { d: 51, h: [83, 184, 300] } }
 };
 
@@ -1229,7 +1263,12 @@ function medidasSistemaGaveta(pieza, modulo) {
             if (!regla) return null;
 
             const extraInterna = esInterna && !sistema[`${parte}_FI`] ? 37 : 0;
-            const descuentos = (Array.isArray(regla.d) ? regla.d : [regla.d]).map(d => d + extraInterna);
+            // Comodin CM con frente interno: cada LTE3 (engrosado de 36 mm) quita ancho a los cajones.
+            // Desde 800 mm lleva dos engrosados, uno por lado: 36 mm mas (el friso 29).
+            const dosEngrosados = esInterna && modulo.tipo === "CM" && modulo.ancho >= 800;
+            const extraEngrosado = dosEngrosados ? (parte === "FRI" ? 29 : 36) : 0;
+            const descuentos = (Array.isArray(regla.d) ? regla.d : [regla.d]).map(d => d + extraInterna + extraEngrosado);
+            if (dosEngrosados && parte !== "FRI") descuentos.push(descuentos[0] + 3);
             const nombres = { FON: "fondo", POS: "posicion", FRI: "friso" };
 
             return {
