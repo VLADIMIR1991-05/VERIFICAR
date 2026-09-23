@@ -49,7 +49,7 @@ function mostrarFichaCodigo() {
             if (!contenedor) return;
             contenedor.textContent = "";
 
-            const codigo = document.getElementById("codigo-consulta").value.trim().toUpperCase();
+            const codigo = document.getElementById("codigo-consulta").value.trim().toUpperCase().replace(/\s+/g, "-");
             if (!codigo) return;
 
             const info = analizarCodigoParaDespiece(codigo);
@@ -121,10 +121,12 @@ function leerCodigosDelFormulario() {
                 .filter(Boolean)
                 .map(linea => {
                     const match = linea.match(/^(.+?)\s*[X*]\s*(\d+)$/);
+                    // Los espacios dentro del codigo se toman como guion ("B60G3 MRV" = "B60G3-MRV").
+                    const limpiar = texto => texto.trim().replace(/\s+/g, "-");
                     if (match && /\s|\*/.test(linea.slice(match[1].length))) {
-                        return { codigo: match[1].trim(), cantidad: Number(match[2]) * cantidadGeneral };
+                        return { codigo: limpiar(match[1]), cantidad: Number(match[2]) * cantidadGeneral };
                     }
-                    return { codigo: linea, cantidad: cantidadGeneral };
+                    return { codigo: limpiar(linea), cantidad: cantidadGeneral };
                 });
         }
 

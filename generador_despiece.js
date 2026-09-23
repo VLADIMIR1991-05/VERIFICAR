@@ -41,13 +41,16 @@ const REPISAS_ALTOS_POR_ALTURA = { 380: 0, 570: 1, 760: 2, 950: 2, 1140: 2, 1330
 // Alturas de posicion de gaveta por sistema y cantidad de gavetas.
 const POSICIONES_GAVETA = {
     SS: { 1: [199], 2: [199, 199], 3: [101, 101, 199], 4: [101, 101, 101, 101], "2IN": [63, 300], "3IN": [63, 101, 199] },
-    MRV: { 1: [184], 2: [184, 184], 3: [83, 83, 184], 4: [83, 83, 83, 83] },
-    SM: { 1: [199], 2: [71, 199], 3: [71, 71, 199], 4: [71, 71, 71, 71] },
-    SB: { 1: [199], 2: [100, 199], 3: [100, 100, 199], 4: [70, 70, 100, 100] },
-    SL: { 1: [148], 2: [63, 148], 3: [63, 63, 148], 4: [63, 63, 63, 63] },
-    SI: { 1: [105], 2: [105, 105], 3: [105, 105, 105], 4: [105, 105, 105, 105] }
+    // Reparto mas frecuente en produccion real (38 semanas).
+    MRV: { 1: [184], 2: [184, 184], 3: [83, 83, 184], 4: [83, 83, 83, 184], "2IN": [83, 300], "3IN": [83, 83, 184] },
+    SM: { 1: [103], 2: [71, 199], 3: [71, 103, 199], 4: [71, 71, 103, 103], "2IN": [71, 199], "3IN": [71, 103, 199] },
+    SB: { 1: [199], 2: [199, 199], 3: [70, 100, 199], 4: [100, 100, 100, 100], "2IN": [70, 199], "3IN": [70, 100, 199] },
+    SL: { 1: [148], 2: [148, 148], 3: [63, 63, 148], 4: [63, 63, 63, 148], "2IN": [63, 148], "3IN": [63, 63, 148] },
+    SI: { 1: [65], 2: [65, 65], 3: [105, 105, 185], 4: [105, 105, 105, 105] }
 };
-const FONDO_METABOX = { 1: [498], 2: [483, 498], 3: [483, 483, 498], 4: [483, 483, 483, 498] };
+// Alto del fondo por sistema cuando no es el primero de la tabla del validador.
+const FONDO_METABOX = { 1: [498], 2: [483, 498], 3: [483, 498, 498], 4: [483, 483, 498, 498] };
+const FONDO_MERIVOBOX = { 1: [474], 2: [474, 474], 3: [474, 474, 474], 4: [474, 474, 474, 474] };
 
 // Comodin de closet (CM) por sistema: altura de posicion, friso del frente interno,
 // alto del frente de cajon y laterales de torre LTE3 (aprendido de produccion).
@@ -122,15 +125,19 @@ const FRENTES_CAJON_H4 = { G1: [757], G2: [342, 342], G3: [170, 170, 342], G4: [
 // Lee del codigo lo que necesita la receta.
 // linea: columna "linea" del despiece (KUHZ+MV, MCU+LM...), opcional.
 function analizarCodigoParaDespiece(cod, linea = "") {
-            const codigo = normalizarSinPuerta(String(cod || "").toUpperCase().trim());
+            // Espacios se toman como guion: "B60H4G3 mrv" = "B60H4G3-MRV".
+            const codigo = normalizarSinPuerta(String(cod || "").toUpperCase().trim().replace(/\s+/g, "-"));
             const dims = obtenerDimensionesModulo(codigo);
             const partes = codigo.split(/[-+]/).filter(Boolean);
             const principal = separarCodigoPrincipalYAccesorios(codigo).principal;
             const lectura = interpretarCodigoModulo(codigo).join(" + ").toUpperCase();
             // Gavetas en el codigo principal (B60G3) o como accesorio (B60H4-G3).
-            const tokenGavetas = partes.find(p => /^G\d(IN|Z\d)?$/.test(p)) || "";
+            const tokenGavetas = partes.find(p => /^G\d(IN|Z\d)?(H[\d.]+)?S?(SLIM|MRV|SIAL|SI|SB|SM|SL|SS)?$/.test(p)) || "";
             const gavetas = Number((principal.match(/G(\d)/) || tokenGavetas.match(/G(\d)/) || [])[1] || 0);
-            const sistemaToken = partes.find(p => ["SS", "SLIM", "SM", "MRV", "SL", "SI", "SIAL", "SB"].includes(p)) || "";
+            // Sistema como accesorio (-SLIM, -MRV) o pegado a la gaveta (G2SLIM, G1H26SMRV, G3SI).
+            const sistemaToken = partes.find(p => ["SS", "SLIM", "SM", "MRV", "SL", "SI", "SIAL", "SB"].includes(p))
+                || (codigo.match(/G\d(?:IN)?(?:H[\d.]+)?S?(SLIM|MRV|SIAL|SI|SB|SM|SL|SS)(?![A-Z])/) || [])[1]
+                || "";
             // SIAL = sistema invisible con frente de aluminio.
             const sistema = sistemaToken === "SLIM" ? "SS" : sistemaToken === "SIAL" ? "SI" : sistemaToken;
             const lineaBase = String(linea || "").toUpperCase().split("+")[0];
@@ -244,11 +251,18 @@ function recetaModulo(info, opciones) {
                 const tabla = POSICIONES_GAVETA[info.sistema] || {};
                 const alturas = (info.gavetaInterna && tabla[`${info.gavetas}IN`]) || tabla[info.gavetas] || [];
                 alturas.forEach((altura, i) => {
-                    const fondo = info.sistema === "SM" ? FONDO_METABOX[info.gavetas][i] : null;
+                    const fondo = info.sistema === "SM" ? (FONDO_METABOX[alturas.length] || [])[i]
+                        : info.sistema === "MRV" ? (FONDO_MERIVOBOX[alturas.length] || [])[i]
+                        // Legrabox en modulos P3: fondo de 260.
+                        : info.sistema === "SL" && dims.profundidad && dims.profundidad <= 350 ? 260 : null;
                     agregar(`FON-${info.sistema}`, 1, { alturaSistema: fondo });
                     agregar(`POS-${info.sistema}`, 1, { alturaSistema: altura });
+                    // Sistema invisible: 2 costados por cajon, 15 mm mas altos que la posicion.
+                    if (info.sistema === "SI") agregar("COS-SI", 2, { medidaFija: [490, altura + 15] });
                 });
-                if (info.sistema === "SM") agregar("FRI-SM", 1);
+                // Gaveta interna: friso frontal (Metabox FRI-SM, SB FRI-SB).
+                if (info.gavetaInterna && info.sistema === "SM") agregar("FRI-SM", 1);
+                if (info.gavetaInterna && info.sistema === "SB") agregar("FRI-SB", 1, { alturaSistema: 100 });
             }
 
             // Frentes (solo cuando los frentes van en melamina y en este despiece).
@@ -326,6 +340,12 @@ function generarDespiece(cod, opciones = {}) {
             if (info.gavetas && !info.sistema) avisos.push("El codigo tiene gavetas pero no indica sistema (SLIM, SM, MRV, SL, SI, SB): no se generan fondos ni posiciones.");
             if (info.fregadero) avisos.push("Fregadero: sin respaldo por conexiones de agua (regla de produccion).");
 
+            // Laterales decorativos (LDD/LID) de 18: el despiece interno es igual que con 15,
+            // pero el modulo terminado crece 3 mm por cada uno.
+            const decorativos = ["LDD", "LID", "LDI"].filter(t => tieneTokenCodigo(info.codigo, t)).length;
+            if (decorativos && info.dims.ancho) {
+                avisos.push(`Lateral decorativo de 18 mm: despiece igual que con 15; medida final del modulo ${info.dims.ancho + 3 * decorativos} mm (${info.dims.ancho} + ${3 * decorativos}).`);
+            }
             if (!op.incluirFrentes) avisos.push("Frentes no incluidos (van en otro proceso: laca, enchape, vidrio...).");
 
             // Mismo objeto modulo que arma el validador (closets MOU: estructura 70 mm mas baja).
@@ -352,7 +372,8 @@ function generarDespiece(cod, opciones = {}) {
                 // Repisas, maletera, zapateras y frisos de gaveta van en el grosor de repisas (18).
                 if (/^REP|^MALE|^ZAP|^ZPIN|^FRI-/.test(pieza)) return op.grosorRepisas;
                 if (/^(PT|FC)$/.test(pieza)) return op.grosorFrentes;
-                if (/^(FON|POS|FRI)-/.test(pieza)) return op.grosorCasco;
+                // Fondos, posiciones y costados de cajon van siempre en 15 (produccion real).
+                if (/^(FON|POS|COS)-/.test(pieza)) return 15;
                 return op.grosorCasco;
             };
 

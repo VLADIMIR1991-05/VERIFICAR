@@ -726,10 +726,11 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
                 };
             }
 
-            // Costados del sistema invisible: 490 x 120 (cajon) o 490 x 60 (zapatero).
+            // Costados del sistema invisible: 490 de largo x (alto de posicion + 15).
             if (/^COS-SI/.test(nombre)) {
-                const ok = [120, 60].some(alto => coincideParMedidas(medida1, medida2, 490, alto));
-                return { ok, mensaje: "deberia medir 490 x 120/60 mm como costado de sistema invisible.", valida: true, objetivos: [490, 120, 60] };
+                const altos = [120, 200, 80, 270, 90, 60];
+                const ok = altos.some(alto => coincideParMedidas(medida1, medida2, 490, alto));
+                return { ok, mensaje: "deberia medir 490 x 120/200/80/270/90/60 mm como costado de sistema invisible.", valida: true, objetivos: [490, ...altos] };
             }
 
             // Zapatera de closet (C1): ancho interno - 1 x 320 (esquineros ECL a veces al ancho interno).
@@ -1245,10 +1246,10 @@ function esFrenteFalso(pieza) {
 // Deducido de 20 despieces reales. FI = gaveta interna tras puerta: descuenta 37 mm mas.
 const SISTEMAS_GAVETA = {
     SS: { nombre: "Slim", FON: { d: 19, h: [490] }, POS: { d: 40, h: [63, 101, 199, 300, 380, 435] }, FRI: { d: 3, h: [110, 240] }, FRI_FI: { d: 34, h: [135, 116] } },
-    SB: { nombre: "SB", FON: { d: [31, 25], h: [498, 530] }, POS: { d: [31, 25], h: [100, 199, 70] }, FRI: { d: 3, h: [100] }, FRI_FI: { d: 34, h: [135, 116] } },
-    SM: { nombre: "Metabox", FON: { d: 31, h: [483, 498] }, POS: { d: 31, h: [71, 199] }, FRI: { d: 63, h: [61] } },
+    SB: { nombre: "SB", FON: { d: [31, 25], h: [498, 530] }, POS: { d: [31, 25], h: [100, 199, 70] }, FRI: { d: [-3, 3], h: [100] }, FRI_FI: { d: 34, h: [135, 116] } },
+    SM: { nombre: "Metabox", FON: { d: 31, h: [483, 498, 268] }, POS: { d: 31, h: [71, 103, 199] }, FRI: { d: 63, h: [61] } },
     SL: { nombre: "Legrabox", FON: { d: 34, h: [490, 260] }, POS: { d: 37, h: [148, 63] } },
-    SI: { nombre: "Sistema invisible", FON: { d: 41, h: [475, 425] }, POS: { d: 41, h: [105, 60] }, FRI_FI: { d: 31, h: [135] } },
+    SI: { nombre: "Sistema invisible", FON: { d: [35, 41], h: [475, 425] }, POS: { d: [35, 41], h: [105, 185, 65, 255, 75, 60] }, FRI_FI: { d: 31, h: [135] } },
     MRV: { nombre: "Merivobox", FON: { d: 51, h: [474, 480] }, POS: { d: 51, h: [83, 184, 300] } }
 };
 
