@@ -4,7 +4,7 @@
 // La lectura de nomenclatura esta en lector_codigos.js.
 
 // Columnas que el sistema intenta leer del archivo.
-        const COLS_DESEADAS = ["op", "Tipo", "cod_mueble", "jov", "cod_pieza", "cant_piezas", "medida1", "medida2", "l1", "l2", "c1", "c2", "nomueble", "material_nombre", "ubicacion", "ubi", "linea"];
+        const COLS_DESEADAS = ["op", "Tipo", "cod_mueble", "jov", "cod_pieza", "cant_piezas", "medida1", "medida2", "l1", "l2", "c1", "c2", "nomueble", "origen", "material_nombre", "ubicacion", "ubi", "linea"];
 
         // Columnas que se muestran en la tabla; op, cod_mueble, Tipo, material y ubicacion se usan fuera de la tabla.
         const COLS_TABLA = COLS_DESEADAS.filter(col => !["op", "cod_mueble", "Tipo", "material_nombre", "ubicacion", "ubi", "linea"].includes(col));
@@ -92,7 +92,8 @@
             material_nombre: ["material_nombre", "materialnombre", "nombre_material", "nombrematerial", "descripcion_material", "descripcionmaterial", "material", "tablero"],
             ubicacion: ["ubicacion", "ubi"],
             ubi: ["ubi", "ubicacion"],
-            linea: ["linea", "linea_producto", "coleccion"]
+            linea: ["linea", "linea_producto", "coleccion"],
+            origen: ["origen"]
         };
 
         // Margen permitido en milimetros al comparar medidas.
@@ -182,6 +183,13 @@
 
         // Lee el archivo seleccionado por el usuario.
         function manejarArchivoSeleccionado(event) {
+            // Con la carga por lote (melamina, lacas, herrajes) se leen todos los archivos elegidos.
+            if (typeof cargarArchivosLote === "function") {
+                cargarArchivosLote(event.target.files);
+                if (event.target.value !== undefined) event.target.value = "";
+                return;
+            }
+
             // Toma el primer archivo seleccionado.
             const file = event.target.files[0];
 
@@ -1391,10 +1399,10 @@
                 contador = 0;
                 document.body.classList.remove("arrastrando");
 
-                const file = event.dataTransfer.files[0];
-                if (!file) return;
+                const files = Array.from(event.dataTransfer.files || []);
+                if (!files.length) return;
 
-                manejarArchivoSeleccionado({ target: { files: [file] } });
+                manejarArchivoSeleccionado({ target: { files } });
             });
         }
 

@@ -40,6 +40,14 @@ ARCHIVOS IMPORTANTES
    validarMedidasPieza, asi que al corregir una regla en reglas_validacion.js
    el generador se corrige solo.
 
+10. app_lote.js
+   Carga de los 3 despieces del mismo lote (melamina, lacas, herrajes).
+   El tipo se detecta solo: herrajes por las columnas codstock/cantreal,
+   lacas por colorlaca/enchapado o tableros DURAFIBRA; el resto es melamina.
+   Cruces: frentes que faltan en lacas, frentes duplicados, modulos sin
+   herrajes y reglas de herrajes (sistema de gaveta, PUSH con TIP-ON,
+   bisagras por puerta segun alto: 2 hasta 900, 2-3 hasta 1600, 4-5 mas de 2000).
+
 9. app_generador.js
    Pantalla de las pestanas Consultar codigo y Generar despiece
    (ficha, tabla, exportar a Excel y "Validar este despiece").

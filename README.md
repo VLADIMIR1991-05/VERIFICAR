@@ -17,6 +17,7 @@ Herramienta de despiece Madeval con tres pestanas:
 | `reglas_coleccion.js` | Avisos por coleccion y limites de fabricacion (no cuentan como error). |
 | `generador_despiece.js` | Recetas de piezas por tipo de modulo; las medidas salen de `reglas_validacion.js`. |
 | `app_generador.js` | Pantalla de las pestanas Consultar y Generar. |
+| `app_lote.js` | Carga del lote: melamina + lacas + herrajes, enlazados por OP y mueble, con cruces entre archivos. |
 | `REPORTE_ERRORES_VALIDADOR.txt` | Clasificacion de los errores en 20 despieces reales (regla faltante o error real). |
 | `db_codigos.js` | Base de datos de abreviaturas y su significado. |
 | `validador_despiece_mejorado.html` | Redireccion a `index.html` (nombre antiguo). |

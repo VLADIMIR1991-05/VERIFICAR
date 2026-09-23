@@ -284,6 +284,7 @@ function validarGenerado() {
             VALIDADO = false;
             SOLO_ERRORES = false;
             limpiarAvisos();
+            if (typeof LOTE !== "undefined") { LOTE.melamina = null; LOTE.lacas = null; LOTE.herrajes = null; }
             actualizarNombreDocumento("Despiece generado desde codigo");
             DATA_GLOBAL = filas;
             mapearColumnas(Object.keys(filas[0]), DATA_GLOBAL);

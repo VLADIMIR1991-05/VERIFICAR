@@ -302,6 +302,13 @@ function marcarMedidasValidas(tr, objetivos) {
 function validarMedidasPieza(pieza, medida1, medida2, modulo) {
             const resultado = validarMedidasPiezaBase(pieza, medida1, medida2, modulo);
             const nombre = normalizarPieza(pieza);
+
+            // Frentes con marco (lacas): Cuatro (QU) piezas de 130 y ancho - 38; Shaker (CO) de 160 y ancho - 156.
+            if (resultado.valida && !resultado.ok && /^(PT|FC|FV)$/.test(nombre)) {
+                const marco = validarPiezaDeMarco(nombre, medida1, medida2, modulo, resultado);
+                if (marco) return marco;
+            }
+
             if (!/E3/.test(nombre) || /^LTE3/.test(nombre) || !resultado.valida || resultado.ok) return resultado;
 
             const conRefilado = validarMedidasPiezaBase(pieza, medida1 - 30, medida2 - 30, modulo);
@@ -311,6 +318,50 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
             return {
                 ...resultado,
                 mensaje: `${resultado.mensaje} Si es engrosado E3 en 2 piezas de 18, cada medida lleva 30 mm mas para refilar.`
+            };
+        }
+
+// Coleccion con frentes de marco segun la linea (KUQU, MCUQU... = Cuatro; KUCO... = Shaker) o la columna "lado".
+const MARCOS_FRENTE = {
+    QU: { nombre: "Cuatro", ancho: 130, descuento: 38 },
+    CO: { nombre: "Shaker", ancho: 160, descuento: 156 }
+};
+
+function coleccionMarco(modulo) {
+            const lado = String(modulo && modulo.lado || "").toUpperCase();
+            if (MARCOS_FRENTE[lado]) return lado;
+            const lineaBase = String(modulo && modulo.linea || "").toUpperCase().split("+")[0];
+            const match = lineaBase.match(/^[A-Z]{1,3}U(QU|CO)/);
+            return match ? match[1] : "";
+        }
+
+// Pieza de marco de una puerta o frente: el largo (alto del frente) o el travesano (ancho del frente - descuento).
+function validarPiezaDeMarco(nombre, medida1, medida2, modulo, resultado) {
+            const clave = coleccionMarco(modulo);
+            if (!clave) return null;
+            const marco = MARCOS_FRENTE[clave];
+            const [m1, m2] = [medida1, medida2];
+            const otro = coincideMedida(m1, marco.ancho) ? m2 : coincideMedida(m2, marco.ancho) ? m1 : null;
+            if (otro === null) return null;
+
+            const objetivos = resultado.objetivos || [];
+            let largos;
+            if (nombre === "FC") {
+                // Frente de cajon: travesano = ancho del frente - descuento; el largo es el alto del frente (hasta el alto del modulo).
+                const anchoFrente = objetivos[0] || 0;
+                if (coincideMedida(otro, anchoFrente - marco.descuento)) largos = [anchoFrente - marco.descuento];
+                else if (otro > 0 && otro <= (modulo.alto || 0)) largos = [otro];
+                else return null;
+            } else {
+                const [altoFrente, anchoFrente] = objetivos;
+                largos = [altoFrente, anchoFrente - marco.descuento, 947, (modulo.alto || 0) - 953].filter(v => v > 0);
+                if (!largos.some(largo => coincideMedida(otro, largo))) return null;
+            }
+            return {
+                ok: true,
+                mensaje: `pieza de marco ${marco.nombre}: ${marco.ancho} de ancho (largo = alto del frente o ancho del frente - ${marco.descuento}).`,
+                valida: true,
+                objetivos: [marco.ancho, ...largos]
             };
         }
 
