@@ -448,6 +448,13 @@ function ajustarDimensionesPorLinea(dims, cod, linea = "") {
                 resultado.alto -= 70;
                 resultado.ajusteLinea = "Linea MOU: estructura 70 mm mas baja que el codigo.";
             }
+            // Altos de la linea MOU: estructura 30 mm mas baja (807 casos en 208 semanas de produccion).
+            if (/^MOU/.test(lineaBase) && ["A", "EA"].includes(resultado.tipo) && resultado.alto) {
+                // Solo baja la estructura: las puertas siguen con el alto del codigo (757 en H4).
+                resultado.altoFrente = resultado.alto;
+                resultado.alto -= 30;
+                resultado.ajusteLinea = "Linea MOU: altos 30 mm mas bajos que el codigo.";
+            }
             if (/^CB/.test(lineaBase) && resultado.tipo === "B") {
                 if (!tieneAltura) resultado.alto = 690;
                 if (!tieneProfundidad) {

@@ -1097,3 +1097,93 @@ REPORTE DE ERRORES DEL VALIDADOR - 38 DESPIECES REALES (40 archivos, 2 duplicado
          FON-GI: FON-GI deberia medir 769 x 580 mm como fondo/posicion/friso. Medidas encontradas: 660 x 435 mm.
      - REPTA87P45
          REP: REP deberia medir 833 x 450 mm como repisa normal. Medidas encontradas: 1108 x 320 mm.
+
+
+==============================================================================
+ANEXO - PRUEBA CON 170 DESPIECES NUEVOS (semanas 4 a 51, 32.905 modulos)
+==============================================================================
+
+Resultado del validador (sin haber visto estos archivos antes):
+   Antes de las reglas nuevas : 79.5% de modulos OK
+   Despues                    : 83.2% de modulos OK (509 mejoran, 3 especiales empeoran)
+   38 despieces anteriores    : 86.5% OK, 0 empeoran
+   29 despieces de lacas      : 84.0% OK, 0 empeoran
+
+Reglas nuevas aprendidas de estas semanas:
+   - Altos A en linea MOU: estructura 30 mm mas baja (807 casos); puertas y frentes con el alto del codigo.
+   - Fregaderos actuales: AJP 60, AJPS 60, AJF 60, AJPI 150 (MOU: AJP 60, AJF 100, AJPI 150, sin AJPS).
+   - TP-PM: ancho interno x (profundidad - 41). PM dentro de modulo: ancho interno x profundidad.
+   - Modulos US: repisa movil a profundidad - 45; FF interno de ancho interno x 60.
+   - Sistema SBB: fondo (ancho interno - 31) x 448, posicion x 200.
+   - Tira frontal FRE: 100 x (ancho - 3).
+   - Altos invertidos INV: base y techo al ancho completo; laterales - 2 espesores (con BDEC - 1).
+   - Vestidores VLI/VLM: respaldo alto x (ancho + 10) o (ancho + 25).
+   - BSX H205/H240 (linea MCS): 82 de fondo, puerta alto - 13.
+   - Columna de horno X...HC: puerta superior alto - 1363 (757 en H11, 947 en H12).
+   - Botellero BOT: repisa a profundidad total - 50. Friso SB/Slim interno: ancho interno - 31 o - 34.
+   - Friso SB de gaveta interna: ancho interno - 3. Modulos CO con G3IN: un frente entero.
+   - Paneles PPB: igual que PPX/PPA. LTE3: se aceptan todas las medidas vistas (727/757/760/1027 x 472/488/502/518).
+
+Patrones que quedan en estos 170 archivos (piezas especiales, necesitan explicacion):
+    42 modulos | 34 archivos | OTP|?|OTP/OA deben trabajar en pareja: si esta | OTP10H3, OTP10HX
+         -> OTP/OA deben trabajar en pareja: si estan en la misma cantidad, el descuento de 3 mm debe aplicarse completo en todas las OTP o completo en 
+    38 modulos |  8 archivos | ML|MALE|NaN | ML1-CM120CQ-LQ-SI-LIE3-LDE3, ML1-CL43C1-SI-ON-LIE3-LD-J-LSU
+         -> MALE deberia medir -51 x 0 mm como maletera. Medidas encontradas: 1169 x 450 mm.
+    27 modulos |  8 archivos | ML|TEC|NaN | ML1-CM120CQ-LQ-SI-LIE3-LDE3, ML1-CL43C1-SI-ON-LIE3-LD-J-LSU
+         -> TEC deberia tener ancho interno -51 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 1169 x 530 mm.
+    27 modulos |  8 archivos | ML|AJP|NaN | ML1-CM120CQ-LQ-SI-LIE3-LDE3, ML1-CL43C1-SI-ON-LIE3-LD-J-LSU
+         -> AJP deberia medir -51 x 60/80/100/150 mm. Medidas encontradas: 1169 x 60 mm.
+    25 modulos | 19 archivos | B|LAI|677,15 | B60HS-HZ-REJ-US-TPM, B60HS-HZ-REJ-US
+         -> LAI deberia medir 760 x 580 mm segun alto y profundidad del modulo. Medidas encontradas: 83 x 565 mm.
+    24 modulos |  5 archivos | ML|BAS|NaN | ML1-CL43C1-SI-ON-LIE3-LD-J-LSU, ML1-CL76C2-LI-J-LD-J-LSU
+         -> BAS deberia tener ancho interno -51 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 399 x 530 mm.
+    21 modulos | 19 archivos | B|LATI|36,110 | B30D-BANDEJAS, B40I-BANDEJAS
+         -> LATI deberia medir 760 x 580 mm segun alto y profundidad del modulo. Medidas encontradas: 724 x 470 mm.
+    21 modulos | 18 archivos | B|AJ-RJ|10,-30 | B60HS-HZ-REJ-US-TPM, B60HS-HZ-REJ-US
+         -> AJ-RJ deberia medir 569 x 60/80/100/150 mm. Medidas encontradas: 559 x 90 mm.
+    21 modulos |  3 archivos | MBS|TPM|0,-10 | MBS75-LV-HZ-TPM, MBS80-LV-HZ-TPM
+         -> TPM deberia medir 713 x 478 mm porque TPM descuenta 52 mm solo en esa pieza. Medidas encontradas: 713 x 488 mm.
+    20 modulos | 13 archivos | B|TPM|0,-8 | B95F-TPM, B90F-TPM
+         -> TPM deberia medir 913 x 528 mm porque TPM descuenta 52 mm solo en esa pieza. Medidas encontradas: 913 x 536 mm.
+    19 modulos | 14 archivos | |E-BAS-DEC|NaN | PDES-OC-I-90H11NKP6.9-LSP-1PULS-TIR-PL, PDES-OC-I-90H12NKP6.7-LSP-1PULS-TIR-PL
+         -> E-BAS-DEC deberia tener ancho interno 863 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 143 x 302 m
+    19 modulos | 14 archivos | |E-TEC-DEC|NaN | PDES-OC-I-90H11NKP6.9-LSP-1PULS-TIR-PL, PDES-OC-I-90H12NKP6.7-LSP-1PULS-TIR-PL
+         -> E-TEC-DEC deberia tener ancho interno 863 mm; no hay profundidad detectada para comparar la segunda medida. Medidas encontradas: 143 x 302 m
+    19 modulos | 12 archivos | B|LATIN|407,112 | B98-LINT, B101-LINT
+         -> LATIN deberia medir 760 x 580 mm segun alto y profundidad del modulo. Medidas encontradas: 353 x 468 mm.
+    18 modulos | 17 archivos | ASM|RESP|0,-13 | ASM60DH57.7P4-PUSH, ASM120H60-ACMOV-S/B-LLT-1PULS-LSP
+         -> RESP deberia medir 574 x 551 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 564 x 574 mm.
+    18 modulos |  5 archivos | X|REPF|0,-9 | X30DH12P3R-NK-LID-PUSH, X30IH12P3R-NK-LDD-PUSH
+         -> REPF deberia medir 263 x 285 mm como repisa fija, descontando grosor estructura, 1 mm de fuga, grosor respaldo y 1 mm de fuga. Medidas encon
+    18 modulos | 14 archivos | C|REPF|-1,-25 | CP76.2P6.7H124.9-HC-S/B-RFH, CP76.5P6.7H123.4-HC-FH-RFH
+         -> REPF deberia medir 725 x 624 mm como repisa fija, descontando grosor estructura, 1 mm de fuga, grosor respaldo y 1 mm de fuga. Medidas encon
+    18 modulos |  7 archivos | ML|FON-SI|NaN | ML1-CM120CQ-LQ-SI-LIE3-LDE3, ML1-CL43C1-SI-ON-LIE3-LD-J-LSU
+         -> FON-SI deberia medir -86 x 475/425 mm como fondo Sistema invisible (ancho interno - 35 o 41). Medidas encontradas: 1128 x 425 mm.
+    18 modulos |  7 archivos | ML|POS-SI|NaN | ML1-CM120CQ-LQ-SI-LIE3-LDE3, ML1-CL43C1-SI-ON-LIE3-LD-J-LSU
+         -> POS-SI deberia medir -86 x 105/185/65/255/75/60 mm como posicion Sistema invisible (ancho interno - 35 o 41). Medidas encontradas: 69 x 1128
+    18 modulos | 17 archivos | X|TAPAREF|505,26 | X60.5DHCTEKG1H26-SLIM-REJILLA-PUSH, X60.5IHCTEKG1H26-MRV-REJILLA-ON-PUSH
+         -> TAPAREF deberia medir 605 x 580 mm como tapa decorativa. Medidas encontradas: 100 x 554 mm.
+    18 modulos | 11 archivos | B|REPF|0,84 | B98-LINT, B101-LINT
+         -> REPF deberia medir 943 x 554 mm como repisa fija, descontando grosor estructura, 1 mm de fuga, grosor respaldo y 1 mm de fuga. Medidas encon
+    17 modulos | 17 archivos | A|REPMM|460,0 | A94H3RF-PUSH, A94H3RF-PUSH
+         -> REPMM deberia medir 902 x 470 mm porque REPM/REPMM usa profundidad propia de repisa movil. Medidas encontradas: 442 x 470 mm.
+    16 modulos | 11 archivos | LCLP|LCLTR|-540,0 | LCLP6TRH60, LCLP6TRH199,3
+         -> LCLTR deberia medir 60 x 600 mm porque el codigo solo tiene dos dimensiones detectadas. Medidas encontradas: 600 x 600 mm.
+    16 modulos |  3 archivos | CL|REPF|-37,104 | CL67C2DY-AQ, CL89C2DY-AQ
+         -> REPF deberia medir 633 x 554 mm como repisa fija, descontando grosor estructura, 1 mm de fuga, grosor respaldo y 1 mm de fuga. Medidas encon
+    16 modulos | 11 archivos | B|TPM|0,-10 | B90P6.7F-HZ-TPM-BF, B60DF-HZ-TPM-BF
+         -> TPM deberia medir 863 x 598 mm porque TPM descuenta 52 mm solo en esa pieza. Medidas encontradas: 863 x 608 mm.
+    16 modulos |  5 archivos | TAPADEC|TAE|0,-20 | TAPADEC107,4E3P6, TAPADEC125,2E3P6
+         -> TAE3 deberia medir 1074 x 580 mm porque el codigo solo tiene dos dimensiones detectadas. Si es engrosado E3 en 2 piezas de 18, cada medida l
+    15 modulos |  9 archivos | ECL|RESP|-4,10 | ECL100*100DH12RS/P-RE3, ECL110IRS/P
+         -> RESP deberia medir 980 x 2290 mm, descontando dos espesores y sumando 5 mm por lado para ranura. Medidas encontradas: 2280 x 984 mm.
+    15 modulos | 15 archivos | B|TEC|0,26 | B60MH-DEC-G1-EX-ON-HZ-US, B60MH-DEC-G1-EX-ON-HZ-US
+         -> TEC deberia medir 569 x 580 mm segun ancho interno y profundidad. Medidas encontradas: 569 x 554 mm.
+    15 modulos | 15 archivos | B|FON-EX|57,160 | B60MH-DEC-G1-EX-ON-HZ-US, B60MH-DEC-G1-EX-ON-HZ-US
+         -> FON-EX deberia medir 569 x 580 mm como fondo/posicion/friso. Medidas encontradas: 512 x 420 mm.
+    15 modulos | 15 archivos | B|POS-EX|57,380 | B60MH-DEC-G1-EX-ON-HZ-US, B60MH-DEC-G1-EX-ON-HZ-US
+         -> POS-EX deberia medir 569 x 580 mm como fondo/posicion/friso. Medidas encontradas: 512 x 200 mm.
+    15 modulos | 15 archivos | B|FRI-EX|57,380 | B60MH-DEC-G1-EX-ON-HZ-US, B60MH-DEC-G1-EX-ON-HZ-US
+         -> FRI-EX deberia medir 569 x 580 mm como fondo/posicion/friso. Medidas encontradas: 512 x 200 mm.
+
+Modulos con diferencia unica (probable error del archivo o especial): 734

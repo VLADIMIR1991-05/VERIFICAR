@@ -135,6 +135,12 @@ function frentesCajon(info) {
                 const mitad = (util - 38) / 2;
                 if (info.gavetaInterna) {
                     // Cajones internos: un frente entero (G2IN) o dos mitades (G3IN).
+                    // En modulos CO (angostos) es al reves: G3IN un frente entero y G2IN dos mitades.
+                    if (/^[A-Z]+[\d.]+[ID]?CO/.test(info.codigo)) {
+                        return n >= 3
+                            ? { alturas: [util], formula: "alto - 38 (gola, modulo CO)" }
+                            : { alturas: [mitad, mitad], formula: "(alto - 38 - 38) / 2 (gola, modulo CO)" };
+                    }
                     return n >= 3
                         ? { alturas: [mitad, mitad], formula: "(alto - 38 - 38) / 2 (gola)" }
                         : { alturas: [util], formula: "alto - 38 (gola)" };
@@ -262,10 +268,16 @@ function recetaModulo(info, opciones) {
             } else if (["B", "MB", "EB"].includes(tipo)) {
                 casco();
                 agregar("BAS", 1);
-                if (info.fregadero) {
-                    agregar("AJP", 1, { alturaAjuste: 150 });
+                if (info.fregadero && /^MOU/.test(info.lineaBase)) {
+                    // Fregadero linea MOU (produccion actual): sin AJPS, AJF de 100.
+                    agregar("AJP", 1, { alturaAjuste: 60 });
+                    agregar("AJF", 1, { alturaAjuste: 100 });
+                    agregar("AJPI", 1, { alturaAjuste: 150 });
+                } else if (info.fregadero) {
+                    // Fregadero (produccion actual): AJP 60, AJPS 60, AJF 60 y AJPI 150, sin respaldo.
+                    agregar("AJP", 1, { alturaAjuste: 60 });
                     agregar("AJPS", 1, { alturaAjuste: 60 });
-                    agregar("AJF", 1, { alturaAjuste: 80 });
+                    agregar("AJF", 1, { alturaAjuste: 60 });
                     agregar("AJPI", 1, { alturaAjuste: 150 });
                 } else {
                     agregar("AJP", 1, { alturaAjuste: 60 });
@@ -423,6 +435,7 @@ function generarDespiece(cod, opciones = {}) {
             const modulo = {
                 ancho: info.dims.ancho,
                 alto: dimsLinea.alto,
+                altoFrente: dimsLinea.altoFrente || 0,
                 profundidad: dimsLinea.profundidadEstructura || dimsLinea.profundidad,
                 profundidadTotal: dimsLinea.profundidad,
                 grosor: op.grosorCasco,

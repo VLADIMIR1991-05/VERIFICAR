@@ -134,6 +134,7 @@ function validarMueble(card) {
                     alto,
                     profundidad,
                     profundidadTotal,
+                    altoFrente: dimsLinea.altoFrente || 0,
                     grosor,
                     grosorRespaldo,
                     anchoInterno,
@@ -321,6 +322,44 @@ function validarMedidasPieza(pieza, medida1, medida2, modulo) {
             };
         }
 
+// Reglas de piezas puntuales aprendidas de produccion. Devuelve null si no aplica.
+function validarPiezaAprendida(nombre, medida1, medida2, modulo) {
+            const cod = String(modulo.cod || "").toUpperCase();
+            const ai = modulo.anchoInterno || 0;
+            const opciones = [];
+            let texto = "";
+
+            if (/^TP-PM/.test(nombre) && ai && modulo.profundidad) {
+                // Tapa de panel medio: ancho interno x (profundidad - 41).
+                opciones.push([ai, modulo.profundidad - 41], [ai, modulo.profundidad - 52], [ai, modulo.profundidad - 26]);
+                texto = "tapa TP-PM (ancho interno x profundidad - 41)";
+            } else if (nombre === "PM" && TIPOS_MODULO_ANCHO_DECIMAL.includes(modulo.tipo) && ai && modulo.profundidad) {
+                // Panel medio dentro de un modulo: ancho interno x profundidad.
+                opciones.push([ai, modulo.profundidad]);
+                texto = "panel medio PM dentro del modulo (ancho interno x profundidad)";
+            } else if (nombre === "FF" && /(^|-)US(-|$)/.test(cod) && ai) {
+                // Frente falso interno en modulos US: ancho interno x 60.
+                opciones.push([ai, 60]);
+                texto = "frente falso interno FF (ancho interno x 60)";
+            } else if (/^(FON|POS)-SBB/.test(nombre) && ai) {
+                // Sistema SBB: ancho interno - 31; fondo 448, posicion 200.
+                opciones.push(nombre.startsWith("FON") ? [ai - 31, 448] : [ai - 31, 200]);
+                texto = `${nombre.startsWith("FON") ? "fondo" : "posicion"} SBB (ancho interno - 31)`;
+            } else if (nombre === "FRE" && modulo.ancho) {
+                // Tira frontal FRE: 100 x (ancho - 3).
+                opciones.push([100, modulo.ancho - 3]);
+                texto = "tira frontal FRE (100 x ancho - 3)";
+            } else if (/^RES-[IMD]$/.test(nombre) && modulo.ancho && modulo.alto) {
+                // Respaldo de vestidor VLI/VLM: alto x (ancho + 10) o (ancho + 25).
+                opciones.push([modulo.alto, modulo.ancho + 10], [modulo.alto, modulo.ancho + 25]);
+                texto = "respaldo de vestidor (alto x ancho + 10 / + 25)";
+            }
+
+            if (!opciones.length) return null;
+            const ok = opciones.some(([a, b]) => coincideParMedidas(medida1, medida2, a, b));
+            return { ok, mensaje: `deberia medir ${opciones.map(o => o.join(" x ")).join(" o ")} mm como ${texto}.`, valida: true, objetivos: opciones[0] };
+        }
+
 // Coleccion con frentes de marco segun la linea (KUQU, MCUQU... = Cuatro; KUCO... = Shaker) o la columna "lado".
 const MARCOS_FRENTE = {
     QU: { nombre: "Cuatro", ancho: 130, descuento: 38 },
@@ -384,6 +423,10 @@ function validarMedidasPiezaBase(pieza, medida1, medida2, modulo) {
                     objetivos: opciones[0]
                 };
             }
+
+            // Piezas aprendidas en 208 semanas de produccion (formulas fijas por pieza).
+            const especial = validarPiezaAprendida(nombre, medida1, medida2, modulo);
+            if (especial) return especial;
 
             // Friso del zapatero del sistema invisible: alto 150, ancho como el friso interno.
             if (/^FRI-ZAP/.test(nombre)) {
@@ -481,15 +524,17 @@ function validarMedidasPiezaBase(pieza, medida1, medida2, modulo) {
                 // Novak: puerta = alto + 110, maximo 2420 (largo util del tablero).
                 const altoPuerta = extraNovak
                     ? Math.min(modulo.alto + extraNovak, 2420)
-                    : modulo.alto - descuentoHenzo - descuentoFrenteFalso - fugaFrenteFalso - 3;
+                    : (modulo.altoFrente || modulo.alto) - descuentoHenzo - descuentoFrenteFalso - fugaFrenteFalso - 3;
                 // Auxiliares y closets pueden llevar puertas fraccionadas: 947 abajo y el resto arriba.
                 const altosPuerta = ["X", "CL", "CM"].includes(modulo.tipo) && !extraNovak
                     ? [altoPuerta, 947, modulo.alto - 953]
                     : [altoPuerta];
                 // Bajo con 1 gaveta arriba y puerta abajo (B90G1): puerta = alto - 190 - 3.
                 if (["B", "MB"].includes(modulo.tipo) && /G1(?!\d|IN)/.test(codigoPuerta.split("-")[0])) altosPuerta.push(modulo.alto - 193);
-                // Puerta PTC en bastidor de closet: alto - 13.
-                if (/(^|-)PTC(-|$)/.test(codigoPuerta)) altosPuerta.push(modulo.alto - 13);
+                // Puerta PTC en bastidor de closet y BSX de linea MCS: alto - 13.
+                if (/(^|-)PTC(-|$)/.test(codigoPuerta) || modulo.tipo === "BSX") altosPuerta.push(modulo.alto - 13);
+                // Columna de horno (X...HC): puerta superior = alto - 1363 (757 en H11, 947 en H12).
+                if (modulo.tipo === "X" && /\dHC/.test(codigoPuerta)) altosPuerta.push(modulo.alto - 1363);
                 const ok = altosPuerta.some(alto => coincideParMedidas(medida1, medida2, alto, anchoPuerta));
 
                 return {
@@ -538,7 +583,7 @@ function validarMedidasPiezaBase(pieza, medida1, medida2, modulo) {
                 const anchoFrente = anchoFrenteBase - 3;
                 // Henzo (por codigo o linea) descuenta 35 mm de alto, igual que las puertas.
                 const descuentoHenzo = tieneHenzo(modulo.cod, modulo.linea) ? 35 : 0;
-                const altoFrente = modulo.alto - 3 - descuentoHenzo;
+                const altoFrente = (modulo.altoFrente || modulo.alto) - 3 - descuentoHenzo;
                 const ok = coincideParMedidas(medida1, medida2, altoFrente, anchoFrente);
 
                 return {
@@ -670,7 +715,7 @@ function validarMedidasPiezaBase(pieza, medida1, medida2, modulo) {
                 if (!medidaA || !medidaB) return { ok: true, mensaje: "", valida: false };
 
                 // Frentes FRE-PP de paneles PPX/PPA: ancho - 3 x alto - 3 (PPX hasta 16 mm menos de alto).
-                const opcionesPanel = /^(PPX|PPA)$/.test(modulo.tipo || "") && nombre.startsWith("FRE") && modulo.ancho && modulo.alto
+                const opcionesPanel = /^(PPX|PPA|PPB)$/.test(modulo.tipo || "") && nombre.startsWith("FRE") && modulo.ancho && modulo.alto
                     ? [[modulo.ancho - 3, modulo.alto - 3], [modulo.ancho - 3, modulo.alto - 16]]
                     : [];
                 const ok = coincideParMedidas(medida1, medida2, medidaA, medidaB)
@@ -798,6 +843,14 @@ function validarMedidasPiezaBase(pieza, medida1, medida2, modulo) {
                 const profundidadesBase = tieneTiraderaInterna(modulo.cod) && esBase(nombre)
                     ? [modulo.profundidad, modulo.profundidad - 22]
                     : [modulo.profundidad];
+                // Invertidos (INV): base y techo al ancho completo. BSX de linea MCS: 82 de fondo.
+                if (tieneTokenCodigo(String(modulo.cod || "").toUpperCase(), "INV") && modulo.ancho) {
+                    const anchoCompleto = modulo.ancho;
+                    if (profundidadesBase.some(prof => coincideParMedidas(medida1, medida2, anchoCompleto, prof))) {
+                        return { ok: true, mensaje: `deberia medir ${anchoCompleto} x ${profundidadesBase.join(" o ")} mm (invertido: al ancho completo).`, valida: true, objetivos: [anchoCompleto, modulo.profundidad] };
+                    }
+                }
+                if (modulo.tipo === "BSX") profundidadesBase.push(82);
                 // Complementos Henzo FB: techo 24 mm menos profundo. Bastidor BS: techo Henzo 11 mm menos.
                 if (modulo.tipo === "FB" && !esBase(nombre)) profundidadesBase.push(modulo.profundidad - 24);
                 if (modulo.tipo === "BS" && !esBase(nombre)) profundidadesBase.push(modulo.profundidad - 11, 64);
@@ -827,7 +880,7 @@ function validarMedidasPiezaBase(pieza, medida1, medida2, modulo) {
 
             // LTE3: engrosado de 36 mm a un lado de los cajones del comodin (medidas de produccion).
             if (/^LTE3/.test(nombre)) {
-                const opciones = [[727, 472], [727, 488], [757, 502], [760, 518], [1027, 472], [1027, 488]];
+                const opciones = [727, 757, 760, 1027].flatMap(alto => [472, 488, 502, 518].map(fondo => [alto, fondo]));
                 const ok = opciones.some(([a, b]) => coincideParMedidas(medida1, medida2, a, b));
                 return {
                     ok,
@@ -949,7 +1002,7 @@ function validarMedidasPiezaBase(pieza, medida1, medida2, modulo) {
                 // Complementos Henzo LB/LBD/LBI/FVLB/FB: ajuste 100 mm mas corto.
                 if (/^(LB|LBD|LBI|FVLB|FB)$/.test(modulo.tipo || "")) largosAjuste.push(modulo.anchoInterno - 100);
                 // Paneles PPX/PPA/PRM: ajuste AJ-PP = ancho - 60.
-                if (/^(PPX|PPA|PRM)$/.test(modulo.tipo || "") && modulo.ancho) largosAjuste.push(modulo.ancho - 60);
+                if (/^(PPX|PPA|PPB|PRM)$/.test(modulo.tipo || "") && modulo.ancho) largosAjuste.push(modulo.ancho - 60);
                 const ok = largosAjuste.some(largo => alturasAjuste.some(altura => coincideParMedidas(medida1, medida2, largo, altura)));
 
                 return {
@@ -984,6 +1037,14 @@ function validarMedidasPiezaBase(pieza, medida1, medida2, modulo) {
                 if (modulo.tipo === "A" && /\d(H[\d.]+)?RF/.test(codigoMayus) && modulo.grosor) {
                     opciones.push([altoLateral - modulo.grosor * 2, profundidadLateral - 68]);
                 }
+                // Altos MOU: la mayoria baja 30 mm la estructura, pero algunos van al alto del codigo.
+                if (modulo.altoFrente && modulo.altoFrente !== modulo.alto) opciones.push([modulo.altoFrente, profundidadLateral]);
+                // Altos invertidos (INV): laterales entre base y techo (- 2 espesores); con base decorativa BDEC, - 1.
+                if (tieneTokenCodigo(codigoMayus, "INV") && modulo.grosor) {
+                    opciones.push([altoLateral - modulo.grosor * 2, profundidadLateral], [altoLateral - modulo.grosor, profundidadLateral]);
+                }
+                // Bastidor BSX de linea MCS (H205, H240): 82 de fondo.
+                if (modulo.tipo === "BSX") opciones.push([altoLateral, 82]);
                 // Esquinero en L con lados P6P4 / P4P6: un lateral de 420.
                 if (modulo.tipo === "ECL" && /P6P4|P4P6/.test(codigoMayus)) opciones.push([altoLateral, 420]);
                 // Bastidor BSX con Novak: laterales con zocalo de 126 (H11 = 2246).
@@ -1020,6 +1081,8 @@ function validarMedidasPiezaBase(pieza, medida1, medida2, modulo) {
                 const anchoRespaldo = modulo.ancho - (modulo.grosor * 2) + 10;
                 const altoRespaldo = modulo.alto - (modulo.grosor * 2) + 10;
                 const altosRespaldo = tieneTokenCodigo(String(modulo.cod || "").toUpperCase(), "STC") ? [altoRespaldo, altoRespaldo - 30] : [altoRespaldo];
+                // Altos MOU: el respaldo puede ir con el alto del codigo (sin los 30 mm de la estructura).
+                if (modulo.altoFrente && modulo.altoFrente !== modulo.alto) altosRespaldo.push(modulo.altoFrente - (modulo.grosor * 2) + 10);
                 const ok = altosRespaldo.some(alto => coincideParMedidas(medida1, medida2, anchoRespaldo, alto));
 
                 return {
@@ -1099,6 +1162,10 @@ function profundidadRepisaMovil(modulo) {
             if (profundidad <= 110) return profundidad;
             // RAS: repisas al filo frontal (profundidad - ajuste - fugas - respaldo = -25).
             if (esRas(modulo)) return profundidad - 25;
+            // Modulos US: repisa movil a profundidad - 45 (P6 = 535, P3 = 275).
+            if (tieneTokenCodigo(String(modulo.cod || "").toUpperCase(), "US")) return profundidad - 45;
+            // Botellero BOT (P1.6): repisa a la profundidad total - 50.
+            if (modulo.tipo === "BOT") return (modulo.profundidadTotal || profundidad) - 50;
             return profundidad <= 350 ? profundidad - 70 : profundidad - 110;
         }
 
@@ -1197,6 +1264,8 @@ function alturasPermitidasOreja(modulo, tipoOreja) {
                 else if (descuento === "OA") alturas = tipoOreja === "OA" ? [base - 3] : [base];
                 else alturas = [base, base - 3];
             }
+            // Altos MOU: la oreja puede ir con el alto del codigo.
+            if (modulo.altoFrente && modulo.altoFrente !== alto) alturas.push(modulo.altoFrente, modulo.altoFrente - 3);
             // La OA no lleva descuento Henzo: acompana el alto real del modulo.
             if (tipoOreja === "OA" && alto && alto !== base) alturas.push(alto, alto - 3);
             return [...new Set(alturas)];
@@ -1392,8 +1461,8 @@ function esFrenteFalso(pieza) {
 // Piezas de sistemas de gaveta, medidas contra el ancho interno (ancho - 2 espesores - 1).
 // Deducido de 20 despieces reales. FI = gaveta interna tras puerta: descuenta 37 mm mas.
 const SISTEMAS_GAVETA = {
-    SS: { nombre: "Slim", FON: { d: 19, h: [490] }, POS: { d: 40, h: [63, 101, 199, 300, 380, 435] }, FRI: { d: 3, h: [110, 240] }, FRI_FI: { d: 34, h: [135, 116] } },
-    SB: { nombre: "SB", FON: { d: [31, 25], h: [498, 530] }, POS: { d: [31, 25], h: [100, 199, 70] }, FRI: { d: [-3, 3], h: [100] }, FRI_FI: { d: 34, h: [135, 116] } },
+    SS: { nombre: "Slim", FON: { d: 19, h: [490] }, POS: { d: 40, h: [63, 101, 199, 300, 380, 435] }, FRI: { d: 3, h: [110, 240] }, FRI_FI: { d: [34, 31], h: [135, 116] } },
+    SB: { nombre: "SB", FON: { d: [31, 25], h: [498, 530] }, POS: { d: [31, 25], h: [100, 199, 70] }, FRI: { d: [3, -3], h: [100] }, FRI_FI: { d: [34, 31], h: [135, 116] } },
     SM: { nombre: "Metabox", FON: { d: 31, h: [483, 498, 268] }, POS: { d: 31, h: [71, 103, 199] }, FRI: { d: 63, h: [61] } },
     SL: { nombre: "Legrabox", FON: { d: 34, h: [490, 260] }, POS: { d: 37, h: [148, 63] } },
     SI: { nombre: "Sistema invisible", FON: { d: [35, 41], h: [475, 425] }, POS: { d: [35, 41], h: [105, 185, 65, 255, 75, 60] }, FRI_FI: { d: 31, h: [135] } },
